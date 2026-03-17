@@ -523,6 +523,7 @@ const vertexShader = `
   attribute vec3 aColor;
   attribute vec3 aVelocity;
   attribute vec3 aTarget;
+  attribute vec3 aLogo;
   attribute float aPhase;
 
   uniform float uTime;
@@ -531,35 +532,40 @@ const vertexShader = `
 
   varying vec3 vColor;
   varying float vAlpha;
+  varying float vLogoProg;
 
   void main() {
-    // Lerp from current chaos position toward target graph position
-    vec3 chaosPos = position + aVelocity * sin(uTime * 0.4 + aPhase) * (1.0 - uProgress) * 0.6;
-    vec3 pos = mix(chaosPos, aTarget, uProgress);
+    // Stage 1: chaos → cosmic graph (0 → 0.8)
+    float graphProg = smoothstep(0.0, 0.8, uProgress);
+    // Stage 2: graph → logo (0.75 → 1.0)
+    float logoProg  = smoothstep(0.75, 1.0, uProgress);
 
-    // Gentle orbit for CTA state (progress near 1)
-    float orbit = smoothstep(0.85, 1.0, uProgress);
-    float angle = uTime * 0.3 + aPhase;
-    float r = length(pos.xy) * orbit * 0.15;
-    pos.x += sin(angle + aPhase * 6.28) * r;
-    pos.y += cos(angle * 0.7 + aPhase * 6.28) * r;
+    vec3 chaosPos = position + aVelocity * sin(uTime * 0.4 + aPhase) * (1.0 - graphProg) * 0.6;
+    vec3 graphPos = mix(chaosPos, aTarget, graphProg);
+    vec3 pos      = mix(graphPos, aLogo, logoProg);
+
+    // Subtle breathing pulse in logo state
+    float pulse = logoProg * sin(uTime * 2.0 + aPhase * 3.14159) * 0.018;
+    pos.z += pulse;
 
     vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPos;
 
     float dist = -mvPos.z;
     float sizeAttenuation = 1.0 / (dist * 0.12 + 0.5);
-    gl_PointSize = aSize * uPixelRatio * sizeAttenuation * clamp(1.0 - uProgress * 0.3, 0.5, 1.0);
+    float logoBoost = 1.0 + logoProg * 0.5;
+    gl_PointSize = aSize * uPixelRatio * sizeAttenuation * clamp(1.0 - graphProg * 0.3 + logoProg * 0.3, 0.5, 1.3) * logoBoost;
 
     vColor = aColor;
-    // fade based on distance from camera
     vAlpha = clamp(1.0 - dist * 0.04, 0.2, 1.0);
+    vLogoProg = logoProg;
   }
 `;
 
 const fragmentShader = `
   varying vec3 vColor;
   varying float vAlpha;
+  varying float vLogoProg;
 
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
@@ -571,8 +577,10 @@ const fragmentShader = `
     float glow   = pow(1.0 - dist * 2.0, 3.5);
     float alpha  = (core * 0.9 + glow * 0.6) * vAlpha;
 
-    // Additive-style boost for glow color
-    vec3 col = vColor + vColor * glow * 1.2;
+    // Cyan tint boost as logo forms
+    vec3 logoTint = vec3(0.24, 0.89, 1.0); // --cyan #3de3ff
+    vec3 col = mix(vColor, logoTint * 0.85, vLogoProg * 0.45);
+    col = col + col * glow * (1.2 + vLogoProg * 0.8);
 
     gl_FragColor = vec4(col, alpha);
   }
@@ -581,12 +589,13 @@ const fragmentShader = `
 // ─── GEOMETRY ───────────────────────────────────────────────────────────────
 const geometry = new THREE.BufferGeometry();
 
-const positions  = new Float32Array(PARTICLE_COUNT * 3);
-const colors     = new Float32Array(PARTICLE_COUNT * 3);
-const sizes      = new Float32Array(PARTICLE_COUNT);
-const velocities = new Float32Array(PARTICLE_COUNT * 3);
-const targets    = new Float32Array(PARTICLE_COUNT * 3);
-const phases     = new Float32Array(PARTICLE_COUNT);
+const positions   = new Float32Array(PARTICLE_COUNT * 3);
+const colors      = new Float32Array(PARTICLE_COUNT * 3);
+const sizes       = new Float32Array(PARTICLE_COUNT);
+const velocities  = new Float32Array(PARTICLE_COUNT * 3);
+const targets     = new Float32Array(PARTICLE_COUNT * 3);
+const logoTargets = new Float32Array(PARTICLE_COUNT * 3);
+const phases      = new Float32Array(PARTICLE_COUNT);
 
 // Color palette: navy, royal, cyan, sky, lavender
 const palette = [
@@ -597,6 +606,46 @@ const palette = [
   new THREE.Color('#889beb'),
   new THREE.Color('#2d84ef'),
 ];
+
+// ── Sample logo shape from SVG path via offscreen canvas ─────────────────────
+function sampleLogoTargets(count) {
+  const svgW = 200, svgH = 212;
+  const offscreen = document.createElement('canvas');
+  offscreen.width = svgW; offscreen.height = svgH;
+  const ctx = offscreen.getContext('2d');
+
+  ctx.fillStyle = '#fff';
+  // SimplaDocs S symbol path (viewBox 0 0 199.89 211)
+  const logoPath = new Path2D('M58.04,172.6c-1.32,0-2.56-.58-3.32-1.56-1.27-1.64-1.13-3.96.33-5.42l35.03-35.03h-32.13c-.25,0-.49-.03-.74-.07l-.17-.04c-.18-.04-.4-.1-.61-.19,0,0-.31-.14-.37-.17l-.21-.13c-.13-.08-.19-.12-.26-.17-.07-.05-.14-.11-.2-.16-.97-.78-1.52-1.94-1.52-3.17v-41.97c0-1.08.4-2.07,1.12-2.84l.1-.11,41.97-41.97c.79-.79,1.83-1.22,2.94-1.22h41.84c1.36,0,2.62.6,3.38,1.6,1.24,1.63,1.08,3.94-.36,5.38l-35.03,35.03h32.23l.16.02c.08,0,.24.02.4.04.12.02.22.04.33.07.13.03.26.07.4.12.12.04.24.09.36.15.11.05.22.11.33.17.12.07.23.14.34.23l.09.05.05.04c.07.06.14.12.2.19.08.06.22.21.36.36.08.1.13.15.17.21.53.7.81,1.55.81,2.43v42.14c-.01.24-.04.46-.08.67-.04.18-.09.34-.14.5l-.09.26c-.08.2-.19.38-.29.56-.01.03-.05.09-.09.16-.15.22-.32.43-.51.62l-42,42c-.77.77-1.8,1.2-2.89,1.2h-41.9ZM98.29,164.42l33.79-33.83h-30.44l-33.83,33.83h30.48ZM137.86,122.42v-28.04l-28.04,28.04h28.04ZM98.29,122.42l33.79-33.83h-30.44l-33.83,33.83h30.48ZM62.03,116.63l28.04-28.04h-28.04v28.04ZM98.29,80.41l33.79-33.83h-30.44l-33.83,33.83h30.48Z');
+  ctx.fill(logoPath);
+
+  const imgData = ctx.getImageData(0, 0, svgW, svgH);
+  const filled = [];
+  for (let y = 0; y < svgH; y++) {
+    for (let x = 0; x < svgW; x++) {
+      if (imgData.data[(y * svgW + x) * 4 + 3] > 128) {
+        filled.push(x, y);
+      }
+    }
+  }
+
+  const scale = 0.046;
+  const cx = svgW / 2, cy = svgH / 2;
+  const pts = [];
+  const pairCount = filled.length / 2;
+
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * pairCount) * 2;
+    const px = filled[idx]     + Math.random() - 0.5;
+    const py = filled[idx + 1] + Math.random() - 0.5;
+    pts.push(
+      (px - cx) * scale,
+      -(py - cy) * scale,    // flip y axis
+      (Math.random() - 0.5) * 0.5
+    );
+  }
+  return pts;
+}
 
 // ── Build target graph (workflow nodes in 3D) ────────────────────────────────
 // Arrange targets in: hub ring, satellite rings, hierarchy levels
@@ -685,6 +734,7 @@ function buildTargetPositions() {
 }
 
 const targetPts = buildTargetPositions();
+const logoPts   = sampleLogoTargets(PARTICLE_COUNT);
 
 for (let i = 0; i < PARTICLE_COUNT; i++) {
   const i3 = i * 3;
@@ -708,6 +758,11 @@ for (let i = 0; i < PARTICLE_COUNT; i++) {
   targets[i3 + 1] = targetPts[ti * 3 + 1];
   targets[i3 + 2] = targetPts[ti * 3 + 2];
 
+  // Logo target position
+  logoTargets[i3]     = logoPts[i * 3];
+  logoTargets[i3 + 1] = logoPts[i * 3 + 1];
+  logoTargets[i3 + 2] = logoPts[i * 3 + 2];
+
   // Color
   const col = palette[Math.floor(Math.random() * palette.length)].clone();
   // Slightly randomize brightness
@@ -728,6 +783,7 @@ geometry.setAttribute('aColor',    new THREE.BufferAttribute(colors, 3));
 geometry.setAttribute('aSize',     new THREE.BufferAttribute(sizes, 1));
 geometry.setAttribute('aVelocity', new THREE.BufferAttribute(velocities, 3));
 geometry.setAttribute('aTarget',   new THREE.BufferAttribute(targets, 3));
+geometry.setAttribute('aLogo',     new THREE.BufferAttribute(logoTargets, 3));
 geometry.setAttribute('aPhase',    new THREE.BufferAttribute(phases, 1));
 
 // ─── MATERIAL ────────────────────────────────────────────────────────────────
@@ -747,49 +803,6 @@ const material = new THREE.ShaderMaterial({
 const particles = new THREE.Points(geometry, material);
 scene.add(particles);
 
-// ─── CONNECTION LINES ─────────────────────────────────────────────────────────
-// We'll build a line mesh that shows connections between graph nodes.
-// Recomputed once at organization/scale state and faded in.
-const linePositions = [];
-// Inner-ring to hub
-const innerNodes = 6;
-for (let n = 0; n < innerNodes; n++) {
-  const angle = (n / innerNodes) * Math.PI * 2;
-  linePositions.push(0, 0, 0, Math.cos(angle) * 2.2, Math.sin(angle) * 2.2, 0);
-}
-// Inner ring connections (ring)
-for (let n = 0; n < innerNodes; n++) {
-  const a1 = (n / innerNodes) * Math.PI * 2;
-  const a2 = ((n + 1) / innerNodes) * Math.PI * 2;
-  linePositions.push(
-    Math.cos(a1) * 2.2, Math.sin(a1) * 2.2, 0,
-    Math.cos(a2) * 2.2, Math.sin(a2) * 2.2, 0
-  );
-}
-// Inner to mid connections
-const midNodes = 10;
-for (let n = 0; n < midNodes; n++) {
-  const a2 = (n / midNodes) * Math.PI * 2 + 0.31;
-  const nearest = Math.round((a2 / (Math.PI * 2)) * innerNodes) % innerNodes;
-  const a1 = (nearest / innerNodes) * Math.PI * 2;
-  linePositions.push(
-    Math.cos(a1) * 2.2, Math.sin(a1) * 2.2, 0,
-    Math.cos(a2) * 4.0, Math.sin(a2) * 4.0, 0
-  );
-}
-
-const lineGeo = new THREE.BufferGeometry();
-lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3));
-
-const lineMat = new THREE.LineBasicMaterial({
-  color: 0x3de3ff,
-  transparent: true,
-  opacity: 0,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-});
-const lines = new THREE.LineSegments(lineGeo, lineMat);
-scene.add(lines);
 
 // ─── AMBIENT GLOW PLANES ───────────────────────────────────────────────────
 // Soft radial fog lights to add atmosphere
@@ -869,20 +882,16 @@ document.querySelectorAll('.panel').forEach((panel, i) => {
 });
 
 // ─── CAMERA ANIMATION ─────────────────────────────────────────────────────────
-// Scroll zones: 0–0.2 z=8, 0.4–0.6 z=20, 0.8–1.0 z=12
+// Scroll zones: 0–0.2 z=8, 0.4–0.6 z=20, 0.8→1.0 pull back to z=10 for logo
 function getCameraZ(p) {
   if (p < 0.2)  return 8;
   if (p < 0.4)  return 8 + (p - 0.2) / 0.2 * 12;
   if (p < 0.6)  return 20;
   if (p < 0.8)  return 20 - (p - 0.6) / 0.2 * 8;
-  return 12;
+  if (p < 1.0)  return 12 - (p - 0.8) / 0.2 * 2;
+  return 10;
 }
 
-function getLineOpacity(p) {
-  if (p < 0.35) return 0;
-  if (p < 0.55) return (p - 0.35) / 0.2;
-  return 1;
-}
 
 function getGlowOpacity(p) {
   if (p < 0.5) return 0.04;
@@ -918,9 +927,6 @@ function startLoop() {
     camera.position.y += (targetCamY - camera.position.y) * 0.008;
     camera.lookAt(0, 0, 0);
 
-    // Line opacity
-    lineMat.opacity = getLineOpacity(scrollProgress);
-
     // Glow
     glowMat.opacity = getGlowOpacity(scrollProgress);
 
@@ -930,14 +936,6 @@ function startLoop() {
     const bgB = 41 + scrollProgress * 10;
     renderer.setClearColor(new THREE.Color(`rgb(${Math.round(bgR)},${Math.round(bgG)},${Math.round(bgB)})`), 1);
 
-    // Pulse lines with time
-    if (lineMat.opacity > 0) {
-      lineMat.color.setHSL(
-        0.54 + Math.sin(time * 0.5) * 0.04,
-        0.9,
-        0.6 + Math.sin(time * 1.2) * 0.1
-      );
-    }
 
     renderer.render(scene, camera);
   }

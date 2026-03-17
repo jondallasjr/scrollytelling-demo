@@ -620,6 +620,7 @@ let renderer, scene, camera;
 let gridGroup, diag1, diag2, bridgeTube, sShape;
 let particles, particlesBurst;
 let ghostS;
+let sEdges, sEdgesMat, sFaceEdges, sFaceEdgesMat;
 let animFrameId;
 
 const W = window.innerWidth;
@@ -983,6 +984,33 @@ const sGlowMat = new THREE.MeshBasicMaterial({
 const sGlow = new THREE.Mesh(sGlowGeo, sGlowMat);
 scene.add(sGlow);
 
+// ─── CONSTRUCTION LINES — edgework overlay on the extruded S ─────────────────
+// Full edge skeleton (extrusion + bevel facets) — cyan, additive
+const sEdgesGeo = new THREE.EdgesGeometry(finalSGeo, 8); // 8° threshold shows bevel lines
+sEdgesMat = new THREE.LineBasicMaterial({
+  color: 0x3de3ff,
+  transparent: true,
+  opacity: 0.0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+sEdges = new THREE.LineSegments(sEdgesGeo, sEdgesMat);
+scene.add(sEdges);
+
+// Front-face silhouette — the clean 2D logo outline, pushed slightly forward
+const sFaceGeo = new THREE.ShapeGeometry(S_SHAPES);
+const sFaceEdgesRaw = new THREE.EdgesGeometry(sFaceGeo, 1);
+sFaceEdgesMat = new THREE.LineBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+sFaceEdges = new THREE.LineSegments(sFaceEdgesRaw, sFaceEdgesMat);
+sFaceEdges.position.z = 0.29; // just in front of extruded face
+scene.add(sFaceEdges);
+
 // ─── PARTICLE BURST (junction) ────────────────────────────────────────────────
 const burstCount = 300;
 const burstPositions = new Float32Array(burstCount * 3);
@@ -1195,6 +1223,13 @@ function animate(time) {
   sGlowMat.opacity = sProgress * glowPulse;
   finalSMat.emissiveIntensity = 1.2 + Math.sin(time * 0.0015) * 0.3;
 
+  // Construction lines — edge skeleton fades in with S, slight flicker
+  const edgePulse = 0.55 + Math.sin(time * 0.0018) * 0.1;
+  sEdgesMat.opacity = sProgress * edgePulse;
+  // Front-face outline — brighter, comes in a beat after the extrusion fills
+  const faceProg = easeInOut(clamp(mapRange(sp, 0.70, 0.83, 0, 1), 0, 1));
+  sFaceEdgesMat.opacity = faceProg * 0.75;
+
   // Hide diagonals + bridge when S emerges (they're "absorbed")
   const absorbT = easeInOut(clamp(mapRange(sp, 0.68, 0.76, 0, 1), 0, 1));
   diag1Mat.opacity *= (1 - absorbT * 0.9);
@@ -1203,6 +1238,9 @@ function animate(time) {
   diag1GlowMat.opacity *= (1 - absorbT);
   diag2GlowMat.opacity *= (1 - absorbT);
   bridgeGlowMat.opacity *= (1 - absorbT);
+
+  // Construction lines also absorb the diagonals' glow colour during transition
+  // (no action needed — they fade in independently above)
 
   // ─── Orbiting particles
   const orbitOpacity = clamp(mapRange(sp, 0.68, 0.78, 0, 0.7), 0, 0.7);
