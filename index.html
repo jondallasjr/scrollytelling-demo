@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scrollytelling Demo Lab</title>
+  <style>
+    :root {
+      --bg: #010108;
+      --c1: #00e5ff;
+      --c2: #aa00ff;
+      --c3: #ff1744;
+      --c4: #ffd600;
+      --c5: #69f0ae;
+      --text: #f0f0f8;
+      --muted: #5a5a7a;
+      --card-bg: rgba(255,255,255,0.03);
+      --card-border: rgba(255,255,255,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title span { color: var(--c1); }
+    .hero-sub {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 500px;
+      line-height: 1.7;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 4rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+    .section-title span { color: var(--c1); }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--card-border);
+      border: 1px solid var(--card-border);
+    }
+    .grid-sm {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .card {
+      background: var(--bg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: '↗';
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .card:hover {
+      background: rgba(0,229,255,0.04);
+    }
+    .card:hover::after { opacity: 1; }
+    .card-num {
+      font-family: monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 400;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .card-accent { color: var(--c2); }
+    .card-accent-green { color: var(--c5); }
+    .card-accent-yellow { color: var(--c4); }
+    .card-accent-red { color: var(--c3); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--card-border);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 4rem 2rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <p class="hero-label">Demo Lab / Index</p>
+    <h1 class="hero-title">Scrollytelling<br><span>Experiments</span></h1>
+    <p class="hero-sub">A collection of scrollytelling demos, interactive experiences, and visual experiments.</p>
+  </div>
+
+  <!-- ── SCROLLYTELLING DEMOS ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">01</span>
+      <h2 class="section-title">First Demos — <span>30 Experiments</span></h2>
+    </div>
+    <div class="grid grid-sm">
+      <a href="first-demos/" class="card">
+        <span class="card-num">00 — INDEX</span>
+        <span class="card-title">All 30 Demos</span>
+        <span class="card-desc">Full gallery view with all experiments listed</span>
+      </a>
+      <a href="first-demos/01-foundation/index.html" class="card">
+        <span class="card-num">01</span>
+        <span class="card-title">Foundation</span>
+        <span class="card-desc">CSS scroll-driven basics</span>
+      </a>
+      <a href="first-demos/02-gsap-awakening/index.html" class="card">
+        <span class="card-num">02</span>
+        <span class="card-title">GSAP Awakening</span>
+        <span class="card-desc">ScrollTrigger animations</span>
+      </a>
+      <a href="first-demos/03-canvas-depths/index.html" class="card">
+        <span class="card-num">03</span>
+        <span class="card-title">Canvas Depths</span>
+        <span class="card-desc">Particle systems on canvas</span>
+      </a>
+      <a href="first-demos/04-interactive-chamber/index.html" class="card">
+        <span class="card-num">04</span>
+        <span class="card-title">Interactive Chamber</span>
+        <span class="card-desc">Pointer-reactive environment</span>
+      </a>
+      <a href="first-demos/05-webgl-cosmos/index.html" class="card">
+        <span class="card-num">05</span>
+        <span class="card-title card-accent">WebGL Cosmos</span>
+        <span class="card-desc">Three.js star field</span>
+      </a>
+      <a href="first-demos/06-full-immersion/index.html" class="card">
+        <span class="card-num">06</span>
+        <span class="card-title">Full Immersion</span>
+        <span class="card-desc">Viewport-filling narrative</span>
+      </a>
+      <a href="first-demos/07-morphing-identity/index.html" class="card">
+        <span class="card-num">07</span>
+        <span class="card-title">Morphing Identity</span>
+        <span class="card-desc">SVG shape transitions</span>
+      </a>
+      <a href="first-demos/08-data-journalism/index.html" class="card">
+        <span class="card-num">08</span>
+        <span class="card-title card-accent-yellow">Data Journalism</span>
+        <span class="card-desc">Scroll-driven data viz</span>
+      </a>
+      <a href="first-demos/09-terminal-os/index.html" class="card">
+        <span class="card-num">09</span>
+        <span class="card-title">Terminal OS</span>
+        <span class="card-desc">CLI-style interface narrative</span>
+      </a>
+      <a href="first-demos/10-audio-visual/index.html" class="card">
+        <span class="card-num">10</span>
+        <span class="card-title card-accent">Audio Visual</span>
+        <span class="card-desc">Sound + visual synchrony</span>
+      </a>
+      <a href="first-demos/11-css-creatures/index.html" class="card">
+        <span class="card-num">11</span>
+        <span class="card-title">CSS Creatures</span>
+        <span class="card-desc">Pure CSS character animation</span>
+      </a>
+      <a href="first-demos/12-parallax-depth/index.html" class="card">
+        <span class="card-num">12</span>
+        <span class="card-title">Parallax Depth</span>
+        <span class="card-desc">Layered depth scrolling</span>
+      </a>
+      <a href="first-demos/13-motion-typography/index.html" class="card">
+        <span class="card-num">13</span>
+        <span class="card-title card-accent-red">Motion Typography</span>
+        <span class="card-desc">Kinetic text animations</span>
+      </a>
+      <a href="first-demos/14-liquid-transitions/index.html" class="card">
+        <span class="card-num">14</span>
+        <span class="card-title card-accent">Liquid Transitions</span>
+        <span class="card-desc">Fluid morphing between scenes</span>
+      </a>
+      <a href="first-demos/15-generative-art/index.html" class="card">
+        <span class="card-num">15</span>
+        <span class="card-title">Generative Art</span>
+        <span class="card-desc">Algorithmic visual systems</span>
+      </a>
+      <a href="first-demos/16-scroll-cinema/index.html" class="card">
+        <span class="card-num">16</span>
+        <span class="card-title card-accent-yellow">Scroll Cinema</span>
+        <span class="card-desc">Cinematic scroll sequences</span>
+      </a>
+      <a href="first-demos/17-micro-interactions/index.html" class="card">
+        <span class="card-num">17</span>
+        <span class="card-title">Micro Interactions</span>
+        <span class="card-desc">Detail-level feedback systems</span>
+      </a>
+      <a href="first-demos/18-svg-morphing/index.html" class="card">
+        <span class="card-num">18</span>
+        <span class="card-title card-accent">SVG Morphing</span>
+        <span class="card-desc">Path interpolation animations</span>
+      </a>
+      <a href="first-demos/19-zen-simplicity/index.html" class="card">
+        <span class="card-num">19</span>
+        <span class="card-title card-accent-green">Zen Simplicity</span>
+        <span class="card-desc">Minimal, meditative pacing</span>
+      </a>
+      <a href="first-demos/20-data-portrait/index.html" class="card">
+        <span class="card-num">20</span>
+        <span class="card-title">Data Portrait</span>
+        <span class="card-desc">Personal data visualization</span>
+      </a>
+      <a href="first-demos/21-worldbuilding/index.html" class="card">
+        <span class="card-num">21</span>
+        <span class="card-title card-accent">Worldbuilding</span>
+        <span class="card-desc">Immersive narrative universe</span>
+      </a>
+      <a href="first-demos/22-synesthesia/index.html" class="card">
+        <span class="card-num">22</span>
+        <span class="card-title card-accent-red">Synesthesia</span>
+        <span class="card-desc">Cross-sensory design</span>
+      </a>
+      <a href="first-demos/23-turing-test/index.html" class="card">
+        <span class="card-num">23</span>
+        <span class="card-title">Turing Test</span>
+        <span class="card-desc">Human vs machine narrative</span>
+      </a>
+      <a href="first-demos/24-memory-palace/index.html" class="card">
+        <span class="card-num">24</span>
+        <span class="card-title card-accent-yellow">Memory Palace</span>
+        <span class="card-desc">Spatial memory architecture</span>
+      </a>
+      <a href="first-demos/25-time-perception/index.html" class="card">
+        <span class="card-num">25</span>
+        <span class="card-title card-accent">Time Perception</span>
+        <span class="card-desc">Tempo and duration experiments</span>
+      </a>
+      <a href="first-demos/26-emergence/index.html" class="card">
+        <span class="card-num">26</span>
+        <span class="card-title card-accent-green">Emergence</span>
+        <span class="card-desc">Complex systems from simple rules</span>
+      </a>
+      <a href="first-demos/27-body-map/index.html" class="card">
+        <span class="card-num">27</span>
+        <span class="card-title">Body Map</span>
+        <span class="card-desc">Anatomical data visualization</span>
+      </a>
+      <a href="first-demos/28-philosophy-deep-dive/index.html" class="card">
+        <span class="card-num">28</span>
+        <span class="card-title card-accent">Philosophy Deep Dive</span>
+        <span class="card-desc">Long-form ideas exploration</span>
+      </a>
+      <a href="first-demos/29-dream-machine/index.html" class="card">
+        <span class="card-num">29</span>
+        <span class="card-title card-accent-red">Dream Machine</span>
+        <span class="card-desc">Surreal visual sequence</span>
+      </a>
+      <a href="first-demos/30-observatory/index.html" class="card">
+        <span class="card-num">30</span>
+        <span class="card-title card-accent-yellow">Observatory</span>
+        <span class="card-desc">Final synthesis experience</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── SIMPLADOCS ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">02</span>
+      <h2 class="section-title">SimplaDocs — <span>Brand Experiences</span></h2>
+    </div>
+    <div class="grid">
+      <a href="simpladocs/simpladocs-scrollytelling.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title card-accent">Scrollytelling Experience</span>
+        <span class="card-desc">30-visualization operations-focused narrative</span>
+      </a>
+      <a href="simpladocs/escher-machine.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title card-accent">Escher Machine</span>
+        <span class="card-desc">Logo construction animation — impossible geometry made real</span>
+      </a>
+      <a href="simpladocs/workflow-cosmos.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title card-accent">Workflow Cosmos</span>
+        <span class="card-desc">Orbital visualization of connected workflows</span>
+      </a>
+      <a href="simpladocs/solutions.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title card-accent">Solutions</span>
+        <span class="card-desc">The Impossible Connection — dark scrollytelling</span>
+      </a>
+      <a href="simpladocs/data-atlas.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title card-accent">Data Atlas</span>
+        <span class="card-desc">Geographic data visualization experience</span>
+      </a>
+      <a href="simpladocs/simpladocs-official-website.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title">Official Website</span>
+        <span class="card-desc">Exported simpladocs.com homepage</span>
+      </a>
+      <a href="simpladocs/brand.html" class="card">
+        <span class="card-num">SIMPLADOCS</span>
+        <span class="card-title">Brand Guidelines</span>
+        <span class="card-desc">Complete brand system — colors, type, elements, voice</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── RETS 2026 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">03</span>
+      <h2 class="section-title">RETS 2026 — <span>Presentation</span></h2>
+    </div>
+    <div class="grid">
+      <a href="RETS 2026 Presentation/output/website/index.html" class="card">
+        <span class="card-num">RETS 2026 — MAIN</span>
+        <span class="card-title card-accent-yellow">Full Presentation</span>
+        <span class="card-desc">Complete scrollytelling presentation site</span>
+      </a>
+      <a href="RETS 2026 Presentation/output/performance/index.html" class="card">
+        <span class="card-num">RETS 2026</span>
+        <span class="card-title card-accent-yellow">Performance Version</span>
+        <span class="card-desc">Live performance format</span>
+      </a>
+      <a href="RETS 2026 Presentation/output/propiq-demo.html" class="card">
+        <span class="card-num">RETS 2026</span>
+        <span class="card-title card-accent-yellow">PropIQ Demo</span>
+        <span class="card-desc">AI-powered property intelligence demo</span>
+      </a>
+      <a href="RETS 2026 Presentation/output/website/segments/index.html" class="card">
+        <span class="card-num">RETS 2026 — SEGMENTS</span>
+        <span class="card-title">All Segments</span>
+        <span class="card-desc">Individual story segments index</span>
+      </a>
+      <a href="RETS 2026 Presentation/ai-image-enhacement-demo/output/listing/index.html" class="card">
+        <span class="card-num">RETS 2026</span>
+        <span class="card-title card-accent-yellow">AI Image Enhancement</span>
+        <span class="card-desc">Before/after listing photo enhancement demo</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    JON DALLAS · SCROLLYTELLING DEMO LAB · 2026
+  </footer>
+
+</body>
+</html>
