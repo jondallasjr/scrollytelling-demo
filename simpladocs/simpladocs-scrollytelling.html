@@ -1,0 +1,4090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimplaDocs — Operations Built to Scale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   CSS CUSTOM PROPERTIES — BRAND TOKENS
+   ============================================= */
+:root {
+  --navy:        #0d2d52;
+  --navy-deep:   #071829;
+  --royal:       #2e57ca;
+  --cyan:        #3de3ff;
+  --sky:         #199bde;
+  --lavender:    #889beb;
+  --medium:      #2d84ef;
+  --ice:         #e4f0fb;
+  --bg:          #f1f3f6;
+  --white:       #ffffff;
+  --grad:        linear-gradient(90deg, #2e57ca, #3de3ff);
+  --grad-hover:  linear-gradient(90deg, #003566, #2e7cf7);
+  --grad-diag:   linear-gradient(135deg, #2e57ca, #3de3ff);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --dur:         0.7s;
+}
+
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rethink Sans', sans-serif;
+  font-weight: 400;
+  color: var(--navy);
+  background-color: var(--bg);
+  overflow-x: hidden;
+  /* Construction grid texture */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M0 0h80v80H0z' fill='none'/%3E%3Cpath d='M0 0h80M0 80h80M0 0v80M80 0v80' stroke='rgba(13,45,82,0.055)' stroke-width='1'/%3E%3Cpath d='M0 0l80 80M80 0L0 80' stroke='rgba(13,45,82,0.03)' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, h4 { font-family: 'Rethink Sans', sans-serif; line-height: 1.15; }
+p { line-height: 1.65; }
+em, .serif { font-family: 'Instrument Serif', serif; font-style: italic; }
+
+/* =============================================
+   NAVIGATION
+   ============================================= */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(13,45,82,0.08);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.nav-logo img { height: 32px; display: block; }
+
+/* ===== PHOSPHOR ICON SIZES ===== */
+.ph { font-size: 20px; line-height: 1; }
+.ph-sm { font-size: 14px; }
+.ph-lg { font-size: 28px; }
+.ph-xl { font-size: 36px; }
+.wf-node-circle .ph { font-size: 22px; }
+.process-check .ph { font-size: 18px; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: 'Rethink Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--navy);
+  text-decoration: none;
+  padding: 6px 16px;
+  border-radius: 100px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-links a:hover {
+  background: var(--ice);
+  color: var(--royal);
+}
+
+.nav-cta {
+  background: var(--grad);
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.nav-cta:hover {
+  background: var(--grad-hover) !important;
+}
+
+/* =============================================
+   SHARED UTILITIES
+   ============================================= */
+.section { padding: 100px 40px; }
+.section-inner { max-width: 1200px; margin: 0 auto; }
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--royal);
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+.section-title.white { color: white; }
+.section-subtitle {
+  font-size: 1.125rem;
+  color: #4a6080;
+  max-width: 600px;
+  margin-bottom: 60px;
+}
+.section-subtitle.white { color: var(--ice); }
+
+/* Pill Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-family: 'Rethink Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s;
+}
+
+.btn-primary {
+  background: var(--grad);
+  color: white;
+  box-shadow: 0 4px 24px rgba(46,87,202,0.35);
+}
+
+.btn-primary:hover {
+  background: var(--grad-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(46,87,202,0.5);
+}
+
+.btn-arrow {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+
+/* Dark section base */
+.dark-section {
+  background: var(--navy);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M0 0h80M0 80h80M0 0v80M80 0v80' stroke='rgba(255,255,255,0.05)' stroke-width='1'/%3E%3Cpath d='M0 0l80 80M80 0L0 80' stroke='rgba(255,255,255,0.025)' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.deep-section {
+  background: var(--navy-deep);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M0 0h80M0 80h80M0 0v80M80 0v80' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3Cpath d='M0 0l80 80M80 0L0 80' stroke='rgba(255,255,255,0.02)' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* Animate-in base classes */
+.anim-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.anim-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.anim-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.anim-left.visible { opacity: 1; transform: translateX(0); }
+.anim-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.anim-right.visible { opacity: 1; transform: translateX(0); }
+.anim-scale {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.anim-scale.visible { opacity: 1; transform: scale(1); }
+
+/* Stagger delays */
+.delay-1 { transition-delay: 0.1s !important; }
+.delay-2 { transition-delay: 0.2s !important; }
+.delay-3 { transition-delay: 0.3s !important; }
+.delay-4 { transition-delay: 0.4s !important; }
+.delay-5 { transition-delay: 0.5s !important; }
+.delay-6 { transition-delay: 0.6s !important; }
+
+/* =============================================
+   SECTION 1: HERO
+   ============================================= */
+#hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy-deep);
+}
+
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-escher-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 5%;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 40px;
+  max-width: 900px;
+}
+
+.hero-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeSlideUp 1s var(--ease-out) 0.3s forwards;
+}
+
+.hero-h1 {
+  font-size: clamp(3.5rem, 9vw, 8rem);
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: fadeSlideUp 1s var(--ease-out) 0.5s forwards;
+}
+
+.hero-h1-serif {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(3rem, 7.5vw, 6.8rem);
+  font-weight: 400;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  line-height: 1.05;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeSlideUp 1s var(--ease-out) 0.7s forwards;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--ice);
+  max-width: 560px;
+  margin: 0 auto 48px;
+  font-weight: 400;
+  opacity: 0;
+  animation: fadeSlideUp 1s var(--ease-out) 0.9s forwards;
+}
+
+.hero-cta-wrap {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeSlideUp 1s var(--ease-out) 1.1s forwards;
+}
+
+.btn-outline {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255,255,255,0.3);
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-family: 'Rethink Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn-outline:hover { border-color: var(--cyan); background: rgba(61,227,255,0.1); }
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeIn 1s ease 1.8s forwards;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--cyan));
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.3); }
+}
+
+/* =============================================
+   SECTION 2: THE CHAOS BEFORE
+   ============================================= */
+#chaos {
+  padding: 100px 40px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.chaos-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  height: 500px;
+}
+
+#chaos-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+}
+
+/* =============================================
+   SECTION 3: THE NUMBERS
+   ============================================= */
+#numbers {
+  padding: 100px 40px;
+}
+
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.number-item {
+  text-align: center;
+  padding: 60px 40px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.number-item:last-child { border-right: none; }
+
+.number-val {
+  font-size: clamp(60px, 10vw, 120px);
+  font-weight: 800;
+  line-height: 1;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.number-label {
+  font-size: 1rem;
+  color: var(--ice);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* =============================================
+   SECTION 4: THE IMPOSSIBLE CONNECTION
+   ============================================= */
+#escher-intro {
+  background: white;
+  padding: 100px 40px;
+}
+
+.escher-card {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.escher-symbol-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  background: #f1f3f6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none' stroke='rgba(13,45,82,0.08)' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='40' y2='40' stroke='rgba(13,45,82,0.05)' stroke-width='0.5'/%3E%3C/svg%3E");
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 24px rgba(13,45,82,0.07);
+  transition: box-shadow 0.8s ease;
+}
+.escher-symbol-wrapper.glowing {
+  box-shadow: 0 0 60px rgba(61,227,255,0.18), 0 2px 24px rgba(13,45,82,0.07);
+}
+.escher-symbol-anim {
+  width: 58%;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(24px) scale(0.92);
+  transition: opacity 1.2s ease, transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.escher-symbol-anim svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 32px rgba(13,45,82,0.12));
+}
+.escher-symbol-anim.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.escher-text .section-label { color: var(--royal); }
+.escher-text h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 20px;
+}
+.escher-text p {
+  font-size: 1.05rem;
+  color: #4a6080;
+  margin-bottom: 16px;
+}
+.escher-quote {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--royal);
+  border-left: 3px solid var(--cyan);
+  padding-left: 20px;
+  margin-top: 24px;
+}
+
+/* =============================================
+   SECTION 5: TOOL SPRAWL COLLAPSE
+   ============================================= */
+#collapse {
+  padding: 100px 40px;
+  text-align: center;
+}
+
+#collapse-svg {
+  width: 100%;
+  max-width: 800px;
+  height: 500px;
+  margin: 0 auto;
+  display: block;
+}
+
+/* =============================================
+   SECTION 6: THE PROCESS
+   ============================================= */
+#process {
+  background: white;
+  padding: 100px 40px;
+}
+
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.process-step {
+  position: relative;
+  padding: 40px 28px;
+  border-left: 4px solid var(--ice);
+  background: var(--bg);
+  border-radius: 0 12px 12px 0;
+  transition: border-color 0.4s;
+}
+
+.process-step.active { border-color: var(--royal); }
+
+.process-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--lavender);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.process-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--ice);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  transition: background 0.4s;
+}
+
+.process-step.active .process-icon { background: var(--grad); }
+
+.process-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.process-desc {
+  font-size: 0.9rem;
+  color: #607080;
+  line-height: 1.6;
+}
+
+.process-check {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--grad);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.4s 0.3s;
+}
+
+.process-step.active .process-check { opacity: 1; }
+
+/* =============================================
+   SECTION 7: CUSTOM SOLUTIONS GRID
+   ============================================= */
+#solutions {
+  padding: 100px 40px;
+}
+
+.solutions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.solution-card {
+  background: white;
+  border-radius: 16px;
+  padding: 36px 28px;
+  box-shadow: 0 2px 20px rgba(13,45,82,0.06);
+  border: 1px solid rgba(13,45,82,0.06);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
+}
+
+.solution-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(13,45,82,0.12);
+}
+
+.solution-icon-wrap {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.solution-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+
+.solution-card-desc {
+  font-size: 0.9rem;
+  color: #607080;
+  line-height: 1.6;
+}
+
+/* =============================================
+   SECTION 8: LIVE HIRING PIPELINE (KANBAN)
+   ============================================= */
+#hiring {
+  background: white;
+  padding: 100px 40px;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.kanban-col {
+  background: var(--bg);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kanban-header {
+  background: var(--navy);
+  color: white;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-header-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.kanban-cards {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 320px;
+}
+
+.kanban-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 8px rgba(13,45,82,0.08);
+  border-left: 3px solid var(--royal);
+  font-size: 0.85rem;
+}
+
+.kanban-card-name {
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.kanban-card-role {
+  color: #607080;
+  font-size: 0.78rem;
+}
+
+.kanban-card-tag {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* =============================================
+   SECTION 9: BUDGET VISUALIZATION
+   ============================================= */
+#budget {
+  padding: 100px 40px;
+}
+
+.budget-chart {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.budget-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.budget-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-align: right;
+}
+
+.budget-bar-wrap {
+  height: 36px;
+  background: var(--ice);
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+}
+
+.budget-bar {
+  height: 100%;
+  border-radius: 100px;
+  background: var(--grad);
+  width: 0;
+  transition: width 1.2s var(--ease-out);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+}
+
+.budget-bar-spent {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--royal), var(--sky));
+  width: 0;
+  transition: width 1.2s var(--ease-out);
+}
+
+.budget-pct {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.budget-remaining {
+  margin-top: 32px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 16px rgba(13,45,82,0.06);
+}
+
+.budget-remaining-label {
+  font-size: 0.85rem;
+  color: #607080;
+  font-weight: 500;
+}
+
+.budget-remaining-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =============================================
+   SECTION 10: WORKFLOW AUTOMATION PIPELINE
+   ============================================= */
+#workflow {
+  background: var(--navy);
+  padding: 100px 40px;
+}
+
+#workflow-svg {
+  width: 100%;
+  max-width: 1000px;
+  height: 200px;
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.workflow-nodes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  max-width: 1000px;
+  margin: 40px auto 0;
+}
+
+.wf-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.wf-node-circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+
+.wf-node-circle.active {
+  background: var(--royal);
+  border-color: var(--cyan);
+  box-shadow: 0 0 24px rgba(61,227,255,0.4);
+}
+
+.wf-node-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ice);
+  text-align: center;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.wf-connector {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.15);
+  position: relative;
+  margin-bottom: 42px;
+  max-width: 80px;
+}
+
+.wf-connector-fill {
+  height: 100%;
+  background: var(--grad);
+  width: 0;
+  transition: width 0.6s ease-out;
+}
+
+/* =============================================
+   RESPONSIVE TWEAKS
+   ============================================= */
+/* =============================================
+   MARQUEE STYLES
+   ============================================= */
+.marquee-row {
+  overflow: hidden;
+  width: 100%;
+  padding: 12px 0;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 60px;
+  animation: marqueeLeft 30s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.marquee-reverse {
+  animation: marqueeRight 35s linear infinite;
+}
+
+.marquee-item {
+  font-family: 'Rethink Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.03em;
+  transition: color 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.marquee-item:hover { color: white; }
+
+.marquee-item img.logo-icon {
+  height: 26px;
+  width: auto;
+  display: block;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  filter: brightness(0) invert(1);
+}
+
+.marquee-item:hover img.logo-icon { opacity: 1; }
+
+.marquee-item .logo-text-fallback {
+  display: none;
+}
+
+.marquee-item.text-logo {
+  /* text-only items use existing text styles */
+}
+
+@keyframes marqueeLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* =============================================
+   FAQ STYLES
+   ============================================= */
+.faq-item:hover .faq-q { color: var(--royal); }
+
+@media (max-width: 900px) {
+  .numbers-grid { grid-template-columns: 1fr; }
+  .number-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .escher-card { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; }
+  .solutions-grid { grid-template-columns: 1fr 1fr; }
+  .kanban-board { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .section { padding: 70px 20px; }
+  .solutions-grid { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr; }
+}
+</style>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+</head>
+<body>
+
+<!-- =============================================
+     NAVIGATION
+     ============================================= -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="logo-positive.svg" alt="SimplaDocs" style="height:32px;width:auto;display:block;">
+  </a>
+  <ul class="nav-links">
+    <li><a href="#solutions">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#numbers">Results</a></li>
+    <li><a href="#testimonials">Clients</a></li>
+    <li><a href="#final-cta" class="nav-cta">Let's Talk →</a></li>
+  </ul>
+</nav>
+
+<!-- =============================================
+     SECTION 1: HERO
+     ============================================= -->
+<section id="hero">
+  <canvas id="hero-canvas" aria-hidden="true">Animated brand grid background</canvas>
+  <div class="hero-content">
+    <div class="hero-label">Official Coda Implementation Partner</div>
+    <h1 class="hero-h1">Operations</h1>
+    <span class="hero-h1-serif">built to scale.</span>
+    <p class="hero-subtitle">SimplaDocs builds custom Coda solutions that automate your workflows, connect your tools, and give your team real-time operational clarity.</p>
+    <div class="hero-cta-wrap">
+      <a href="#final-cta" class="btn btn-primary">
+        Let's Talk
+        <span class="btn-arrow">→</span>
+      </a>
+      <a href="#process" class="btn-outline">See How It Works</a>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 2: THE CHAOS BEFORE
+     ============================================= -->
+<section id="chaos" class="section" style="background:var(--navy);">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up" style="color:var(--cyan);">Before SimplaDocs</div>
+    <h2 class="section-title white anim-up delay-1">Your tools aren't talking<br>to each other.</h2>
+    <p class="section-subtitle white anim-up delay-2" style="margin:0 auto 48px;">Slack over here, spreadsheets over there, email threads everywhere. Sound familiar?</p>
+    <div class="chaos-canvas-wrap anim-scale delay-2">
+      <canvas id="chaos-canvas" aria-label="Animated visualization of disconnected tools">Tools chaos visualization</canvas>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 3: THE NUMBERS
+     ============================================= -->
+<section id="numbers" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up" style="color:var(--cyan);">By the Numbers</div>
+      <h2 class="section-title white anim-up delay-1">Results that speak<br><em>for themselves.</em></h2>
+    </div>
+    <div class="numbers-grid">
+      <div class="number-item anim-up delay-1">
+        <span class="number-val" data-target="215" data-prefix="+">0</span>
+        <span class="number-label">Projects Completed</span>
+      </div>
+      <div class="number-item anim-up delay-2">
+        <span class="number-val" data-target="15" data-prefix="+">0</span>
+        <span class="number-label">Years Experience</span>
+      </div>
+      <div class="number-item anim-up delay-3">
+        <span class="number-val" data-target="83" data-suffix="k+" data-prefix="+">0</span>
+        <span class="number-label">Hours Saved</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px;" class="anim-up delay-4">
+      <span class="number-val" style="font-size:clamp(40px,6vw,80px);display:inline-block;" data-target="200" data-suffix="+">0</span>
+      <span class="number-label" style="display:block;margin-top:8px;">Teams Served</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 4: THE IMPOSSIBLE CONNECTION
+     ============================================= -->
+<section id="escher-intro" style="background:white;padding:100px 40px;">
+  <div class="escher-card section-inner">
+    <div class="escher-symbol-wrapper" id="escher-wrapper">
+      <div class="escher-symbol-anim" id="escher-symbol">
+        <svg viewBox="0 0 199.89 211" xmlns="http://www.w3.org/2000/svg" aria-label="SimplaDocs S mark">
+          <path fill="#0d2d52" d="M58.04,172.6c-1.32,0-2.56-.58-3.32-1.56-1.27-1.64-1.13-3.96.33-5.42l35.03-35.03h-32.13c-.25,0-.49-.03-.74-.07l-.17-.04c-.18-.04-.4-.1-.61-.19,0,0-.31-.14-.37-.17l-.21-.13c-.13-.08-.19-.12-.26-.17-.07-.05-.14-.11-.2-.16-.97-.78-1.52-1.94-1.52-3.17v-41.97c0-1.08.4-2.07,1.12-2.84l.1-.11,41.97-41.97c.79-.79,1.83-1.22,2.94-1.22h41.84c1.36,0,2.62.6,3.38,1.6,1.24,1.63,1.08,3.94-.36,5.38l-35.03,35.03h32.23l.16.02c.08,0,.24.02.4.04.12.02.22.04.33.07.13.03.26.07.4.12.12.04.24.09.36.15.11.05.22.11.33.17.12.07.23.14.34.23l.09.05.05.04c.07.06.14.12.2.19.08.06.22.21.36.36.08.1.13.15.17.21.53.7.81,1.55.81,2.43v42.14c-.01.24-.04.46-.08.67-.04.18-.09.34-.14.5l-.09.26c-.08.2-.19.38-.29.56-.01.03-.05.09-.09.16-.15.22-.32.43-.51.62l-42,42c-.77.77-1.8,1.2-2.89,1.2h-41.9ZM98.29,164.42l33.79-33.83h-30.44l-33.83,33.83h30.48ZM137.86,122.42v-28.04l-28.04,28.04h28.04ZM98.29,122.42l33.79-33.83h-30.44l-33.83,33.83h30.48ZM62.03,116.63l28.04-28.04h-28.04v28.04ZM98.29,80.41l33.79-33.83h-30.44l-33.83,33.83h30.48Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="escher-text anim-right">
+      <div class="section-label">The SimplaDocs Symbol</div>
+      <h2>The impossible<br>connection.</h2>
+      <p>Our logo is inspired by M.C. Escher's impossible buildings — two planes that shouldn't connect, bridged into one coherent form.</p>
+      <p>That's exactly what we do for your operations. Systems that seemed impossible to integrate, workflows that felt too complex to automate — we make them work together.</p>
+      <div class="escher-quote">"Two things that shouldn't connect — made real."</div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 5: TOOL SPRAWL COLLAPSE
+     ============================================= -->
+<section id="collapse" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up">One Source of Truth</div>
+    <h2 class="section-title anim-up delay-1">Everything connected.<br><em>Finally.</em></h2>
+    <p class="section-subtitle anim-up delay-2" style="margin:0 auto 48px;">Watch scattered app chaos collapse into one unified Coda workspace.</p>
+    <svg id="collapse-svg" viewBox="0 0 800 500" aria-label="Tool consolidation animation">
+      <defs>
+        <radialGradient id="colGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3de3ff" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#2e57ca" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Nodes will be drawn by JS -->
+    </svg>
+    <p style="font-size:1.1rem;font-weight:600;color:var(--navy);margin-top:20px;" class="anim-up delay-3">From scattered tools to a single source of truth — with Coda at the center.</p>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 6: THE PROCESS
+     ============================================= -->
+<section id="process" style="background:white;padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up">How We Work</div>
+      <h2 class="section-title anim-up delay-1">From idea to <em>live system</em><br>in weeks, not months.</h2>
+    </div>
+    <div class="process-steps">
+      <div class="process-step anim-up delay-1" data-step="0">
+        <div class="process-num">Step 01</div>
+        <div class="process-icon"><i class="ph ph-magnifying-glass"></i></div>
+        <div class="process-title">Discovery</div>
+        <div class="process-desc">We map your workflows, pain points, and goals. No assumptions — just deep listening.</div>
+        <div class="process-check"><i class="ph ph-check ph-sm" style="font-weight:bold;"></i></div>
+      </div>
+      <div class="process-step anim-up delay-2" data-step="1">
+        <div class="process-num">Step 02</div>
+        <div class="process-icon"><i class="ph ph-pencil"></i></div>
+        <div class="process-title">Design</div>
+        <div class="process-desc">We prototype the solution in Coda and validate with your team before building.</div>
+        <div class="process-check"><i class="ph ph-check ph-sm" style="font-weight:bold;"></i></div>
+      </div>
+      <div class="process-step anim-up delay-3" data-step="2">
+        <div class="process-num">Step 03</div>
+        <div class="process-icon"><i class="ph ph-lightning"></i></div>
+        <div class="process-title">Build</div>
+        <div class="process-desc">We build your custom solution — automations, integrations, dashboards, all of it.</div>
+        <div class="process-check"><i class="ph ph-check ph-sm" style="font-weight:bold;"></i></div>
+      </div>
+      <div class="process-step anim-up delay-4" data-step="3">
+        <div class="process-num">Step 04</div>
+        <div class="process-icon"><i class="ph ph-graduation-cap"></i></div>
+        <div class="process-title">Train</div>
+        <div class="process-desc">We hand it off with training so your team can own and evolve it confidently.</div>
+        <div class="process-check"><i class="ph ph-check ph-sm" style="font-weight:bold;"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 7: CUSTOM SOLUTIONS GRID
+     ============================================= -->
+<section id="solutions" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="max-width:600px;margin-bottom:60px;">
+      <div class="section-label anim-up">Custom Solutions</div>
+      <h2 class="section-title anim-up delay-1">Built for your team.<br>Not off the shelf.</h2>
+      <p class="section-subtitle anim-up delay-2">Every doc, every automation, every dashboard — crafted specifically for how your business actually works.</p>
+    </div>
+    <div class="solutions-grid">
+      <div class="solution-card anim-up delay-1">
+        <div class="solution-icon-wrap" style="background:#e8eeff;color:#2e57ca;"><i class="ph ph-users ph-lg"></i></div>
+        <div class="solution-card-title">Hiring Trackers</div>
+        <div class="solution-card-desc">Full-cycle recruiting pipeline from sourcing to offer. Real-time status for every candidate.</div>
+      </div>
+      <div class="solution-card anim-up delay-2">
+        <div class="solution-icon-wrap" style="background:#e8f8ee;color:#059669;"><i class="ph ph-currency-dollar ph-lg"></i></div>
+        <div class="solution-card-title">Budget Management</div>
+        <div class="solution-card-desc">Live spend tracking by department. Actuals vs. budget, alerts, and projections in one view.</div>
+      </div>
+      <div class="solution-card anim-up delay-3">
+        <div class="solution-icon-wrap" style="background:#fff3e8;color:#d97706;"><i class="ph ph-chart-bar ph-lg"></i></div>
+        <div class="solution-card-title">Project Dashboards</div>
+        <div class="solution-card-desc">Status, ownership, milestones, and blockers — visible to the whole team at a glance.</div>
+      </div>
+      <div class="solution-card anim-up delay-4">
+        <div class="solution-icon-wrap" style="background:#f0e8ff;color:#7c3aed;"><i class="ph ph-crosshair ph-lg"></i></div>
+        <div class="solution-card-title">Sales CRM</div>
+        <div class="solution-card-desc">Pipeline management, contact tracking, and deal flow — no third-party CRM subscription needed.</div>
+      </div>
+      <div class="solution-card anim-up delay-5">
+        <div class="solution-icon-wrap" style="background:#e8f5ff;color:#199bde;"><i class="ph ph-package ph-lg"></i></div>
+        <div class="solution-card-title">Inventory Systems</div>
+        <div class="solution-card-desc">Stock levels, reorder triggers, vendor tracking — automated and always current.</div>
+      </div>
+      <div class="solution-card anim-up delay-6">
+        <div class="solution-icon-wrap" style="background:#ffe8e8;color:#dc2626;"><i class="ph ph-squares-four ph-lg"></i></div>
+        <div class="solution-card-title">Operational Hubs</div>
+        <div class="solution-card-desc">The single place your team goes for everything — from daily standups to quarterly planning.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 8: LIVE HIRING PIPELINE
+     ============================================= -->
+<section id="hiring" style="background:white;padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="section-label anim-up">Live Demo</div>
+      <h2 class="section-title anim-up delay-1">A hiring tracker your team<br><em>actually uses.</em></h2>
+    </div>
+    <div class="kanban-board anim-up delay-2" id="kanban-board">
+      <div class="kanban-col">
+        <div class="kanban-header">
+          Applicants <span class="kanban-header-dot" style="background:#889beb;"></span>
+        </div>
+        <div class="kanban-cards" id="col-applicants">
+          <div class="kanban-card">
+            <div class="kanban-card-name">Sarah Chen</div>
+            <div class="kanban-card-role">Product Designer</div>
+            <span class="kanban-card-tag" style="background:#f0e8ff;color:#6030a0;">Applied</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-name">Marcus Webb</div>
+            <div class="kanban-card-role">Data Engineer</div>
+            <span class="kanban-card-tag" style="background:#f0e8ff;color:#6030a0;">Applied</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-name">Priya Nair</div>
+            <div class="kanban-card-role">Marketing Lead</div>
+            <span class="kanban-card-tag" style="background:#f0e8ff;color:#6030a0;">Applied</span>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-header" style="background:#199bde;">
+          Screened <span class="kanban-header-dot" style="background:#3de3ff;"></span>
+        </div>
+        <div class="kanban-cards" id="col-screened">
+          <div class="kanban-card" style="border-color:#199bde;">
+            <div class="kanban-card-name">Jordan Kim</div>
+            <div class="kanban-card-role">Sales Manager</div>
+            <span class="kanban-card-tag" style="background:#e4f0fb;color:#0d5580;">Screened</span>
+          </div>
+          <div class="kanban-card" style="border-color:#199bde;">
+            <div class="kanban-card-name">Alex Rivera</div>
+            <div class="kanban-card-role">DevOps Engineer</div>
+            <span class="kanban-card-tag" style="background:#e4f0fb;color:#0d5580;">Screened</span>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-header" style="background:#2e57ca;">
+          Interview <span class="kanban-header-dot" style="background:#3de3ff;"></span>
+        </div>
+        <div class="kanban-cards" id="col-interview">
+          <div class="kanban-card" style="border-color:#2e57ca;">
+            <div class="kanban-card-name">Taylor Osei</div>
+            <div class="kanban-card-role">Head of Finance</div>
+            <span class="kanban-card-tag" style="background:#e8eeff;color:#2e57ca;">Interview 2</span>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-header" style="background:#0d5e1f;">
+          Offer <span class="kanban-header-dot" style="background:#3de8a0;"></span>
+        </div>
+        <div class="kanban-cards" id="col-offer">
+          <div class="kanban-card" style="border-color:#0d5e1f;">
+            <div class="kanban-card-name">Morgan Lee</div>
+            <div class="kanban-card-role">Senior Engineer</div>
+            <span class="kanban-card-tag" style="background:#e8ffef;color:#0d5e1f;">Offer Sent <i class="ph ph-check ph-sm"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:24px;font-size:0.9rem;color:#607080;" class="anim-up delay-3">
+      <em>Live data, no manual updates — Coda keeps every column current automatically.</em>
+    </p>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 9: BUDGET VISUALIZATION
+     ============================================= -->
+<section id="budget" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;max-width:1100px;margin:0 auto;">
+      <div>
+        <div class="section-label anim-left">Real-Time Finance</div>
+        <h2 class="section-title anim-left delay-1">Real-time spend<br>visibility, <em>always.</em></h2>
+        <p style="font-size:1rem;color:#4a6080;margin-bottom:32px;" class="anim-left delay-2">No more end-of-quarter surprises. See budget vs. actuals for every department, updated automatically from your source of truth.</p>
+        <div class="anim-left delay-3">
+          <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:12px;height:12px;border-radius:3px;background:var(--grad);display:inline-block;"></span>
+              <span style="font-size:0.85rem;font-weight:600;color:var(--navy);">Budget Allocated</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:12px;height:12px;border-radius:3px;background:var(--sky);display:inline-block;"></span>
+              <span style="font-size:0.85rem;font-weight:600;color:var(--navy);">Spent to Date</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="budget-chart anim-right delay-2">
+        <div class="budget-row">
+          <div class="budget-label">Engineering</div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar" data-width="85" style="background:var(--grad);">
+              <div class="budget-bar-spent" data-width="62" style="background:rgba(255,255,255,0.35);position:absolute;left:0;top:0;height:100%;width:0;border-radius:100px;transition:width 1.4s 0.2s var(--ease-out);"></div>
+            </div>
+          </div>
+          <div class="budget-pct">85%</div>
+        </div>
+        <div class="budget-row">
+          <div class="budget-label">Marketing</div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar" data-width="72" style="background:var(--grad);">
+              <div class="budget-bar-spent" data-width="55" style="background:rgba(255,255,255,0.35);position:absolute;left:0;top:0;height:100%;width:0;border-radius:100px;transition:width 1.4s 0.3s var(--ease-out);"></div>
+            </div>
+          </div>
+          <div class="budget-pct">72%</div>
+        </div>
+        <div class="budget-row">
+          <div class="budget-label">Sales</div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar" data-width="91" style="background:linear-gradient(90deg,#e85555,#ff8a00);">
+              <div class="budget-bar-spent" data-width="80" style="background:rgba(255,255,255,0.3);position:absolute;left:0;top:0;height:100%;width:0;border-radius:100px;transition:width 1.4s 0.4s var(--ease-out);"></div>
+            </div>
+          </div>
+          <div class="budget-pct" style="color:#c0392b;">91%</div>
+        </div>
+        <div class="budget-row">
+          <div class="budget-label">Operations</div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar" data-width="58" style="background:var(--grad);">
+            </div>
+          </div>
+          <div class="budget-pct">58%</div>
+        </div>
+        <div class="budget-row">
+          <div class="budget-label">HR</div>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar" data-width="44" style="background:var(--grad);">
+            </div>
+          </div>
+          <div class="budget-pct">44%</div>
+        </div>
+        <div class="budget-remaining">
+          <div>
+            <div class="budget-remaining-label">Q3 Remaining Budget</div>
+            <div class="budget-remaining-val">$247,500</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="budget-remaining-label">Status</div>
+            <div style="color:#0d5e1f;font-weight:700;font-size:1rem;"><i class="ph ph-check ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> On Track</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 10: WORKFLOW AUTOMATION PIPELINE
+     ============================================= -->
+<section id="workflow" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up" style="color:var(--cyan);">Workflow Automation</div>
+      <h2 class="section-title white anim-up delay-1">Automate what<br><em>slows you down.</em></h2>
+      <p class="section-subtitle white anim-up delay-2" style="margin:0 auto 0;">Every trigger, every rule, every notification — fired automatically so your team never has to chase status.</p>
+    </div>
+    <div class="workflow-nodes anim-up delay-2" id="workflow-viz">
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-0"><i class="ph ph-download-simple"></i></div>
+        <div class="wf-node-label">Data In</div>
+      </div>
+      <div class="wf-connector"><div class="wf-connector-fill" id="wfc-0"></div></div>
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-1"><i class="ph ph-lightning"></i></div>
+        <div class="wf-node-label">Trigger</div>
+      </div>
+      <div class="wf-connector"><div class="wf-connector-fill" id="wfc-1"></div></div>
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-2"><i class="ph ph-funnel"></i></div>
+        <div class="wf-node-label">Rule Check</div>
+      </div>
+      <div class="wf-connector"><div class="wf-connector-fill" id="wfc-2"></div></div>
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-3"><i class="ph ph-bell"></i></div>
+        <div class="wf-node-label">Notify</div>
+      </div>
+      <div class="wf-connector"><div class="wf-connector-fill" id="wfc-3"></div></div>
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-4"><i class="ph ph-gear"></i></div>
+        <div class="wf-node-label">Action</div>
+      </div>
+      <div class="wf-connector"><div class="wf-connector-fill" id="wfc-4"></div></div>
+      <div class="wf-node">
+        <div class="wf-node-circle" id="wfn-5"><i class="ph ph-check-circle"></i></div>
+        <div class="wf-node-label">Done</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;justify-content:center;margin-top:60px;flex-wrap:wrap;" class="anim-up delay-3">
+      <div style="text-align:center;color:var(--ice);">
+        <div style="font-size:2rem;font-weight:800;color:var(--cyan);">0ms</div>
+        <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;">Human wait time</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+      <div style="text-align:center;color:var(--ice);">
+        <div style="font-size:2rem;font-weight:800;color:var(--cyan);">100%</div>
+        <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;">Consistent execution</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+      <div style="text-align:center;color:var(--ice);">
+        <div style="font-size:2rem;font-weight:800;color:var(--cyan);">24/7</div>
+        <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;">Always running</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 11: APPROVAL FLOW
+     ============================================= -->
+<section id="approval" style="background:white;padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up">Approval Workflows</div>
+    <h2 class="section-title anim-up delay-1">Approval workflows<br><em>without the chase.</em></h2>
+    <p class="section-subtitle anim-up delay-2" style="margin:0 auto 48px;">Every request routes automatically. Managers approve in one click. Tools sync instantly.</p>
+    <div id="approval-viz" style="max-width:900px;margin:0 auto;" class="anim-scale delay-2">
+      <svg id="approval-svg" viewBox="0 0 900 300" style="width:100%;height:auto;overflow:visible;" aria-label="Approval flow animation">
+        <defs>
+          <linearGradient id="approvalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#2e57ca"/>
+            <stop offset="100%" stop-color="#3de3ff"/>
+          </linearGradient>
+          <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#2e57ca"/>
+          </marker>
+          <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#0d5e1f"/>
+          </marker>
+        </defs>
+
+        <!-- Nodes -->
+        <!-- Request -->
+        <g id="appr-0">
+          <rect x="20" y="110" width="120" height="60" rx="12" fill="#e8eeff" stroke="#2e57ca" stroke-width="2"/>
+          <text x="80" y="135" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="#2e57ca">Request</text>
+          <text x="80" y="153" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="#4a6080">Submitted</text>
+        </g>
+        <!-- Arrow 1 -->
+        <line x1="140" y1="140" x2="195" y2="140" stroke="#2e57ca" stroke-width="2" marker-end="url(#arrowBlue)" id="appr-line-1"/>
+
+        <!-- Manager -->
+        <g id="appr-1">
+          <rect x="200" y="110" width="130" height="60" rx="12" fill="#e8eeff" stroke="#2e57ca" stroke-width="2"/>
+          <text x="265" y="135" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="#2e57ca">Manager</text>
+          <text x="265" y="153" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="#4a6080">Reviews</text>
+        </g>
+
+        <!-- Branch lines -->
+        <line x1="330" y1="140" x2="385" y2="100" stroke="#0d5e1f" stroke-width="2" marker-end="url(#arrowGreen)" id="appr-line-2a"/>
+        <line x1="330" y1="140" x2="385" y2="185" stroke="#c0392b" stroke-width="2" id="appr-line-2b"/>
+
+        <!-- Approve branch -->
+        <g id="appr-approve">
+          <rect x="390" y="70" width="120" height="50" rx="12" fill="#e8ffef" stroke="#0d5e1f" stroke-width="2"/>
+          <text x="450" y="91" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="#0d5e1f">✓ Approve</text>
+          <text x="450" y="108" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="#0d5e1f">Auto-routes</text>
+        </g>
+
+        <!-- Reject branch -->
+        <g id="appr-reject">
+          <rect x="390" y="163" width="120" height="50" rx="12" fill="#ffeded" stroke="#c0392b" stroke-width="2"/>
+          <text x="450" y="184" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="#c0392b">✗ Reject</text>
+          <text x="450" y="201" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="#c0392b">Notified</text>
+        </g>
+
+        <!-- Arrow to sync -->
+        <line x1="510" y1="95" x2="565" y2="120" stroke="#0d5e1f" stroke-width="2" marker-end="url(#arrowGreen)" id="appr-line-3"/>
+
+        <!-- Sync -->
+        <g id="appr-sync">
+          <rect x="570" y="100" width="130" height="60" rx="12" fill="#e8eeff" stroke="#2e57ca" stroke-width="2"/>
+          <text x="635" y="125" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="#2e57ca">Tools Sync</text>
+          <text x="635" y="143" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="#4a6080">Slack + Sheets</text>
+        </g>
+
+        <!-- Arrow to complete -->
+        <line x1="700" y1="130" x2="750" y2="130" stroke="#2e57ca" stroke-width="2" marker-end="url(#arrowBlue)" id="appr-line-4"/>
+
+        <!-- Complete -->
+        <g id="appr-complete">
+          <rect x="755" y="100" width="120" height="60" rx="12" fill="url(#approvalGrad)"/>
+          <text x="815" y="125" text-anchor="middle" font-family="Rethink Sans" font-weight="700" font-size="12" fill="white">Complete</text>
+          <text x="815" y="143" text-anchor="middle" font-family="Rethink Sans" font-size="10" fill="rgba(255,255,255,0.8)">Logged ✓</text>
+        </g>
+
+        <!-- Traveling dot -->
+        <circle id="appr-dot" r="8" fill="#3de3ff" cx="80" cy="140" style="filter:drop-shadow(0 0 6px #3de3ff)"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 12: OPERATIONAL DASHBOARD
+     ============================================= -->
+<section id="dashboard" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="section-label anim-up">Operational Visibility</div>
+      <h2 class="section-title anim-up delay-1">See everything,<br><em>instantly.</em></h2>
+    </div>
+    <div class="anim-up delay-2" style="background:var(--navy);border-radius:20px;padding:32px;max-width:1000px;margin:0 auto;box-shadow:0 20px 60px rgba(13,45,82,0.3);">
+      <!-- Dashboard header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div style="color:white;font-weight:700;font-size:1.1rem;">Operations Dashboard</div>
+        <div style="color:var(--cyan);font-size:0.8rem;font-weight:600;">● Live · Updated just now</div>
+      </div>
+      <!-- KPI grid -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <!-- Revenue card -->
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:20px;">
+          <div style="font-size:0.75rem;color:var(--lavender);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Q3 Revenue</div>
+          <div class="dash-counter" data-target="4280000" data-prefix="$" data-format="M" style="font-size:1.8rem;font-weight:800;color:white;">$0</div>
+          <div style="font-size:0.8rem;color:#3de8a0;margin-top:6px;">↑ +12.4% vs Q2</div>
+        </div>
+        <!-- Pipeline card -->
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:20px;">
+          <div style="font-size:0.75rem;color:var(--lavender);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Pipeline</div>
+          <div class="dash-counter" data-target="18" data-suffix=" deals" style="font-size:1.8rem;font-weight:800;color:white;">0</div>
+          <div id="pipeline-bar" style="margin-top:10px;">
+            <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+              <div class="pipeline-fill" style="height:100%;width:0%;background:var(--grad);border-radius:3px;transition:width 1.5s var(--ease-out);"></div>
+            </div>
+          </div>
+          <div style="font-size:0.8rem;color:var(--cyan);margin-top:6px;">74% conversion rate</div>
+        </div>
+        <!-- Team velocity -->
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:20px;">
+          <div style="font-size:0.75rem;color:var(--lavender);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Team Velocity</div>
+          <div style="font-size:1.8rem;font-weight:800;color:white;">94<span style="font-size:1rem;color:var(--lavender);">pts</span></div>
+          <svg viewBox="0 0 120 40" style="width:100%;margin-top:8px;">
+            <polyline id="sparkline" points="0,35 15,28 30,32 45,18 60,22 75,10 90,14 105,8 120,4"
+              fill="none" stroke="url(#approvalGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              stroke-dasharray="200" stroke-dashoffset="200" style="transition:stroke-dashoffset 2s ease-out;"/>
+          </svg>
+        </div>
+        <!-- Projects on track -->
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:20px;display:flex;flex-direction:column;align-items:center;">
+          <div style="font-size:0.75rem;color:var(--lavender);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;width:100%;">On Track</div>
+          <svg viewBox="0 0 120 120" style="width:90px;height:90px;">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+            <circle id="donut-arc" cx="60" cy="60" r="48" fill="none" stroke="url(#approvalGrad)" stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="301.6" stroke-dashoffset="301.6"
+              transform="rotate(-90 60 60)"
+              style="transition:stroke-dashoffset 2s ease-out;"/>
+            <text x="60" y="65" text-anchor="middle" font-family="Rethink Sans" font-weight="800" font-size="22" fill="white" id="donut-pct">0%</text>
+          </svg>
+          <div style="font-size:0.8rem;color:#3de8a0;margin-top:6px;">12 of 14 projects</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 13: HOURS SAVED
+     ============================================= -->
+<section id="hours" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up" style="color:var(--cyan);">Time Reclaimed</div>
+    <h2 class="section-title white anim-up delay-1">Your team's time,<br><em>back.</em></h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:900px;margin:60px auto 0;">
+      <div class="anim-left delay-2">
+        <svg viewBox="0 0 300 300" style="width:100%;max-width:280px;display:block;margin:0 auto;">
+          <defs>
+            <linearGradient id="clockGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2e57ca"/>
+              <stop offset="100%" stop-color="#3de3ff"/>
+            </linearGradient>
+          </defs>
+          <!-- Clock face -->
+          <circle cx="150" cy="150" r="130" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+          <circle cx="150" cy="150" r="110" fill="none" stroke="rgba(46,87,202,0.3)" stroke-width="1"/>
+          <!-- Hour ticks -->
+          <g id="clock-ticks"></g>
+          <!-- Swept arc (saved time) -->
+          <circle cx="150" cy="150" r="120" fill="none" stroke="url(#clockGrad)" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="754" stroke-dashoffset="754"
+            transform="rotate(-90 150 150)" id="clock-arc"
+            style="transition:stroke-dashoffset 2.5s var(--ease-out);"/>
+          <!-- Hour hand -->
+          <line id="clock-hour" x1="150" y1="150" x2="150" y2="80" stroke="white" stroke-width="4" stroke-linecap="round"/>
+          <!-- Minute hand -->
+          <line id="clock-minute" x1="150" y1="150" x2="150" y2="55" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Center dot -->
+          <circle cx="150" cy="150" r="6" fill="var(--cyan)"/>
+          <!-- Counter text -->
+          <text x="150" y="155" text-anchor="middle" font-family="Rethink Sans" font-weight="800" font-size="28" fill="white" id="clock-counter">0</text>
+          <text x="150" y="178" text-anchor="middle" font-family="Rethink Sans" font-size="11" fill="var(--lavender)">hours saved</text>
+        </svg>
+      </div>
+      <div class="anim-right delay-2" style="text-align:left;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="task-tag anim-right delay-2" style="background:rgba(255,255,255,0.07);border-radius:100px;padding:10px 20px;display:flex;align-items:center;gap:12px;">
+            <i class="ph ph-clipboard-text ph-sm"></i>
+            <span style="color:white;font-size:0.9rem;font-weight:500;">Manual data entry</span>
+            <span style="margin-left:auto;color:var(--cyan);font-size:0.8rem;font-weight:700;">Automated <i class="ph ph-check ph-sm"></i></span>
+          </div>
+          <div class="task-tag anim-right delay-3" style="background:rgba(255,255,255,0.07);border-radius:100px;padding:10px 20px;display:flex;align-items:center;gap:12px;">
+            <i class="ph ph-chart-bar ph-sm"></i>
+            <span style="color:white;font-size:0.9rem;font-weight:500;">Status report generation</span>
+            <span style="margin-left:auto;color:var(--cyan);font-size:0.8rem;font-weight:700;">Automated <i class="ph ph-check ph-sm"></i></span>
+          </div>
+          <div class="task-tag anim-right delay-4" style="background:rgba(255,255,255,0.07);border-radius:100px;padding:10px 20px;display:flex;align-items:center;gap:12px;">
+            <span style="display:flex;align-items:center;"><svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+            <span style="color:white;font-size:0.9rem;font-weight:500;">Reminder notifications</span>
+            <span style="margin-left:auto;color:var(--cyan);font-size:0.8rem;font-weight:700;">Automated <i class="ph ph-check ph-sm"></i></span>
+          </div>
+          <div class="task-tag anim-right delay-5" style="background:rgba(255,255,255,0.07);border-radius:100px;padding:10px 20px;display:flex;align-items:center;gap:12px;">
+            <span style="display:flex;align-items:center;"><svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+            <span style="color:white;font-size:0.9rem;font-weight:500;">Cross-tool syncing</span>
+            <span style="margin-left:auto;color:var(--cyan);font-size:0.8rem;font-weight:700;">Automated <i class="ph ph-check ph-sm"></i></span>
+          </div>
+          <div class="task-tag anim-right delay-6" style="background:rgba(255,255,255,0.07);border-radius:100px;padding:10px 20px;display:flex;align-items:center;gap:12px;">
+            <i class="ph ph-check-circle ph-sm"></i>
+            <span style="color:white;font-size:0.9rem;font-weight:500;">Approval chase-ups</span>
+            <span style="margin-left:auto;color:var(--cyan);font-size:0.8rem;font-weight:700;">Automated <i class="ph ph-check ph-sm"></i></span>
+          </div>
+        </div>
+        <div style="margin-top:32px;padding:20px;background:rgba(61,227,255,0.1);border-radius:12px;border:1px solid rgba(61,227,255,0.2);">
+          <div style="font-size:2.5rem;font-weight:800;color:var(--cyan);" id="hours-big-counter">0</div>
+          <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">hours saved across 200+ teams</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 14: CODA ECOSYSTEM
+     ============================================= -->
+<section id="ecosystem" style="background:white;padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up">Integrations</div>
+    <h2 class="section-title anim-up delay-1">Coda connects<br>to <em>everything.</em></h2>
+    <p class="section-subtitle anim-up delay-2" style="margin:0 auto 48px;">One platform, every tool your team already uses. No data silos, no manual bridges.</p>
+    <div style="position:relative;width:100%;max-width:600px;height:500px;margin:0 auto;" class="anim-scale delay-2">
+      <canvas id="ecosystem-canvas" width="600" height="500" style="width:100%;height:100%;" aria-label="Coda ecosystem orbital diagram">Integration orbital animation</canvas>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 15: AI CONTEXT LAYER
+     ============================================= -->
+<section id="ai-layer" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;">
+      <div class="anim-left">
+        <div class="section-label" style="color:var(--cyan);">AI Context Engineering</div>
+        <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:800;color:white;margin-bottom:20px;">Smarter operations,<br><em style="color:var(--cyan);">built in.</em></h2>
+        <p style="color:var(--ice);font-size:1rem;margin-bottom:24px;line-height:1.7;">We don't just automate your workflows — we structure your operational data so AI can reason over it. The result: instant answers, automated summaries, and intelligent routing.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="color:var(--cyan);font-size:1.2rem;margin-top:2px;">◆</span>
+            <span style="color:var(--ice);font-size:0.95rem;">Context-aware document structure for AI queries</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="color:var(--cyan);font-size:1.2rem;margin-top:2px;">◆</span>
+            <span style="color:var(--ice);font-size:0.95rem;">Automated AI summaries of operational data</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="color:var(--cyan);font-size:1.2rem;margin-top:2px;">◆</span>
+            <span style="color:var(--ice);font-size:0.95rem;">Intelligent triage and routing of requests</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="color:var(--cyan);font-size:1.2rem;margin-top:2px;">◆</span>
+            <span style="color:var(--ice);font-size:0.95rem;">Natural language search across your entire workspace</span>
+          </div>
+        </div>
+      </div>
+      <div class="anim-right delay-2">
+        <canvas id="ai-canvas" width="500" height="400" style="width:100%;border-radius:16px;" aria-label="AI neural network visualization">AI context visualization</canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 16: SCALE STORY
+     ============================================= -->
+<section id="scale" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up">Growth</div>
+      <h2 class="section-title anim-up delay-1">Systems that grow<br><em>with you.</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;max-width:1000px;margin:0 auto;">
+      <div class="anim-up delay-1" style="background:white;border-radius:16px;padding:36px 28px;box-shadow:0 2px 20px rgba(13,45,82,0.06);border-top:4px solid var(--lavender);">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--lavender);margin-bottom:16px;">Phase 1</div>
+        <div style="font-size:2.5rem;font-weight:800;color:var(--navy);margin-bottom:4px;">5</div>
+        <div style="font-size:0.85rem;color:#607080;margin-bottom:24px;">Team members</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;">📄 2 Coda docs</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-lightning ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 3 automations</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-link ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 2 integrations</div>
+        </div>
+      </div>
+      <div class="anim-up delay-2" style="background:white;border-radius:16px;padding:36px 28px;box-shadow:0 8px 40px rgba(46,87,202,0.15);border-top:4px solid var(--royal);transform:translateY(-8px);">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--royal);margin-bottom:16px;">Phase 2</div>
+        <div style="font-size:2.5rem;font-weight:800;color:var(--navy);margin-bottom:4px;">50</div>
+        <div style="font-size:0.85rem;color:#607080;margin-bottom:24px;">Team members</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;">📄 8 interconnected docs</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-lightning ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 24 automations</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-link ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 6 integrations</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-chart-bar ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 3 dashboards</div>
+        </div>
+      </div>
+      <div class="anim-up delay-3" style="background:white;border-radius:16px;padding:36px 28px;box-shadow:0 2px 20px rgba(13,45,82,0.06);border-top:4px solid var(--cyan);">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sky);margin-bottom:16px;">Phase 3</div>
+        <div style="font-size:2.5rem;font-weight:800;color:var(--navy);margin-bottom:4px;">500+</div>
+        <div style="font-size:0.85rem;color:#607080;margin-bottom:24px;">Team members</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;">📄 20+ connected docs</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-lightning ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 100+ automations</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;"><i class="ph ph-link ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> 12+ integrations</div>
+          <div style="height:32px;background:var(--ice);border-radius:6px;display:flex;align-items:center;padding:0 12px;font-size:0.75rem;color:var(--navy);font-weight:600;">🤖 AI context layer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 17: TEAM CAPACITY
+     ============================================= -->
+<section id="capacity" style="background:white;padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up">Team Management</div>
+      <h2 class="section-title anim-up delay-1">See who's maxed out<br><em>before it's a problem.</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;max-width:1000px;margin:0 auto;">
+      <!-- Before -->
+      <div class="anim-left delay-1" style="background:var(--bg);border-radius:16px;padding:32px;">
+        <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#c0392b;margin-bottom:24px;">⚠ Before SimplaDocs</div>
+        <div id="capacity-before" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+      <!-- After -->
+      <div class="anim-right delay-2" style="background:var(--bg);border-radius:16px;padding:32px;">
+        <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d5e1f;margin-bottom:24px;"><i class="ph ph-check ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> After SimplaDocs</div>
+        <div id="capacity-after" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:40px;font-size:1rem;color:#607080;font-style:italic;" class="anim-up delay-3">"We finally know who has capacity before we assign new work — not after the deadline slips."</p>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 18: WORKSPACE HEALTH REPORT
+     ============================================= -->
+<section id="health" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;">
+      <div>
+        <div class="section-label anim-left">Workspace Health</div>
+        <h2 class="section-title anim-left delay-1">Your Coda workspace,<br><em>at peak performance.</em></h2>
+        <p style="font-size:1rem;color:#4a6080;margin-bottom:40px;" class="anim-left delay-2">Already using Coda but things feel messy? Our Workspace Health Report identifies every issue — and fixes them.</p>
+        <div id="health-checklist" style="display:flex;flex-direction:column;gap:12px;" class="anim-left delay-3">
+          <div class="health-item" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border-radius:10px;box-shadow:0 1px 8px rgba(13,45,82,0.05);">
+            <span class="health-check" style="width:24px;height:24px;border-radius:50%;background:var(--ice);display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:background 0.4s;">⏳</span>
+            <span style="font-size:0.9rem;color:var(--navy);font-weight:500;">Dead links removed</span>
+          </div>
+          <div class="health-item" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border-radius:10px;box-shadow:0 1px 8px rgba(13,45,82,0.05);">
+            <span class="health-check" style="width:24px;height:24px;border-radius:50%;background:var(--ice);display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:background 0.4s;">⏳</span>
+            <span style="font-size:0.9rem;color:var(--navy);font-weight:500;">Automation conflicts fixed</span>
+          </div>
+          <div class="health-item" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border-radius:10px;box-shadow:0 1px 8px rgba(13,45,82,0.05);">
+            <span class="health-check" style="width:24px;height:24px;border-radius:50%;background:var(--ice);display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:background 0.4s;">⏳</span>
+            <span style="font-size:0.9rem;color:var(--navy);font-weight:500;">Permissions updated</span>
+          </div>
+          <div class="health-item" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border-radius:10px;box-shadow:0 1px 8px rgba(13,45,82,0.05);">
+            <span class="health-check" style="width:24px;height:24px;border-radius:50%;background:var(--ice);display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:background 0.4s;">⏳</span>
+            <span style="font-size:0.9rem;color:var(--navy);font-weight:500;">Performance optimized</span>
+          </div>
+        </div>
+      </div>
+      <div class="anim-right delay-2" style="text-align:center;">
+        <svg viewBox="0 0 300 200" style="width:100%;max-width:320px;display:block;margin:0 auto;">
+          <defs>
+            <linearGradient id="healthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#c0392b"/>
+              <stop offset="50%" stop-color="#f39c12"/>
+              <stop offset="100%" stop-color="#0d5e1f"/>
+            </linearGradient>
+          </defs>
+          <!-- Gauge background arc (semicircle) -->
+          <path d="M 30 160 A 120 120 0 0 1 270 160" fill="none" stroke="#e0e7ef" stroke-width="20" stroke-linecap="round"/>
+          <!-- Gauge fill arc -->
+          <path id="health-arc" d="M 30 160 A 120 120 0 0 1 270 160" fill="none" stroke="url(#healthGrad)" stroke-width="20" stroke-linecap="round"
+            stroke-dasharray="377" stroke-dashoffset="377"
+            style="transition:stroke-dashoffset 2.5s var(--ease-out);"/>
+          <!-- Score text -->
+          <text x="150" y="140" text-anchor="middle" font-family="Rethink Sans" font-weight="800" font-size="52" fill="#0d2d52" id="health-score">47</text>
+          <text x="150" y="162" text-anchor="middle" font-family="Rethink Sans" font-size="14" fill="#607080">Health Score</text>
+          <!-- Needle -->
+          <line id="health-needle" x1="150" y1="160" x2="30" y2="160" stroke="var(--navy)" stroke-width="3" stroke-linecap="round"
+            style="transform-origin:150px 160px;transform:rotate(0deg);transition:transform 2.5s var(--ease-out);"/>
+          <circle cx="150" cy="160" r="8" fill="var(--navy)"/>
+        </svg>
+        <div style="margin-top:24px;font-size:1rem;color:#607080;font-style:italic;">Before → After SimplaDocs review</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 19: CODA SCHOOL
+     ============================================= -->
+<section id="school" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up" style="color:var(--cyan);">Coda School</div>
+    <h2 class="section-title white anim-up delay-1">Learn Coda.<br><em>Build anything.</em></h2>
+    <p class="section-subtitle white anim-up delay-2" style="margin:0 auto 60px;">Self-paced training from the team that built operations for Spotify, Netflix, and 200+ more. Go from beginner to power builder.</p>
+    <div class="anim-scale delay-2" style="max-width:900px;margin:0 auto;position:relative;">
+      <svg id="school-svg" viewBox="0 0 900 400" style="width:100%;height:auto;overflow:visible;" aria-label="Learning path tree">
+        <!-- Will be rendered by JS -->
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 20: CODA PACKS
+     ============================================= -->
+<section id="packs" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up">Coda Packs</div>
+    <h2 class="section-title anim-up delay-1">Connect every tool<br><em>you love.</em></h2>
+    <p class="section-subtitle anim-up delay-2" style="margin:0 auto 48px;">Coda Packs bring your entire tech stack into one workspace — no code, no middleware, no headaches.</p>
+    <canvas id="packs-canvas" width="900" height="500" style="width:100%;max-width:900px;display:block;margin:0 auto;" class="anim-scale delay-2" aria-label="Integration network graph">Pack integrations visualization</canvas>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 21: TESTIMONIAL WALL
+     ============================================= -->
+<section id="testimonials" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up" style="color:var(--cyan);">Client Stories</div>
+      <h2 class="section-title white anim-up delay-1">Don't take our word<br>for <em>it.</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto;">
+      <div class="anim-up delay-1" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"We went from <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>drowning in spreadsheets</em> to having a single dashboard our entire operations team actually uses. The impact was immediate."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2e57ca,#3de3ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">KM</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Kayla Morris</div><div style="color:var(--lavender);font-size:0.8rem;">VP Operations · Qualtrics</div></div>
+        </div>
+      </div>
+      <div class="anim-up delay-2" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"SimplaDocs built us a hiring system that reduced time-to-hire by 40%. <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>No backfill needed</em> after our PM retired — the system just kept running."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#199bde,#3de3ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">RT</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Ryan Takahashi</div><div style="color:var(--lavender);font-size:0.8rem;">Head of People · DoorDash</div></div>
+        </div>
+      </div>
+      <div class="anim-up delay-3" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"Scott and the team delivered <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>in two weeks</em> what we'd been trying to build internally for six months. The ROI was obvious in the first month."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#889beb,#2e57ca);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">AJ</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Amara Johnson</div><div style="color:var(--lavender);font-size:0.8rem;">Chief of Staff · Khosla Ventures</div></div>
+        </div>
+      </div>
+      <div class="anim-up delay-2" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"Our budget tracking used to live in 14 different Google Sheets. Now <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>everything is in one place</em> and updates automatically. I can't imagine going back."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2e57ca,#889beb);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">LP</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Laura Patel</div><div style="color:var(--lavender);font-size:0.8rem;">Finance Director · AlixPartners</div></div>
+        </div>
+      </div>
+      <div class="anim-up delay-3" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"The training alone was worth it. SimplaDocs didn't just build us a system — they taught us <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>how to own it</em>. Two years later, we've built 12 more docs ourselves."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3de3ff,#199bde);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">MW</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Marcus Webb</div><div style="color:var(--lavender);font-size:0.8rem;">Operations Lead · Fidelity</div></div>
+        </div>
+      </div>
+      <div class="anim-up delay-4" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="color:var(--cyan);font-size:1.2rem;margin-bottom:16px;">★★★★★</div>
+        <p style="color:var(--ice);font-size:0.95rem;line-height:1.7;margin-bottom:20px;">"We've worked with a lot of consultants. SimplaDocs is different. <em style='font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan);'>No black boxes, no dependency</em> — just clean systems that work."</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff7a59,#2e57ca);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:0.9rem;">TC</div>
+          <div><div style="color:white;font-weight:600;font-size:0.9rem;">Tasha Collins</div><div style="color:var(--lavender);font-size:0.8rem;">COO · Baltimore Ravens</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 22: CLIENT LOGO MARQUEE
+     ============================================= -->
+<section id="clients" style="background:var(--navy-deep);padding:80px 0;overflow:hidden;">
+  <div style="text-align:center;margin-bottom:40px;padding:0 40px;">
+    <div class="section-label anim-up" style="color:var(--cyan);">Trusted By</div>
+    <h2 class="anim-up delay-1" style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:white;">200+ teams. Industry leaders.</h2>
+  </div>
+  <div class="marquee-row" style="margin-bottom:20px;">
+    <div class="marquee-track" id="marquee-1">
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/spotify/ffffff" alt="Spotify" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Spotify</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/netflix/ffffff" alt="Netflix" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Netflix</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/qualtrics/ffffff" alt="Qualtrics" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Qualtrics</span></span>
+      <span class="marquee-item text-logo">MrBeast</span>
+      <span class="marquee-item text-logo">Fidelity</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/doordash/ffffff" alt="DoorDash" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">DoorDash</span></span>
+      <span class="marquee-item text-logo">Baltimore Ravens</span>
+      <span class="marquee-item text-logo">Khosla Ventures</span>
+      <span class="marquee-item text-logo">AlixPartners</span>
+      <span class="marquee-item text-logo">The Shelf</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/spotify/ffffff" alt="Spotify" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Spotify</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/netflix/ffffff" alt="Netflix" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Netflix</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/qualtrics/ffffff" alt="Qualtrics" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Qualtrics</span></span>
+      <span class="marquee-item text-logo">MrBeast</span>
+      <span class="marquee-item text-logo">Fidelity</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/doordash/ffffff" alt="DoorDash" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">DoorDash</span></span>
+      <span class="marquee-item text-logo">Baltimore Ravens</span>
+      <span class="marquee-item text-logo">Khosla Ventures</span>
+      <span class="marquee-item text-logo">AlixPartners</span>
+      <span class="marquee-item text-logo">The Shelf</span>
+    </div>
+  </div>
+  <div class="marquee-row">
+    <div class="marquee-track marquee-reverse" id="marquee-2">
+      <span class="marquee-item text-logo">NJM Designs</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/superhuman/ffffff" alt="Superhuman" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Superhuman</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/vercel/ffffff" alt="Vercel" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Vercel</span></span>
+      <span class="marquee-item text-logo">Scale AI</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/retool/ffffff" alt="Retool" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Retool</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/linear/ffffff" alt="Linear" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Linear</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/loom/ffffff" alt="Loom" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Loom</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/figma/ffffff" alt="Figma" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Figma</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/notion/ffffff" alt="Notion" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Notion</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/airtable/ffffff" alt="Airtable" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Airtable</span></span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item text-logo">NJM Designs</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/superhuman/ffffff" alt="Superhuman" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Superhuman</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/vercel/ffffff" alt="Vercel" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Vercel</span></span>
+      <span class="marquee-item text-logo">Scale AI</span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/retool/ffffff" alt="Retool" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Retool</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/linear/ffffff" alt="Linear" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Linear</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/loom/ffffff" alt="Loom" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Loom</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/figma/ffffff" alt="Figma" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Figma</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/notion/ffffff" alt="Notion" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Notion</span></span>
+      <span class="marquee-item"><img class="logo-icon" src="https://cdn.simpleicons.org/airtable/ffffff" alt="Airtable" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="logo-text-fallback">Airtable</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 23: PARTNERSHIP MODELS
+     ============================================= -->
+<section id="partnerships" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up">Engagement Models</div>
+      <h2 class="section-title anim-up delay-1">Choose your<br><em>partnership.</em></h2>
+      <p class="section-subtitle anim-up delay-2" style="margin:0 auto;">From a quick project to an ongoing operations partner — we fit your needs.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto;">
+      <div class="anim-up delay-1" style="background:white;border-radius:20px;padding:40px 32px;box-shadow:0 2px 20px rgba(13,45,82,0.06);">
+        <span style="background:var(--ice);color:var(--royal);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;">One-off</span>
+        <div style="margin:20px 0 4px;color:var(--royal);"><i class="ph ph-target ph-xl"></i></div>
+        <h3 style="font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:12px;">Project</h3>
+        <p style="font-size:0.9rem;color:#607080;margin-bottom:24px;line-height:1.6;">A focused build for one specific need. Discovery, design, build, and handoff in weeks.</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Single workflow or doc</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> 2-6 week delivery</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Full training included</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> 30-day support window</li>
+        </ul>
+      </div>
+      <div class="anim-up delay-2" style="background:var(--navy);border-radius:20px;padding:40px 32px;box-shadow:0 12px 60px rgba(46,87,202,0.3);transform:scale(1.04);border:2px solid rgba(61,227,255,0.3);">
+        <span style="background:var(--grad);color:white;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;">Most Popular</span>
+        <div style="margin:20px 0 4px;color:var(--navy);"><i class="ph ph-arrows-clockwise ph-xl"></i></div>
+        <h3 style="font-size:1.3rem;font-weight:800;color:white;margin-bottom:12px;">Full Overhaul</h3>
+        <p style="font-size:0.9rem;color:var(--ice);margin-bottom:24px;line-height:1.6;">Your entire operations rebuilt on Coda. Multiple systems, deep integrations, team-wide rollout.</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="font-size:0.85rem;color:var(--ice);display:flex;gap:8px;"><span style="color:var(--cyan);"><i class="ph ph-check-circle ph-sm"></i></span> Multiple docs + automations</li>
+          <li style="font-size:0.85rem;color:var(--ice);display:flex;gap:8px;"><span style="color:var(--cyan);"><i class="ph ph-check-circle ph-sm"></i></span> Full integration setup</li>
+          <li style="font-size:0.85rem;color:var(--ice);display:flex;gap:8px;"><span style="color:var(--cyan);"><i class="ph ph-check-circle ph-sm"></i></span> Team training program</li>
+          <li style="font-size:0.85rem;color:var(--ice);display:flex;gap:8px;"><span style="color:var(--cyan);"><i class="ph ph-check-circle ph-sm"></i></span> 90-day support included</li>
+          <li style="font-size:0.85rem;color:var(--ice);display:flex;gap:8px;"><span style="color:var(--cyan);"><i class="ph ph-check-circle ph-sm"></i></span> Workspace health check</li>
+        </ul>
+      </div>
+      <div class="anim-up delay-3" style="background:white;border-radius:20px;padding:40px 32px;box-shadow:0 2px 20px rgba(13,45,82,0.06);">
+        <span style="background:var(--ice);color:var(--sky);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;">Ongoing</span>
+        <div style="margin:20px 0 4px;color:var(--navy);"><i class="ph ph-arrows-clockwise ph-xl"></i></div>
+        <h3 style="font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:12px;">Retainer</h3>
+        <p style="font-size:0.9rem;color:#607080;margin-bottom:24px;line-height:1.6;">We're your dedicated Coda team. Continuous improvements, new automations, and admin support.</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Monthly hours bank</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Coda Admin as a Service</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Priority support</li>
+          <li style="font-size:0.85rem;color:var(--navy);display:flex;gap:8px;"><span style="color:var(--royal);"><i class="ph ph-check-circle ph-sm"></i></span> Quarterly health reports</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 24: THE ESCHER CONSTRUCTION
+     ============================================= -->
+<section id="escher-full" class="deep-section" style="padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up" style="color:var(--cyan);">The SimplaDocs Symbol</div>
+    <h2 class="section-title white anim-up delay-1">Built to connect.<br><em>Designed to move.</em></h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1000px;margin:60px auto 0;text-align:left;">
+      <canvas id="escher-full-canvas" width="500" height="380" class="anim-left delay-2" style="width:100%;border-radius:16px;background:rgba(255,255,255,0.03);" aria-label="Escher S construction step by step">Logo construction animation</canvas>
+      <div class="anim-right delay-2">
+        <div id="escher-narrative" style="display:flex;flex-direction:column;gap:20px;">
+          <div class="escher-step" data-phase="0" style="opacity:0.3;transition:opacity 0.5s;">
+            <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Step 1</div>
+            <div style="color:white;font-weight:600;">Start with the grid</div>
+            <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">Every great system begins with structure.</div>
+          </div>
+          <div class="escher-step" data-phase="1" style="opacity:0.3;transition:opacity 0.5s;">
+            <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Step 2</div>
+            <div style="color:white;font-weight:600;">Draw the first diagonal</div>
+            <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">One plane. One direction. Clear intent.</div>
+          </div>
+          <div class="escher-step" data-phase="2" style="opacity:0.3;transition:opacity 0.5s;">
+            <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Step 3</div>
+            <div style="color:white;font-weight:600;">Add the second diagonal</div>
+            <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">Another system, another plane. They seem separate.</div>
+          </div>
+          <div class="escher-step" data-phase="3" style="opacity:0.3;transition:opacity 0.5s;">
+            <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Step 4</div>
+            <div style="color:white;font-weight:600;">Bridge the impossible</div>
+            <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">The horizontal element that makes it work.</div>
+          </div>
+          <div class="escher-step" data-phase="4" style="opacity:0.3;transition:opacity 0.5s;">
+            <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Step 5</div>
+            <div style="color:white;font-weight:600;">The connection is made</div>
+            <div style="color:var(--ice);font-size:0.9rem;margin-top:4px;">Two planes, one movement. That's SimplaDocs.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 25: LOW MAINTENANCE
+     ============================================= -->
+<section id="lowmaint" style="padding:100px 40px;background:white;">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label anim-up">No Black Boxes</div>
+      <h2 class="section-title anim-up delay-1">No black boxes.<br><em>No tech debt.</em></h2>
+      <p class="section-subtitle anim-up delay-2" style="margin:0 auto;">Every solution we build is transparent, maintainable, and yours. We don't create dependencies — we eliminate them.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:40px;align-items:center;max-width:1000px;margin:0 auto;">
+      <div class="anim-left delay-1">
+        <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#c0392b;margin-bottom:16px;text-align:center;">⚠ Typical "Solution"</div>
+        <canvas id="complex-canvas" width="380" height="300" style="width:100%;border-radius:12px;" aria-label="Complex tangled system diagram">Complex system visualization</canvas>
+        <div style="text-align:center;margin-top:12px;">
+          <span style="font-size:0.8rem;color:#c0392b;font-weight:600;">Complexity Score: </span>
+          <span id="complexity-score" style="font-size:1.2rem;font-weight:800;color:#c0392b;">94</span>
+        </div>
+      </div>
+      <div class="anim-up delay-2" style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto;box-shadow:0 4px 20px rgba(46,87,202,0.3);">→</div>
+        <div style="font-size:0.75rem;color:var(--royal);font-weight:700;margin-top:8px;letter-spacing:0.08em;text-transform:uppercase;">SimplaDocs</div>
+      </div>
+      <div class="anim-right delay-1">
+        <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d5e1f;margin-bottom:16px;text-align:center;"><i class="ph ph-check ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> SimplaDocs Solution</div>
+        <canvas id="simple-canvas" width="380" height="300" style="width:100%;border-radius:12px;" aria-label="Clean simple system diagram">Simple system visualization</canvas>
+        <div style="text-align:center;margin-top:12px;">
+          <span style="font-size:0.8rem;color:#0d5e1f;font-weight:600;">Complexity Score: </span>
+          <span id="simplicity-score" style="font-size:1.2rem;font-weight:800;color:#0d5e1f;">12</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 26: DOC REVIEW
+     ============================================= -->
+<section id="docreview" style="padding:100px 40px;background:var(--bg);">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;">
+      <div>
+        <div class="section-label anim-left">Doc Review</div>
+        <h2 class="section-title anim-left delay-1">Already using Coda?<br><em>Let's make it shine.</em></h2>
+        <p style="font-size:1rem;color:#4a6080;margin-bottom:32px;" class="anim-left delay-2">Our Doc Review service audits your existing Coda workspace and fixes every issue — dead links, broken formulas, permission chaos, and stale automations.</p>
+        <a href="#final-cta" class="btn btn-primary anim-left delay-3" style="display:inline-flex;">Get a Doc Review <span class="btn-arrow">→</span></a>
+      </div>
+      <div class="anim-right delay-2" id="docreview-viz" style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 30px rgba(13,45,82,0.08);">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;">
+          <span>operations-hub.coda.io</span>
+          <span id="doc-health-badge" style="font-size:0.75rem;padding:3px 10px;border-radius:100px;background:#ffeded;color:#c0392b;font-weight:700;">Health: 47%</span>
+        </div>
+        <div class="doc-issue" style="display:flex;gap:10px;padding:12px;border-radius:8px;margin-bottom:10px;background:#ffeded;align-items:flex-start;transition:background 0.5s,color 0.5s;" id="doc-issue-1">
+          <span id="doc-icon-1" style="font-size:1.1rem;transition:all 0.3s;">🔴</span>
+          <div>
+            <div style="font-weight:600;font-size:0.85rem;color:#c0392b;" id="doc-title-1">Dead link detected</div>
+            <div style="font-size:0.78rem;color:#888;margin-top:2px;">Budget tracker → External sheet (404)</div>
+          </div>
+        </div>
+        <div class="doc-issue" style="display:flex;gap:10px;padding:12px;border-radius:8px;margin-bottom:10px;background:#ffeded;align-items:flex-start;transition:background 0.5s,color 0.5s;" id="doc-issue-2">
+          <span id="doc-icon-2" style="font-size:1.1rem;transition:all 0.3s;">🔴</span>
+          <div>
+            <div style="font-weight:600;font-size:0.85rem;color:#c0392b;" id="doc-title-2">Formula error</div>
+            <div style="font-size:0.78rem;color:#888;margin-top:2px;">Row 42: Division by zero reference</div>
+          </div>
+        </div>
+        <div class="doc-issue" style="display:flex;gap:10px;padding:12px;border-radius:8px;margin-bottom:10px;background:#ffeded;align-items:flex-start;transition:background 0.5s,color 0.5s;" id="doc-issue-3">
+          <span id="doc-icon-3" style="font-size:1.1rem;transition:all 0.3s;">🔴</span>
+          <div>
+            <div style="font-weight:600;font-size:0.85rem;color:#c0392b;" id="doc-title-3">Permission conflict</div>
+            <div style="font-size:0.78rem;color:#888;margin-top:2px;">3 users have unintended edit access</div>
+          </div>
+        </div>
+        <div class="doc-issue" style="display:flex;gap:10px;padding:12px;border-radius:8px;background:#ffeded;align-items:flex-start;transition:background 0.5s,color 0.5s;" id="doc-issue-4">
+          <span id="doc-icon-4" style="font-size:1.1rem;transition:all 0.3s;">🔴</span>
+          <div>
+            <div style="font-weight:600;font-size:0.85rem;color:#c0392b;" id="doc-title-4">Stale automation</div>
+            <div style="font-size:0.78rem;color:#888;margin-top:2px;">Notification bot last ran 47 days ago</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;text-align:center;padding:12px;border-radius:8px;background:var(--ice);font-size:0.85rem;color:var(--navy);font-weight:600;" id="doc-status">Scanning workspace...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 27: REAL-TIME VISIBILITY
+     ============================================= -->
+<section id="visibility" class="dark-section" style="padding:100px 40px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label anim-up" style="color:var(--cyan);">Instant Answers</div>
+    <h2 class="section-title white anim-up delay-1">The answer is always<br><em>one click away.</em></h2>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:center;max-width:900px;margin:60px auto 0;" class="anim-up delay-2">
+      <!-- Question -->
+      <div style="background:rgba(255,255,255,0.07);border-radius:16px;padding:32px;text-align:left;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--lavender);margin-bottom:20px;">Manager asks:</div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--lavender);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0;">VP</div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:12px;border-radius:0 12px 12px 12px;padding:12px 16px;">
+              <p style="color:white;font-size:0.95rem;font-weight:500;">"Where are we on Q3 pipeline? How many deals are at risk?"</p>
+              <div style="font-size:0.7rem;color:var(--lavender);margin-top:6px;">9:42 AM · Slack</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:20px;color:var(--lavender);font-size:0.85rem;">⏱ Before: 30-minute scramble</div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 0 30px rgba(61,227,255,0.3);color:white;"><i class="ph ph-lightning ph-lg"></i></div>
+        <div style="color:var(--cyan);font-size:0.75rem;font-weight:700;margin-top:8px;">Coda</div>
+      </div>
+
+      <!-- Answer Dashboard -->
+      <div style="background:rgba(255,255,255,0.07);border-radius:16px;padding:32px;text-align:left;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--cyan);margin-bottom:20px;">Instant answer:</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:16px;">
+          <div style="font-size:0.8rem;font-weight:700;color:white;margin-bottom:12px;">Q3 Pipeline — Live</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:0.8rem;color:var(--lavender);">Total Pipeline</span>
+            <span style="font-size:0.9rem;font-weight:700;color:white;">$4.2M</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:0.8rem;color:var(--lavender);">Deals on track</span>
+            <span style="font-size:0.9rem;font-weight:700;color:#3de8a0;">14 <i class="ph ph-check ph-sm"></i></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:0.8rem;color:var(--lavender);">At risk</span>
+            <span style="font-size:0.9rem;font-weight:700;color:#ff8a00;">3 ⚠</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin-top:12px;">
+            <div style="height:100%;width:74%;background:var(--grad);border-radius:3px;"></div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--lavender);margin-top:6px;">74% to quarterly target</div>
+        </div>
+        <div style="text-align:center;margin-top:20px;color:var(--cyan);font-size:0.85rem;font-weight:600;"><i class="ph ph-lightning ph-sm" style="margin-right:4px;vertical-align:-1px;"></i> After: 3-second click</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 28: THE GRID INTERACTIVE
+     ============================================= -->
+<section id="grid-interactive" style="padding:0;overflow:hidden;position:relative;height:500px;">
+  <canvas id="grid-canvas" style="position:absolute;inset:0;width:100%;height:100%;" aria-label="Interactive construction grid">Construction grid</canvas>
+  <div style="position:relative;z-index:2;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;">
+    <div>
+      <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:16px;">Brand DNA</div>
+      <h2 style="font-size:clamp(2.5rem,6vw,5rem);font-weight:800;color:white;text-shadow:0 2px 30px rgba(0,0,0,0.5);">Every solution starts<br>with <em style="color:var(--cyan);">a plan.</em></h2>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 29: FAQ
+     ============================================= -->
+<section id="faq" style="padding:100px 40px;background:white;">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;max-width:1100px;margin:0 auto;align-items:start;">
+      <div>
+        <div class="section-label anim-left">FAQ</div>
+        <h2 class="section-title anim-left delay-1">Common<br><em>questions.</em></h2>
+        <p style="font-size:1rem;color:#4a6080;margin-top:20px;" class="anim-left delay-2">Everything you need to know about working with SimplaDocs and building on Coda.</p>
+      </div>
+      <div class="anim-right delay-1" id="faq-list" style="display:flex;flex-direction:column;gap:0;">
+        <div class="faq-item" style="border-bottom:1px solid var(--ice);">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            What is Coda?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">Coda is an all-in-one doc platform that combines the flexibility of documents with the power of spreadsheets and the automation of apps. It's like Google Docs, Excel, and Zapier had a baby — and we're the team that makes it sing.</p>
+          </div>
+        </div>
+        <div class="faq-item" style="border-bottom:1px solid var(--ice);">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            How long does a project take?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">Most focused projects take 2-6 weeks from discovery to handoff. Full overhauls run 6-12 weeks depending on scope. We don't drag things out — our discovery process is fast and our builds are efficient.</p>
+          </div>
+        </div>
+        <div class="faq-item" style="border-bottom:1px solid var(--ice);">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            What does onboarding look like?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">We start with a deep-dive discovery call — usually 60-90 minutes. We map your current workflows, identify pain points, and align on the right solution before writing a single formula. Then we prototype fast and iterate with your team.</p>
+          </div>
+        </div>
+        <div class="faq-item" style="border-bottom:1px solid var(--ice);">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            Do you offer ongoing support?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">Yes — every project includes a support window (30-90 days depending on tier). For teams that want ongoing Coda expertise, we offer monthly retainers that include admin support, new features, health reports, and priority access to our team.</p>
+          </div>
+        </div>
+        <div class="faq-item" style="border-bottom:1px solid var(--ice);">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            What size teams do you work with?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">All of them. We've built for solo founders and for enterprise teams of 500+. The sweet spot is 10-200 person companies that have outgrown spreadsheets but aren't ready for enterprise software. But we meet you where you are.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)" style="width:100%;text-align:left;padding:20px 0;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:Rethink Sans,sans-serif;font-size:1rem;font-weight:600;color:var(--navy);">
+            Can you integrate with existing tools?
+            <span class="faq-arrow" style="transition:transform 0.3s;font-size:1.2rem;color:var(--royal);">+</span>
+          </button>
+          <div class="faq-a" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease-out;">
+            <p style="padding:0 0 20px;color:#4a6080;font-size:0.95rem;line-height:1.7;">Absolutely. Coda Packs connect to Slack, Google Workspace, Jira, Salesforce, HubSpot, GitHub, Zapier, and dozens more. If it has an API, we can almost certainly connect it. We'll audit your current stack and tell you exactly what's possible.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     SECTION 30: FINAL CTA
+     ============================================= -->
+<section id="final-cta" style="position:relative;padding:140px 40px;overflow:hidden;">
+  <canvas id="cta-canvas" style="position:absolute;inset:0;width:100%;height:100%;" aria-label="Animated background">CTA background</canvas>
+  <div style="position:relative;z-index:2;text-align:center;max-width:800px;margin:0 auto;">
+    <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:24px;" class="anim-up">#1 Coda Implementation Partner · Superhuman</div>
+    <h2 style="font-size:clamp(2.5rem,7vw,5.5rem);font-weight:800;color:white;line-height:1.1;margin-bottom:16px;" class="anim-up delay-1">Ready to build operations</h2>
+    <div style="font-family:Instrument Serif,serif;font-style:italic;font-size:clamp(2rem,6vw,4.5rem);color:rgba(255,255,255,0.9);margin-bottom:40px;" class="anim-up delay-2">that actually scale?</div>
+    <p style="font-size:1.15rem;color:rgba(255,255,255,0.75);margin-bottom:52px;max-width:520px;margin-left:auto;margin-right:auto;" class="anim-up delay-3">Let's map your workflows, identify the wins, and build something your team will actually love using.</p>
+    <div class="anim-up delay-4">
+      <a href="https://simpladocs.com" target="_blank" class="btn" style="background:white;color:var(--navy);font-size:1.15rem;padding:18px 48px;box-shadow:0 8px 40px rgba(0,0,0,0.3);">
+        Let's Talk
+        <span class="btn-arrow" style="background:var(--grad);color:white;">→</span>
+      </a>
+    </div>
+    <div style="margin-top:60px;display:flex;justify-content:center;" class="anim-up delay-5">
+<img src="logo-negative.svg" alt="SimplaDocs" style="height:30px;width:auto;display:block;opacity:0.9;">
+    </div>
+    <div style="margin-top:16px;color:rgba(255,255,255,0.45);font-size:0.85rem;" class="anim-up delay-5">simpladocs.com · info@simpladocs.com</div>
+  </div>
+</section>
+
+<!-- =============================================
+     JAVASCRIPT — PART 1 (sections 1-10)
+     ============================================= -->
+<script>
+/* =============================================
+   INTERSECTION OBSERVER SETUP
+   ============================================= */
+const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
+
+const animObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      animObserver.unobserve(entry.target);
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.anim-up, .anim-left, .anim-right, .anim-scale').forEach(el => {
+  animObserver.observe(el);
+});
+
+/* =============================================
+   SECTION 1: HERO CANVAS
+   Animated grid lines + particle drift + Escher ghost
+   ============================================= */
+(function initHero() {
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], gridProgress = 0, started = false;
+  const GRID = 80;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Particles
+  function makeParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 0.5,
+      a: Math.random() * 0.5 + 0.1
+    };
+  }
+
+  for (let i = 0; i < 80; i++) particles.push(makeParticle());
+
+  // Escher S ghost shape path
+  function drawEscherGhost(ctx, cx, cy, size, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = 'rgba(61,227,255,1)';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    const s = size;
+    // Top diagonal
+    ctx.beginPath();
+    ctx.moveTo(cx - s*0.5, cy - s*0.5);
+    ctx.lineTo(cx + s*0.1, cy - s*0.05);
+    ctx.stroke();
+    // Bridge
+    ctx.beginPath();
+    ctx.moveTo(cx - s*0.1, cy - s*0.05);
+    ctx.lineTo(cx + s*0.1, cy + s*0.05);
+    ctx.stroke();
+    // Bottom diagonal
+    ctx.beginPath();
+    ctx.moveTo(cx - s*0.1, cy + s*0.05);
+    ctx.lineTo(cx + s*0.5, cy + s*0.5);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Dark bg
+    ctx.fillStyle = '#071829';
+    ctx.fillRect(0, 0, W, H);
+
+    // Animated grid lines
+    gridProgress = Math.min(1, gridProgress + 0.003);
+    const totalCols = Math.ceil(W / GRID) + 1;
+    const totalRows = Math.ceil(H / GRID) + 1;
+    const totalLines = totalCols + totalRows;
+
+    // Horizontal lines
+    for (let r = 0; r < totalRows; r++) {
+      const prog = Math.min(1, Math.max(0, gridProgress * totalLines - r));
+      if (prog <= 0) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(46,87,202,${0.12 * prog})`;
+      ctx.lineWidth = 1;
+      ctx.moveTo(0, r * GRID);
+      ctx.lineTo(W * prog, r * GRID);
+      ctx.stroke();
+    }
+    // Vertical lines
+    for (let c = 0; c < totalCols; c++) {
+      const prog = Math.min(1, Math.max(0, gridProgress * totalLines - totalRows - c));
+      if (prog <= 0) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(46,87,202,${0.12 * prog})`;
+      ctx.lineWidth = 1;
+      ctx.moveTo(c * GRID, 0);
+      ctx.lineTo(c * GRID, H * prog);
+      ctx.stroke();
+    }
+
+    // Diagonal grid lines
+    if (gridProgress > 0.7) {
+      const dp = (gridProgress - 0.7) / 0.3;
+      for (let i = -totalRows; i < totalCols; i++) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(61,227,255,${0.04 * dp})`;
+        ctx.lineWidth = 1;
+        ctx.moveTo(i * GRID, 0);
+        ctx.lineTo((i + totalRows) * GRID, H);
+        ctx.stroke();
+      }
+    }
+
+    // Particles
+    t += 0.01;
+    particles.forEach(p => {
+      p.x += p.vx + Math.sin(t + p.y * 0.01) * 0.1;
+      p.y += p.vy + Math.cos(t + p.x * 0.01) * 0.1;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(61,227,255,${p.a * gridProgress})`;
+      ctx.fill();
+    });
+
+    // Large ghost Escher S in background
+    if (gridProgress > 0.5) {
+      const ga = (gridProgress - 0.5) / 0.5 * 0.06;
+      drawEscherGhost(ctx, W * 0.75, H * 0.5, H * 0.45, ga);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* =============================================
+   SECTION 2: CHAOS CANVAS
+   12 tool bubbles flying around with connector lines
+   ============================================= */
+(function initChaos() {
+  const canvas = document.getElementById('chaos-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, active = false;
+
+  const tools = [
+    { name: 'Excel',    color: '#1d7345' },
+    { name: 'Slack',    color: '#4a154b' },
+    { name: 'Email',    color: '#d44638' },
+    { name: 'Asana',    color: '#f06a6a' },
+    { name: 'Notion',   color: '#191919' },
+    { name: 'Sheets',   color: '#0f9d58' },
+    { name: 'HubSpot',  color: '#ff7a59' },
+    { name: 'Jira',     color: '#0052cc' },
+    { name: 'Salesfrc', color: '#00a1e0' },
+    { name: 'Monday',   color: '#e44258' },
+    { name: 'Airtable', color: '#fcb400' },
+    { name: 'Zapier',   color: '#ff4a00' },
+  ];
+
+  let bubbles = [];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    initBubbles();
+  }
+
+  function initBubbles() {
+    bubbles = tools.map((t, i) => ({
+      ...t,
+      x: 80 + Math.random() * (W - 160),
+      y: 80 + Math.random() * (H - 160),
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 1.5,
+      r: 38,
+      phase: Math.random() * Math.PI * 2,
+      chaos: Math.random() * 2,
+    }));
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  let t = 0;
+  function draw() {
+    if (!active) { requestAnimationFrame(draw); return; }
+    ctx.clearRect(0, 0, W, H);
+
+    t += 0.015;
+
+    // Draw chaotic connector lines
+    for (let i = 0; i < bubbles.length; i++) {
+      for (let j = i + 1; j < bubbles.length; j++) {
+        if (Math.random() > 0.35) continue;
+        const a = bubbles[i], b = bubbles[j];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        if (dist > 280) continue;
+        const alpha = (1 - dist / 280) * 0.3;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(200,100,100,${alpha})`;
+        ctx.lineWidth = 1;
+        // Chaotic wavy line
+        ctx.moveTo(a.x, a.y);
+        const mx = (a.x + b.x) / 2 + Math.sin(t + i) * 30;
+        const my = (a.y + b.y) / 2 + Math.cos(t + j) * 30;
+        ctx.quadraticCurveTo(mx, my, b.x, b.y);
+        ctx.stroke();
+      }
+    }
+
+    // Update and draw bubbles
+    bubbles.forEach((b, i) => {
+      // Chaotic movement
+      b.vx += (Math.random() - 0.5) * 0.3 * b.chaos;
+      b.vy += (Math.random() - 0.5) * 0.3 * b.chaos;
+      b.vx = Math.max(-2.5, Math.min(2.5, b.vx));
+      b.vy = Math.max(-2.5, Math.min(2.5, b.vy));
+      b.x += b.vx;
+      b.y += b.vy;
+
+      // Bounce
+      if (b.x < b.r) { b.x = b.r; b.vx *= -1; }
+      if (b.x > W - b.r) { b.x = W - b.r; b.vx *= -1; }
+      if (b.y < b.r) { b.y = b.r; b.vy *= -1; }
+      if (b.y > H - b.r) { b.y = H - b.r; b.vy *= -1; }
+
+      // Draw bubble
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = b.color + 'cc';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 11px Rethink Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.name, b.x, b.y);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Activate on scroll
+  const chaosObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) active = true; });
+  }, { threshold: 0.3 });
+  chaosObserver.observe(canvas.closest('section'));
+})();
+
+/* =============================================
+   SECTION 3: COUNTING NUMBERS
+   Roll up from 0 with stagger
+   ============================================= */
+(function initNumbers() {
+  const numberEls = document.querySelectorAll('.number-val[data-target]');
+
+  function animateNum(el) {
+    const target = parseInt(el.dataset.target);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const duration = 2000;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      // Ease out quart
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const val = Math.round(eased * target);
+      el.textContent = prefix + val + suffix;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
+  const numObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateNum(e.target);
+        numObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  numberEls.forEach(el => numObserver.observe(el));
+})();
+
+/* =============================================
+   SECTION 4: ESCHER SYMBOL REVEAL
+   Real logo mark sweeps in via clip-path on scroll
+   ============================================= */
+(function initEscher() {
+  const symbol = document.getElementById('escher-symbol');
+  const wrapper = document.getElementById('escher-wrapper');
+  if (!symbol) return;
+
+  function reveal() {
+    symbol.classList.add('revealed');
+    setTimeout(() => wrapper && wrapper.classList.add('glowing'), 1800);
+  }
+
+  // Check if already in viewport on page load
+  const rect = symbol.getBoundingClientRect();
+  if (rect.top < window.innerHeight && rect.bottom > 0) {
+    setTimeout(reveal, 300);
+    return;
+  }
+
+  const obs = new IntersectionObserver(([e]) => {
+    if (e.isIntersecting) {
+      setTimeout(reveal, 300);
+      obs.disconnect();
+    }
+  }, { threshold: 0.05 });
+  obs.observe(symbol);
+})();
+
+/* =============================================
+   SECTION 5: TOOL SPRAWL COLLAPSE (SVG)
+   Nodes orbit chaos → collapse to Coda center
+   ============================================= */
+(function initCollapse() {
+  const svg = document.getElementById('collapse-svg');
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 800, H = 500;
+  const cx = W/2, cy = H/2;
+  let collapsed = false, animProgress = 0, started = false;
+
+  const tools = [
+    { name:'Slack', color:'#4a154b', abbr:'SL' },
+    { name:'Google', color:'#4285f4', abbr:'GW' },
+    { name:'Jira', color:'#0052cc', abbr:'JR' },
+    { name:'Salesforce', color:'#00a1e0', abbr:'SF' },
+    { name:'HubSpot', color:'#ff7a59', abbr:'HS' },
+    { name:'Zapier', color:'#ff4a00', abbr:'ZP' },
+    { name:'GitHub', color:'#24292e', abbr:'GH' },
+    { name:'Notion', color:'#191919', abbr:'NT' },
+    { name:'Asana', color:'#f06a6a', abbr:'AS' },
+    { name:'Monday', color:'#e44258', abbr:'MO' },
+  ];
+
+  // Create SVG elements
+  const defs = document.createElementNS(NS, 'defs');
+  defs.innerHTML = `
+    <linearGradient id="coda-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2e57ca"/>
+      <stop offset="100%" stop-color="#3de3ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  `;
+  svg.appendChild(defs);
+
+  // Lines group
+  const linesG = document.createElementNS(NS, 'g');
+  svg.appendChild(linesG);
+
+  // Nodes group
+  const nodesG = document.createElementNS(NS, 'g');
+  svg.appendChild(nodesG);
+
+  // Center Coda node
+  const codaG = document.createElementNS(NS, 'g');
+  const codaRect = document.createElementNS(NS, 'rect');
+  Object.assign(codaRect, {});
+  codaRect.setAttribute('x', cx-44); codaRect.setAttribute('y', cy-24);
+  codaRect.setAttribute('width', 88); codaRect.setAttribute('height', 48);
+  codaRect.setAttribute('rx', 12);
+  codaRect.setAttribute('fill', 'url(#coda-grad)');
+  codaRect.setAttribute('filter', 'url(#glow)');
+  const codaText = document.createElementNS(NS, 'text');
+  codaText.setAttribute('x', cx); codaText.setAttribute('y', cy+6);
+  codaText.setAttribute('text-anchor', 'middle');
+  codaText.setAttribute('fill', 'white');
+  codaText.setAttribute('font-family', 'Rethink Sans, sans-serif');
+  codaText.setAttribute('font-weight', '800');
+  codaText.setAttribute('font-size', '18');
+  codaText.textContent = 'Coda';
+  codaG.appendChild(codaRect); codaG.appendChild(codaText);
+  codaG.setAttribute('opacity', '0');
+  nodesG.appendChild(codaG);
+
+  // Tool nodes
+  const nodeEls = [], lineEls = [];
+  const radii = [170, 185, 160, 190, 175, 165, 180, 155, 195, 170];
+  const chaosOffsets = tools.map(() => ({
+    dx: (Math.random()-0.5)*60,
+    dy: (Math.random()-0.5)*60,
+    speed: (Math.random()*0.6+0.4) * (Math.random()<0.5?1:-1),
+    phase: Math.random()*Math.PI*2
+  }));
+
+  tools.forEach((t, i) => {
+    const g = document.createElementNS(NS, 'g');
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('r', '30');
+    circle.setAttribute('fill', t.color);
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+    circle.setAttribute('stroke-width', '2');
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('dy', '5');
+    label.setAttribute('fill', 'white');
+    label.setAttribute('font-family', 'Rethink Sans, sans-serif');
+    label.setAttribute('font-weight', '700');
+    label.setAttribute('font-size', '11');
+    label.textContent = t.abbr;
+    g.appendChild(circle); g.appendChild(label);
+    nodesG.appendChild(g);
+    nodeEls.push(g);
+
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('stroke', 'rgba(46,87,202,0.4)');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('opacity', '0');
+    linesG.appendChild(line);
+    lineEls.push(line);
+  });
+
+  let t = 0;
+  function animate() {
+    t += 0.01;
+
+    tools.forEach((tool, i) => {
+      const angle = (i / tools.length) * Math.PI * 2;
+      const targetAngle = angle;
+      const targetR = 160;
+      const targetX = cx + Math.cos(targetAngle) * targetR;
+      const targetY = cy + Math.sin(targetAngle) * targetR;
+
+      let x, y;
+      if (!collapsed) {
+        // Chaotic orbit
+        const chaos = chaosOffsets[i];
+        const orbitAngle = angle + t * chaos.speed + chaos.phase;
+        const orbitR = radii[i];
+        x = cx + Math.cos(orbitAngle) * orbitR + chaos.dx * Math.sin(t * 0.5);
+        y = cy + Math.sin(orbitAngle) * orbitR + chaos.dy * Math.cos(t * 0.3);
+      } else {
+        // Collapsing to spoke positions
+        animProgress = Math.min(1, animProgress + 0.012);
+        const eased = 1 - Math.pow(1 - animProgress, 3);
+        const chaosX = cx + Math.cos(angle + chaosOffsets[i].phase) * radii[i];
+        const chaosY = cy + Math.sin(angle + chaosOffsets[i].phase) * radii[i];
+        x = chaosX + (targetX - chaosX) * eased;
+        y = chaosY + (targetY - chaosY) * eased;
+
+        // Show lines
+        lineEls[i].setAttribute('opacity', String(eased * 0.6));
+        lineEls[i].setAttribute('x1', cx); lineEls[i].setAttribute('y1', cy);
+        lineEls[i].setAttribute('x2', x); lineEls[i].setAttribute('y2', y);
+
+        codaG.setAttribute('opacity', String(eased));
+      }
+
+      nodeEls[i].setAttribute('transform', `translate(${x},${y})`);
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  // Trigger collapse on scroll
+  const collapseObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+        animate();
+        setTimeout(() => { collapsed = true; }, 2500);
+      }
+    });
+  }, { threshold: 0.4 });
+  collapseObserver.observe(svg);
+})();
+
+/* =============================================
+   SECTION 6: PROCESS STEPS — sequential activate
+   ============================================= */
+(function initProcess() {
+  const steps = document.querySelectorAll('.process-step');
+  const processObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        steps.forEach((step, i) => {
+          setTimeout(() => step.classList.add('active'), i * 400);
+        });
+        processObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  if (steps[0]) processObserver.observe(steps[0].closest('section'));
+})();
+
+/* =============================================
+   SECTION 9: BUDGET BARS
+   Animate widths on scroll
+   ============================================= */
+(function initBudget() {
+  const bars = document.querySelectorAll('.budget-bar');
+  const budgetObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        bars.forEach(bar => {
+          const w = bar.dataset.width;
+          bar.style.width = w + '%';
+        });
+        budgetObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  const budgetSection = document.getElementById('budget');
+  if (budgetSection) budgetObserver.observe(budgetSection);
+})();
+
+/* =============================================
+   SECTION 10: WORKFLOW ANIMATION
+   Sequential node activation
+   ============================================= */
+(function initWorkflow() {
+  const wfSection = document.getElementById('workflow');
+  let started = false;
+
+  const wfObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+        runWorkflow();
+      }
+    });
+  }, { threshold: 0.3 });
+  if (wfSection) wfObserver.observe(wfSection);
+
+  function runWorkflow() {
+    const nodes = 6;
+    function activateNode(i) {
+      if (i >= nodes) {
+        setTimeout(() => {
+          // Reset and re-run
+          for (let j = 0; j < nodes; j++) {
+            const n = document.getElementById(`wfn-${j}`);
+            const c = document.getElementById(`wfc-${j}`);
+            if (n) n.classList.remove('active');
+            if (c) c.style.width = '0';
+          }
+          setTimeout(runWorkflow, 800);
+        }, 1000);
+        return;
+      }
+      const node = document.getElementById(`wfn-${i}`);
+      if (node) node.classList.add('active');
+      if (i < nodes - 1) {
+        const conn = document.getElementById(`wfc-${i}`);
+        if (conn) {
+          conn.style.transition = 'width 0.4s ease-out';
+          conn.style.width = '100%';
+        }
+      }
+      setTimeout(() => activateNode(i + 1), 600);
+    }
+    activateNode(0);
+  }
+})();
+</script>
+
+<script>
+/* =============================================
+   POLYFILL: roundRect for older browsers
+   ============================================= */
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.lineTo(x + w, y + h - r);
+    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.lineTo(x + r, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.lineTo(x, y + r);
+    this.quadraticCurveTo(x, y, x + r, y);
+    this.closePath();
+  };
+}
+
+/* =============================================
+   RE-RUN INTERSECTION OBSERVER for late-added elements
+   ============================================= */
+document.querySelectorAll('.anim-up, .anim-left, .anim-right, .anim-scale').forEach(el => {
+  if (!el.classList.contains('visible')) animObserver.observe(el);
+});
+
+/* =============================================
+   SECTION 11: APPROVAL FLOW DOT ANIMATION
+   ============================================= */
+(function initApproval() {
+  const dot = document.getElementById('appr-dot');
+  if (!dot) return;
+  let started = false;
+
+  // Keyframe positions for dot travel
+  const keyframes = [
+    { x: 80, y: 140 },   // Request center
+    { x: 265, y: 140 },  // Manager center
+    { x: 450, y: 95 },   // Approve center
+    { x: 635, y: 130 },  // Sync center
+    { x: 815, y: 130 },  // Complete center
+  ];
+
+  let kf = 0, progress = 0;
+
+  function animateDot() {
+    if (kf >= keyframes.length - 1) {
+      setTimeout(() => { kf = 0; progress = 0; animateDot(); }, 1500);
+      return;
+    }
+    const from = keyframes[kf];
+    const to = keyframes[kf + 1];
+
+    progress += 0.025;
+    if (progress >= 1) { progress = 0; kf++; animateDot(); return; }
+
+    const eased = 1 - Math.pow(1 - progress, 2);
+    dot.setAttribute('cx', from.x + (to.x - from.x) * eased);
+    dot.setAttribute('cy', from.y + (to.y - from.y) * eased);
+
+    // Pulse nodes as dot arrives
+    ['appr-0','appr-1','appr-approve','appr-sync','appr-complete'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.style.filter = (i === kf && progress > 0.8) ? 'drop-shadow(0 0 8px rgba(61,227,255,0.8))' : '';
+    });
+
+    requestAnimationFrame(animateDot);
+  }
+
+  const apprObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; animateDot(); }});
+  }, { threshold: 0.4 });
+  const apprSection = document.getElementById('approval');
+  if (apprSection) apprObserver.observe(apprSection);
+})();
+
+/* =============================================
+   SECTION 12: DASHBOARD COUNTERS + CHARTS
+   ============================================= */
+(function initDashboard() {
+  const dashSection = document.getElementById('dashboard');
+  if (!dashSection) return;
+  let started = false;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+
+        // Revenue counter
+        const revEl = dashSection.querySelector('.dash-counter');
+        if (revEl) {
+          let v = 0;
+          const target = 4280000;
+          const timer = setInterval(() => {
+            v += 85000;
+            if (v >= target) { v = target; clearInterval(timer); }
+            revEl.textContent = '$' + (v/1000000).toFixed(1) + 'M';
+          }, 30);
+        }
+
+        // Deals counter
+        const dealEl = dashSection.querySelectorAll('.dash-counter')[1];
+        if (dealEl) {
+          let v = 0;
+          const timer = setInterval(() => {
+            v++;
+            dealEl.textContent = v + ' deals';
+            if (v >= 18) clearInterval(timer);
+          }, 80);
+        }
+
+        // Pipeline bar
+        const pBar = dashSection.querySelector('.pipeline-fill');
+        if (pBar) setTimeout(() => { pBar.style.width = '74%'; }, 300);
+
+        // Sparkline
+        const spark = document.getElementById('sparkline');
+        if (spark) setTimeout(() => { spark.style.strokeDashoffset = '0'; }, 400);
+
+        // Donut arc
+        const donut = document.getElementById('donut-arc');
+        const donutPct = document.getElementById('donut-pct');
+        if (donut) {
+          const circ = 301.6;
+          const target = 0.86; // 86%
+          setTimeout(() => {
+            donut.style.strokeDashoffset = String(circ * (1 - target));
+          }, 500);
+          let pct = 0;
+          const timer = setInterval(() => {
+            pct++;
+            if (donutPct) donutPct.textContent = pct + '%';
+            if (pct >= 86) clearInterval(timer);
+          }, 20);
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(dashSection);
+})();
+
+/* =============================================
+   SECTION 13: CLOCK / HOURS COUNTER
+   ============================================= */
+(function initClock() {
+  const hoursSection = document.getElementById('hours');
+  if (!hoursSection) return;
+  let started = false;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+
+        // Clock arc
+        const arc = document.getElementById('clock-arc');
+        if (arc) setTimeout(() => { arc.style.strokeDashoffset = '0'; }, 300);
+
+        // Animate clock hands spinning backward
+        const hourHand = document.getElementById('clock-hour');
+        const minuteHand = document.getElementById('clock-minute');
+        let angle = 0;
+        const spinInterval = setInterval(() => {
+          angle -= 6; // Spin backward
+          if (hourHand) hourHand.setAttribute('transform', `rotate(${angle} 150 150)`);
+          if (minuteHand) minuteHand.setAttribute('transform', `rotate(${angle * 12} 150 150)`);
+        }, 50);
+        setTimeout(() => clearInterval(spinInterval), 3000);
+
+        // Hours counter
+        const counterEl = document.getElementById('clock-counter');
+        const bigEl = document.getElementById('hours-big-counter');
+        const target = 83247;
+        let val = 0;
+        const step = Math.ceil(target / 120);
+        const timer = setInterval(() => {
+          val = Math.min(val + step, target);
+          const formatted = val.toLocaleString();
+          if (counterEl) counterEl.textContent = formatted;
+          if (bigEl) bigEl.textContent = '+' + Math.round(val / 1000) + 'k';
+          if (val >= target) clearInterval(timer);
+        }, 20);
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(hoursSection);
+})();
+
+/* =============================================
+   SECTION 14: CODA ECOSYSTEM ORBITAL CANVAS
+   ============================================= */
+(function initEcosystem() {
+  const canvas = document.getElementById('ecosystem-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 600, H = 500;
+  const cx = W / 2, cy = H / 2;
+  let started = false, t = 0;
+
+  const integrations = [
+    { name: 'Slack',     color: '#4a154b', angle: 0,    radius: 180, speed: 0.4 },
+    { name: 'Google',    color: '#4285f4', angle: 0.8,  radius: 195, speed: -0.35 },
+    { name: 'Jira',      color: '#0052cc', angle: 1.6,  radius: 175, speed: 0.45 },
+    { name: 'Salesforce',color: '#00a1e0', angle: 2.4,  radius: 200, speed: -0.3 },
+    { name: 'HubSpot',   color: '#ff7a59', angle: 3.2,  radius: 185, speed: 0.38 },
+    { name: 'Zapier',    color: '#ff4a00', angle: 4.0,  radius: 170, speed: -0.42 },
+    { name: 'GitHub',    color: '#24292e', angle: 4.8,  radius: 190, speed: 0.33 },
+    { name: 'Notion',    color: '#191919', angle: 5.6,  radius: 178, speed: -0.37 },
+  ];
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, W, H);
+
+    // Orbital rings
+    [170, 185, 200].forEach(r => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(13,45,82,0.06)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Center Coda node
+    ctx.beginPath();
+    ctx.roundRect(cx - 50, cy - 28, 100, 56, 14);
+    const grad = ctx.createLinearGradient(cx - 50, cy, cx + 50, cy);
+    grad.addColorStop(0, '#2e57ca');
+    grad.addColorStop(1, '#3de3ff');
+    ctx.fillStyle = grad;
+    ctx.shadowColor = '#2e57ca';
+    ctx.shadowBlur = 20;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 18px Rethink Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Coda', cx, cy);
+
+    // Integration nodes
+    integrations.forEach(integ => {
+      const a = integ.angle + t * integ.speed;
+      const x = cx + Math.cos(a) * integ.radius;
+      const y = cy + Math.sin(a) * integ.radius * 0.55; // Elliptical
+
+      // Connection line
+      const pulse = (Math.sin(t * 2 + integ.angle) + 1) / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = `rgba(46,87,202,${0.1 + pulse * 0.15})`;
+      ctx.lineWidth = 1 + pulse;
+      ctx.stroke();
+
+      // Node circle
+      ctx.beginPath();
+      ctx.arc(x, y, 28, 0, Math.PI * 2);
+      ctx.fillStyle = integ.color;
+      ctx.shadowColor = integ.color;
+      ctx.shadowBlur = 8 + pulse * 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Label
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 10px Rethink Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      // Wrap long names
+      const shortName = integ.name.length > 7 ? integ.name.slice(0, 6) + '…' : integ.name;
+      ctx.fillText(shortName, x, y);
+    });
+
+    t += 0.01;
+    if (started) requestAnimationFrame(draw);
+  }
+
+  const ecoObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; draw(); }});
+  }, { threshold: 0.3 });
+  ecoObserver.observe(canvas);
+})();
+
+/* =============================================
+   SECTION 15: AI CANVAS — Neural network particles
+   ============================================= */
+(function initAI() {
+  const canvas = document.getElementById('ai-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 500, H = 400;
+  let started = false, t = 0;
+
+  // Neural network nodes
+  const layers = [
+    [{ x: 60, y: 100 }, { x: 60, y: 200 }, { x: 60, y: 300 }],
+    [{ x: 180, y: 80 }, { x: 180, y: 160 }, { x: 180, y: 240 }, { x: 180, y: 320 }],
+    [{ x: 300, y: 100 }, { x: 300, y: 200 }, { x: 300, y: 300 }],
+    [{ x: 420, y: 150 }, { x: 420, y: 250 }],
+  ];
+
+  // Traveling signals
+  const signals = [];
+  function addSignal() {
+    const li = Math.floor(Math.random() * (layers.length - 1));
+    const from = layers[li][Math.floor(Math.random() * layers[li].length)];
+    const to = layers[li + 1][Math.floor(Math.random() * layers[li + 1].length)];
+    signals.push({ fx: from.x, fy: from.y, tx: to.x, ty: to.y, p: 0, speed: 0.02 + Math.random() * 0.02 });
+  }
+  for (let i = 0; i < 8; i++) addSignal();
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d2d52';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid overlay
+    ctx.strokeStyle = 'rgba(46,87,202,0.15)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < W; x += 30) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 30) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // Connections
+    for (let l = 0; l < layers.length - 1; l++) {
+      layers[l].forEach(a => {
+        layers[l + 1].forEach(b => {
+          const pulse = (Math.sin(t * 1.5 + a.x * 0.01 + b.y * 0.01) + 1) / 2;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(46,87,202,${0.2 + pulse * 0.2})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+      });
+    }
+
+    // Signals
+    signals.forEach((sig, i) => {
+      sig.p += sig.speed;
+      if (sig.p >= 1) {
+        signals.splice(i, 1);
+        addSignal();
+        return;
+      }
+      const eased = sig.p;
+      const x = sig.fx + (sig.tx - sig.fx) * eased;
+      const y = sig.fy + (sig.ty - sig.fy) * eased;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#3de3ff';
+      ctx.shadowColor = '#3de3ff';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    // Nodes
+    layers.forEach((layer, li) => {
+      layer.forEach(node => {
+        const pulse = (Math.sin(t * 2 + node.x * 0.05) + 1) / 2;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 10 + pulse * 3, 0, Math.PI * 2);
+        ctx.fillStyle = li === layers.length - 1 ? '#3de3ff' : '#2e57ca';
+        ctx.shadowColor = li === layers.length - 1 ? '#3de3ff' : '#2e57ca';
+        ctx.shadowBlur = 8 + pulse * 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Border
+        ctx.strokeStyle = 'rgba(61,227,255,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+    });
+
+    // Labels on last layer
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '11px Rethink Sans, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Output', 440, 150);
+    ctx.fillText('Output', 440, 250);
+
+    // Input labels
+    ctx.textAlign = 'right';
+    ctx.fillText('Budget', 48, 100);
+    ctx.fillText('Projects', 48, 200);
+    ctx.fillText('People', 48, 300);
+
+    t += 0.02;
+    if (started) requestAnimationFrame(draw);
+  }
+
+  const aiObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; draw(); }});
+  }, { threshold: 0.3 });
+  aiObserver.observe(canvas);
+})();
+
+/* =============================================
+   SECTION 17: TEAM CAPACITY BARS
+   ============================================= */
+(function initCapacity() {
+  const section = document.getElementById('capacity');
+  if (!section) return;
+  let started = false;
+
+  const team = [
+    { name: 'Sarah L.', before: 95, after: 65 },
+    { name: 'Marcus T.', before: 110, after: 70 },
+    { name: 'Priya K.', before: 45, after: 60 },
+    { name: 'Jordan W.', before: 130, after: 75 },
+    { name: 'Alex M.', before: 80, after: 65 },
+  ];
+
+  function renderBars(container, values, colorFn) {
+    container.innerHTML = '';
+    values.forEach((item, idx) => {
+      const cap = Math.min(item, 100);
+      const overload = item > 100;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:12px;align-items:center;';
+      const label = document.createElement('div');
+      label.style.cssText = 'width:60px;font-size:0.8rem;font-weight:600;color:var(--navy);flex-shrink:0;';
+      label.textContent = team[idx].name;
+      const barWrap = document.createElement('div');
+      barWrap.style.cssText = 'flex:1;height:28px;background:var(--ice);border-radius:100px;overflow:hidden;';
+      const bar = document.createElement('div');
+      bar.style.cssText = `height:100%;width:0%;border-radius:100px;background:${colorFn(item)};transition:width 1.2s cubic-bezier(0.16,1,0.3,1) ${idx * 0.1}s;`;
+      const pct = document.createElement('div');
+      pct.style.cssText = `font-size:0.75rem;font-weight:700;color:${overload ? '#c0392b' : '#0d5e1f'};flex-shrink:0;width:36px;`;
+      pct.textContent = item + '%';
+      barWrap.appendChild(bar);
+      row.appendChild(label);
+      row.appendChild(barWrap);
+      row.appendChild(pct);
+      container.appendChild(row);
+      setTimeout(() => { bar.style.width = cap + '%'; }, 100);
+    });
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+        const beforeContainer = document.getElementById('capacity-before');
+        const afterContainer = document.getElementById('capacity-after');
+        const beforeVals = team.map(t => t.before);
+        const afterVals = team.map(t => t.after);
+        if (beforeContainer) renderBars(beforeContainer, beforeVals, v => v > 100 ? '#e74c3c' : '#e67e22');
+        if (afterContainer) renderBars(afterContainer, afterVals, v => '#2e57ca');
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(section);
+})();
+
+/* =============================================
+   SECTION 18: WORKSPACE HEALTH GAUGE
+   ============================================= */
+(function initHealth() {
+  const section = document.getElementById('health');
+  if (!section) return;
+  let started = false;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+
+        // Animate score from 47 → 91
+        const arc = document.getElementById('health-arc');
+        const scoreEl = document.getElementById('health-score');
+        const needle = document.getElementById('health-needle');
+        const checks = document.querySelectorAll('.health-check');
+        const items = document.querySelectorAll('.health-item');
+
+        const totalArc = 377; // semicircle circumference
+        let score = 47;
+        const targetScore = 91;
+
+        // Activate checklist items with delays
+        checks.forEach((check, i) => {
+          setTimeout(() => {
+            check.textContent = '✓';
+            check.style.background = '#0d5e1f';
+            check.style.color = 'white';
+            if (items[i]) items[i].style.background = '#e8ffef';
+          }, 800 + i * 600);
+        });
+
+        setTimeout(() => {
+          // Animate arc
+          if (arc) arc.style.strokeDashoffset = String(totalArc * (1 - targetScore / 100));
+          // Animate needle: 0deg = leftmost (0%), 180deg = rightmost (100%)
+          if (needle) needle.style.transform = `rotate(${targetScore * 1.8 - 90}deg)`;
+
+          // Count score
+          const timer = setInterval(() => {
+            score = Math.min(score + 1, targetScore);
+            if (scoreEl) scoreEl.textContent = score;
+            if (score >= targetScore) {
+              clearInterval(timer);
+              if (scoreEl) scoreEl.style.fill = '#0d5e1f';
+            }
+          }, 30);
+        }, 400);
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(section);
+})();
+
+/* =============================================
+   SECTION 19: CODA SCHOOL SVG TREE
+   ============================================= */
+(function initSchool() {
+  const svg = document.getElementById('school-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const nodes = [
+    // Root
+    { id: 'root', x: 450, y: 40, label: 'Start Here', color: '#2e57ca', textColor: 'white', w: 120, h: 44 },
+    // Level 1
+    { id: 'biz', x: 200, y: 130, label: 'Business User', color: '#3de3ff', textColor: '#0d2d52', w: 130, h: 40 },
+    { id: 'pro', x: 700, y: 130, label: 'Power Builder', color: '#889beb', textColor: 'white', w: 130, h: 40 },
+    // Business path
+    { id: 'b1', x: 80, y: 230, label: 'Coda Basics', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 110, h: 36 },
+    { id: 'b2', x: 210, y: 230, label: 'Tables & Views', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 120, h: 36 },
+    { id: 'b3', x: 340, y: 230, label: 'Automations', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 110, h: 36 },
+    // Power path
+    { id: 'p1', x: 560, y: 230, label: 'Formulas', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 100, h: 36 },
+    { id: 'p2', x: 680, y: 230, label: 'Packs & APIs', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 110, h: 36 },
+    { id: 'p3', x: 800, y: 230, label: 'AI Context', color: 'rgba(255,255,255,0.1)', textColor: 'white', w: 100, h: 36 },
+    // Expert badges
+    { id: 'exp1', x: 210, y: 330, label: '★ Expert', color: '#2e57ca', textColor: 'white', w: 90, h: 32 },
+    { id: 'exp2', x: 680, y: 330, label: '★ Builder', color: '#2e57ca', textColor: 'white', w: 90, h: 32 },
+  ];
+
+  const connections = [
+    ['root', 'biz'], ['root', 'pro'],
+    ['biz', 'b1'], ['biz', 'b2'], ['biz', 'b3'],
+    ['pro', 'p1'], ['pro', 'p2'], ['pro', 'p3'],
+    ['b2', 'exp1'], ['p2', 'exp2'],
+  ];
+
+  // Draw connections first
+  connections.forEach(([fromId, toId]) => {
+    const from = nodes.find(n => n.id === fromId);
+    const to = nodes.find(n => n.id === toId);
+    if (!from || !to) return;
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', from.x); line.setAttribute('y1', from.y + 22);
+    line.setAttribute('x2', to.x); line.setAttribute('y2', to.y - 18);
+    line.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', '4 3');
+    svg.appendChild(line);
+  });
+
+  // Draw nodes
+  nodes.forEach((node, i) => {
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('opacity', '0');
+    g.style.transition = `opacity 0.5s ease ${i * 0.1}s`;
+
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', node.x - node.w / 2);
+    rect.setAttribute('y', node.y - node.h / 2);
+    rect.setAttribute('width', node.w);
+    rect.setAttribute('height', node.h);
+    rect.setAttribute('rx', '100');
+    rect.setAttribute('fill', node.color);
+    rect.setAttribute('stroke', 'rgba(255,255,255,0.25)');
+    rect.setAttribute('stroke-width', '1');
+
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', node.x);
+    text.setAttribute('y', node.y + 5);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', node.textColor);
+    text.setAttribute('font-family', 'Rethink Sans, sans-serif');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('font-size', '12');
+    text.textContent = node.label;
+
+    g.appendChild(rect); g.appendChild(text);
+    svg.appendChild(g);
+
+    // Animate in
+    setTimeout(() => { g.setAttribute('opacity', '1'); }, i * 100);
+  });
+
+  // Actually trigger on scroll
+  let started = false;
+  const schoolObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+        // Nodes are already animating via setTimeout — they'll appear
+        // We could re-trigger but they start at page load;
+        // Just fade the SVG in
+        svg.style.opacity = '1';
+      }
+    });
+  }, { threshold: 0.3 });
+  schoolObserver.observe(svg);
+})();
+
+/* =============================================
+   SECTION 20: CODA PACKS CANVAS NETWORK
+   ============================================= */
+(function initPacks() {
+  const canvas = document.getElementById('packs-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 900, H = 500;
+  const cx = W / 2, cy = H / 2;
+  let started = false, t = 0;
+
+  const packs = [
+    { abbr: 'SL', name: 'Slack',     color: '#4a154b', angle: 0 },
+    { abbr: 'GW', name: 'Google',    color: '#4285f4', angle: 0.52 },
+    { abbr: 'JR', name: 'Jira',      color: '#0052cc', angle: 1.05 },
+    { abbr: 'SF', name: 'Salesforce',color: '#00a1e0', angle: 1.57 },
+    { abbr: 'HB', name: 'HubSpot',   color: '#ff7a59', angle: 2.09 },
+    { abbr: 'ZP', name: 'Zapier',    color: '#ff4a00', angle: 2.62 },
+    { abbr: 'GH', name: 'GitHub',    color: '#24292e', angle: 3.14 },
+    { abbr: 'NT', name: 'Notion',    color: '#6B7280', angle: 3.67 },
+    { abbr: 'AS', name: 'Asana',     color: '#f06a6a', angle: 4.19 },
+    { abbr: 'MD', name: 'Monday',    color: '#e44258', angle: 4.71 },
+    { abbr: 'MS', name: 'Microsoft', color: '#0078d4', angle: 5.24 },
+    { abbr: 'SH', name: 'Shopify',   color: '#5a8a3c', angle: 5.76 },
+  ];
+
+  const R = 190;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 280);
+    bgGrad.addColorStop(0, '#f1f3f6');
+    bgGrad.addColorStop(1, '#e4f0fb');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    packs.forEach((pack) => {
+      const x = cx + Math.cos(pack.angle) * R;
+      const y = cy + Math.sin(pack.angle) * R;
+
+      // Pulsing connection line
+      const pulse = (Math.sin(t * 1.5 + pack.angle * 2) + 1) / 2;
+      const lineGrad = ctx.createLinearGradient(cx, cy, x, y);
+      lineGrad.addColorStop(0, `rgba(46,87,202,${0.5 + pulse * 0.3})`);
+      lineGrad.addColorStop(1, `rgba(61,227,255,${0.2 + pulse * 0.2})`);
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = lineGrad;
+      ctx.lineWidth = 1.5 + pulse;
+      ctx.stroke();
+
+      // Traveling dot on line
+      const dotProgress = (t * 0.3 + pack.angle * 0.5) % 1;
+      const dx = cx + (x - cx) * dotProgress;
+      const dy = cy + (y - cy) * dotProgress;
+      ctx.beginPath();
+      ctx.arc(dx, dy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#3de3ff';
+      ctx.shadowColor = '#3de3ff';
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Node
+      ctx.beginPath();
+      ctx.arc(x, y, 32, 0, Math.PI * 2);
+      ctx.fillStyle = pack.color;
+      ctx.shadowColor = pack.color;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Abbr
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 13px Rethink Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pack.abbr, x, y);
+
+      // Name below node
+      ctx.fillStyle = '#4a6080';
+      ctx.font = '10px Rethink Sans, sans-serif';
+      const nx = x - cx, ny = y - cy;
+      const mag = Math.sqrt(nx*nx + ny*ny);
+      const labelX = x + (nx / mag) * 46;
+      const labelY = y + (ny / mag) * 46;
+      ctx.fillText(pack.name, labelX, labelY);
+    });
+
+    // Center "Your Business" node
+    ctx.beginPath();
+    ctx.arc(cx, cy, 55, 0, Math.PI * 2);
+    const centerGrad = ctx.createLinearGradient(cx - 55, cy, cx + 55, cy);
+    centerGrad.addColorStop(0, '#2e57ca');
+    centerGrad.addColorStop(1, '#3de3ff');
+    ctx.fillStyle = centerGrad;
+    ctx.shadowColor = '#2e57ca';
+    ctx.shadowBlur = 30;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px Rethink Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Your', cx, cy - 8);
+    ctx.fillText('Business', cx, cy + 8);
+
+    t += 0.012;
+    if (started) requestAnimationFrame(draw);
+  }
+
+  const packsObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; draw(); }});
+  }, { threshold: 0.2 });
+  packsObserver.observe(canvas);
+})();
+
+/* =============================================
+   SECTION 24: ESCHER FULL CANVAS (large detailed)
+   ============================================= */
+(function initEscherFull() {
+  const canvas = document.getElementById('escher-full-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 500, H = 380;
+  let phase = 0, phaseProgress = 0, started = false;
+
+  const cx = W / 2, cy = H / 2;
+  const S = 130;
+
+  const topD = { x1: cx - S * 0.95, y1: cy - S * 0.85, x2: cx + S * 0.3, y2: cy - S * 0.1 };
+  const bridge = { x1: cx - S * 0.3, y1: cy, x2: cx + S * 0.3, y2: cy * 1.05 };
+  const botD = { x1: cx - S * 0.3, y1: cy + S * 0.1, x2: cx + S * 0.95, y2: cy + S * 0.85 };
+
+  const steps = document.querySelectorAll('.escher-step');
+
+  function activateStep(i) {
+    steps.forEach((s, si) => { s.style.opacity = si === i ? '1' : '0.3'; });
+  }
+
+  function drawGrid(alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = 'rgba(61,227,255,0.18)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= W; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(61,227,255,0.07)';
+    for (let i = -10; i < 20; i++) {
+      ctx.beginPath(); ctx.moveTo(i*40, 0); ctx.lineTo((i+10)*40, H); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawLine(x1, y1, x2, y2, prog, color, width, glow) {
+    if (prog <= 0) return;
+    ctx.save();
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 20; }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width || 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 + (x2 - x1) * prog, y1 + (y2 - y1) * prog);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#071829';
+    ctx.fillRect(0, 0, W, H);
+
+    const gridAlpha = phase >= 0 ? Math.min(1, phaseProgress + (phase > 0 ? 1 : 0)) : 0;
+    drawGrid(gridAlpha);
+
+    if (phase >= 1) drawLine(topD.x1, topD.y1, topD.x2, topD.y2, phase === 1 ? phaseProgress : 1, '#2e57ca', 7, phase >= 4);
+    if (phase >= 2) drawLine(botD.x1, botD.y1, botD.x2, botD.y2, phase === 2 ? phaseProgress : 1, '#2e57ca', 7, phase >= 4);
+    if (phase >= 3) drawLine(bridge.x1, bridge.y1, bridge.x2, bridge.y2, phase === 3 ? phaseProgress : 1, '#3de3ff', 9, true);
+
+    if (phase >= 4) {
+      // Endpoint dots glowing
+      [[topD.x1,topD.y1],[topD.x2,topD.y2],[botD.x2,botD.y2]].forEach(([x,y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#3de3ff';
+        ctx.shadowColor = '#3de3ff';
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    phaseProgress += 0.014;
+    if (phaseProgress >= 1) {
+      phaseProgress = 0;
+      if (phase < 4) {
+        phase++;
+        activateStep(phase);
+      } else {
+        setTimeout(() => { phase = 0; phaseProgress = 0; activateStep(0); }, 2500);
+        return;
+      }
+    }
+    if (started) requestAnimationFrame(draw);
+  }
+
+  const efObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; draw(); }});
+  }, { threshold: 0.3 });
+  efObserver.observe(canvas);
+})();
+
+/* =============================================
+   SECTION 25: COMPLEXITY vs SIMPLICITY CANVAS
+   ============================================= */
+(function initComplexity() {
+  const complexCanvas = document.getElementById('complex-canvas');
+  const simpleCanvas = document.getElementById('simple-canvas');
+  if (!complexCanvas || !simpleCanvas) return;
+
+  const cCtx = complexCanvas.getContext('2d');
+  const sCtx = simpleCanvas.getContext('2d');
+  const W = 380, H = 300;
+  let started = false, t = 0;
+
+  // Complex system: many random nodes with tangled connections
+  const complexNodes = Array.from({ length: 16 }, (_, i) => ({
+    x: 30 + Math.random() * (W - 60),
+    y: 30 + Math.random() * (H - 60),
+    r: 8 + Math.random() * 10,
+    color: ['#c0392b','#e67e22','#8e44ad','#2c3e50'][Math.floor(Math.random()*4)],
+  }));
+
+  const connections = [];
+  complexNodes.forEach((n, i) => {
+    const numConn = Math.floor(Math.random() * 4) + 2;
+    for (let j = 0; j < numConn; j++) {
+      const target = Math.floor(Math.random() * complexNodes.length);
+      if (target !== i) connections.push([i, target]);
+    }
+  });
+
+  // Simple system: 3 clean nodes in a triangle
+  const simpleNodes = [
+    { x: W / 2, y: 60, label: 'Coda', color: '#2e57ca', r: 28 },
+    { x: 100, y: H - 70, label: 'Your\nData', color: '#3de3ff', r: 22, textColor: '#0d2d52' },
+    { x: W - 100, y: H - 70, label: 'Your\nTeam', color: '#889beb', r: 22 },
+  ];
+
+  function drawComplex() {
+    cCtx.clearRect(0, 0, W, H);
+    cCtx.fillStyle = '#fff8f8';
+    cCtx.fillRect(0, 0, W, H);
+
+    connections.forEach(([a, b]) => {
+      const na = complexNodes[a], nb = complexNodes[b];
+      cCtx.beginPath();
+      cCtx.moveTo(na.x + Math.sin(t + a) * 5, na.y + Math.cos(t + a) * 5);
+      cCtx.lineTo(nb.x + Math.sin(t + b) * 5, nb.y + Math.cos(t + b) * 5);
+      cCtx.strokeStyle = 'rgba(192,57,43,0.25)';
+      cCtx.lineWidth = 1;
+      cCtx.stroke();
+    });
+
+    complexNodes.forEach(n => {
+      cCtx.beginPath();
+      cCtx.arc(n.x + Math.sin(t + n.x * 0.01) * 3, n.y + Math.cos(t + n.y * 0.01) * 3, n.r, 0, Math.PI * 2);
+      cCtx.fillStyle = n.color + 'aa';
+      cCtx.fill();
+    });
+  }
+
+  function drawSimple() {
+    sCtx.clearRect(0, 0, W, H);
+    sCtx.fillStyle = '#f8fff8';
+    sCtx.fillRect(0, 0, W, H);
+
+    // Clean connections
+    [[0,1],[0,2],[1,2]].forEach(([a, b]) => {
+      const na = simpleNodes[a], nb = simpleNodes[b];
+      const pulse = (Math.sin(t * 1.5 + a) + 1) / 2;
+      const grad = sCtx.createLinearGradient(na.x, na.y, nb.x, nb.y);
+      grad.addColorStop(0, '#2e57ca');
+      grad.addColorStop(1, '#3de3ff');
+      sCtx.beginPath();
+      sCtx.moveTo(na.x, na.y);
+      sCtx.lineTo(nb.x, nb.y);
+      sCtx.strokeStyle = grad;
+      sCtx.lineWidth = 2 + pulse;
+      sCtx.stroke();
+    });
+
+    simpleNodes.forEach(n => {
+      const pulse = (Math.sin(t * 1.5 + n.x * 0.01) + 1) / 2;
+      sCtx.beginPath();
+      sCtx.arc(n.x, n.y, n.r + pulse * 2, 0, Math.PI * 2);
+      sCtx.fillStyle = n.color;
+      sCtx.shadowColor = n.color;
+      sCtx.shadowBlur = 12;
+      sCtx.fill();
+      sCtx.shadowBlur = 0;
+
+      sCtx.fillStyle = n.textColor || 'white';
+      sCtx.font = 'bold 11px Rethink Sans, sans-serif';
+      sCtx.textAlign = 'center';
+      sCtx.textBaseline = 'middle';
+      const lines = n.label.split('\n');
+      lines.forEach((line, i) => {
+        sCtx.fillText(line, n.x, n.y + (i - (lines.length - 1) / 2) * 14);
+      });
+    });
+  }
+
+  function loop() {
+    drawComplex();
+    drawSimple();
+    t += 0.02;
+    if (started) requestAnimationFrame(loop);
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting && !started) { started = true; loop(); }});
+  }, { threshold: 0.3 });
+  observer.observe(complexCanvas);
+})();
+
+/* =============================================
+   SECTION 26: DOC REVIEW ANIMATION
+   Sequentially fix issues
+   ============================================= */
+(function initDocReview() {
+  const section = document.getElementById('docreview');
+  if (!section) return;
+  let started = false;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true;
+        const issues = [1, 2, 3, 4];
+        const statusEl = document.getElementById('doc-status');
+        const badge = document.getElementById('doc-health-badge');
+
+        function fixIssue(i) {
+          if (i > issues.length) {
+            if (statusEl) { statusEl.textContent = '✓ All issues resolved — health score: 91%'; statusEl.style.background = '#e8ffef'; statusEl.style.color = '#0d5e1f'; }
+            if (badge) { badge.textContent = 'Health: 91%'; badge.style.background = '#e8ffef'; badge.style.color = '#0d5e1f'; }
+            return;
+          }
+          const num = issues[i - 1];
+          const iconEl = document.getElementById(`doc-icon-${num}`);
+          const titleEl = document.getElementById(`doc-title-${num}`);
+          const issueEl = document.getElementById(`doc-issue-${num}`);
+
+          if (iconEl) iconEl.textContent = '✅';
+          if (titleEl) { titleEl.style.color = '#0d5e1f'; }
+          if (issueEl) { issueEl.style.background = '#e8ffef'; }
+          if (statusEl) statusEl.textContent = `Fixing issue ${i} of 4...`;
+          setTimeout(() => fixIssue(i + 1), 1000);
+        }
+
+        setTimeout(() => fixIssue(1), 800);
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(section);
+})();
+
+/* =============================================
+   SECTION 28: GRID INTERACTIVE CANVAS
+   Wave-animated nodes on grid
+   ============================================= */
+(function initGridInteractive() {
+  const canvas = document.getElementById('grid-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const GRID = 60;
+  let mouseX = W / 2, mouseY = H / 2;
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.clientX - r.left;
+    mouseY = e.clientY - r.top;
+  });
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#071829';
+    ctx.fillRect(0, 0, W, H);
+
+    const cols = Math.ceil(W / GRID) + 1;
+    const rows = Math.ceil(H / GRID) + 1;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * GRID;
+        const y = r * GRID;
+
+        // Distance from mouse for ripple
+        const distMouse = Math.sqrt((x - mouseX) ** 2 + (y - mouseY) ** 2);
+        const mouseEffect = Math.max(0, 1 - distMouse / 200);
+
+        // Wave
+        const wave = Math.sin(t * 1.5 + c * 0.4 + r * 0.4) * 0.5 + 0.5;
+        const brightness = wave * 0.3 + mouseEffect * 0.7;
+
+        // Grid lines
+        if (c < cols - 1) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + GRID, y);
+          ctx.strokeStyle = `rgba(46,87,202,${0.08 + brightness * 0.12})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        if (r < rows - 1) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + GRID);
+          ctx.strokeStyle = `rgba(46,87,202,${0.08 + brightness * 0.12})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // Node dot at intersection
+        if (brightness > 0.2) {
+          ctx.beginPath();
+          ctx.arc(x, y, 2 + brightness * 4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(61,227,255,${brightness * 0.8})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    t += 0.025;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* =============================================
+   SECTION 29: FAQ ACCORDION
+   ============================================= */
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const arrow = btn.querySelector('.faq-arrow');
+  const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+
+  // Close all
+  document.querySelectorAll('.faq-a').forEach(a => { a.style.maxHeight = '0px'; });
+  document.querySelectorAll('.faq-arrow').forEach(a => { a.textContent = '+'; a.style.transform = 'rotate(0deg)'; });
+
+  if (!isOpen) {
+    answer.style.maxHeight = answer.scrollHeight + 'px';
+    arrow.textContent = '−';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+}
+
+/* =============================================
+   SECTION 30: FINAL CTA CANVAS
+   Floating particles on gradient background
+   ============================================= */
+(function initCTA() {
+  const canvas = document.getElementById('cta-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+  const particles = [];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * 1200,
+      y: Math.random() * 700,
+      r: Math.random() * 3 + 0.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: -Math.random() * 0.6 - 0.1,
+      a: Math.random() * 0.5 + 0.2,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Gradient background
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, '#2e57ca');
+    grad.addColorStop(0.5, '#199bde');
+    grad.addColorStop(1, '#3de3ff');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid overlay
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 60) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 60) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    particles.forEach(p => {
+      p.x += p.vx + Math.sin(t * 0.5 + p.y * 0.01) * 0.2;
+      p.y += p.vy;
+      if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${p.a})`;
+      ctx.fill();
+    });
+
+    t += 0.02;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

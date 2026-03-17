@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23 — The Turing Test</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:#05080f;overflow-x:hidden}
+body{color:#d4deff;font-family:'Courier New',monospace;overflow-x:hidden;min-height:100vh}
+
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:200;
+  font-size:0.7rem;letter-spacing:0.2em;color:rgba(180,200,255,0.3);
+  text-decoration:none;text-transform:uppercase;
+  transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(180,200,255,0.8)}
+
+/* ─── INTRO ─── */
+.intro{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:3rem 2rem;
+  position:relative;overflow:hidden;
+}
+#intro-canvas{position:absolute;inset:0;width:100%;height:100%}
+.intro-inner{position:relative;z-index:2}
+.intro-label{font-size:0.65rem;letter-spacing:0.4em;color:#4466ff;margin-bottom:1.5rem;opacity:0.8;text-transform:uppercase}
+.intro-title{font-size:clamp(2rem,6vw,5rem);font-weight:700;line-height:1.1;margin-bottom:1rem;letter-spacing:-0.02em}
+.intro-title .red{color:#ff4444}
+.intro-sub{font-size:0.9rem;color:rgba(180,200,255,0.6);max-width:520px;line-height:1.8;margin:0 auto 2rem}
+.intro-btn{
+  display:inline-block;padding:0.9rem 2.5rem;
+  border:1px solid #4466ff;background:transparent;
+  color:#4466ff;font-family:'Courier New',monospace;font-size:0.8rem;
+  letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;
+  transition:all 0.3s;
+}
+.intro-btn:hover{background:#4466ff;color:#05080f}
+
+/* ─── CONTEXT ─── */
+.context-section{
+  max-width:720px;margin:0 auto;padding:5rem 2rem;
+}
+.context-title{font-size:1.5rem;margin-bottom:2rem;color:#aabbff}
+.context-body{font-size:0.85rem;line-height:2;color:rgba(180,200,255,0.65);margin-bottom:1.5rem}
+.rules-box{
+  border:1px solid rgba(68,102,255,0.3);padding:1.5rem;
+  background:rgba(68,102,255,0.05);border-radius:4px;
+  margin:2rem 0;
+}
+.rules-title{font-size:0.65rem;letter-spacing:0.3em;color:#4466ff;text-transform:uppercase;margin-bottom:1rem}
+.rules-list{list-style:none}
+.rules-list li{font-size:0.8rem;padding:0.4rem 0;border-bottom:1px solid rgba(68,102,255,0.1);color:rgba(180,200,255,0.7)}
+.rules-list li:last-child{border:none}
+.rules-list li::before{content:'→ ';color:#4466ff;opacity:0.7}
+
+/* ─── CHAT ARENA ─── */
+#chat-arena{
+  max-width:900px;margin:0 auto;padding:2rem;
+}
+.arena-header{
+  text-align:center;margin-bottom:3rem;
+}
+.arena-title{font-size:0.65rem;letter-spacing:0.4em;color:#4466ff;text-transform:uppercase;margin-bottom:0.8rem;opacity:0.8}
+.arena-subtitle{font-size:1.5rem;color:#d4deff}
+
+/* Two chat panels */
+.chat-panels{
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;
+}
+@media(max-width:700px){ .chat-panels{grid-template-columns:1fr} }
+
+.chat-panel{
+  border:1px solid rgba(100,120,200,0.2);
+  border-radius:6px;overflow:hidden;
+  display:flex;flex-direction:column;
+  height:360px;background:rgba(5,8,15,0.8);
+}
+.panel-header{
+  padding:0.8rem 1rem;background:rgba(20,30,60,0.8);
+  border-bottom:1px solid rgba(100,120,200,0.15);
+  display:flex;align-items:center;gap:0.6rem;
+}
+.panel-dot{width:8px;height:8px;border-radius:50%}
+.panel-name{font-size:0.7rem;letter-spacing:0.15em;color:rgba(180,200,255,0.7)}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.8rem}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(100,120,200,0.3)}
+
+.msg{font-size:0.8rem;line-height:1.6;padding:0.5rem 0.8rem;border-radius:3px;max-width:90%;animation:fadeInUp 0.3s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;background:rgba(68,102,255,0.15);border:1px solid rgba(68,102,255,0.2);color:#aabbff}
+.msg.agent{align-self:flex-start;background:rgba(20,30,60,0.6);border:1px solid rgba(100,120,200,0.15);color:rgba(180,200,255,0.85)}
+.typing-indicator{font-size:0.75rem;color:rgba(100,120,200,0.5);padding:0.3rem 0;display:none}
+.typing-indicator.visible{display:block}
+
+/* Input */
+.chat-input-row{
+  display:grid;grid-template-columns:1fr auto;gap:0;
+  border-top:1px solid rgba(100,120,200,0.15);
+}
+.chat-input{
+  padding:0.8rem 1rem;background:transparent;border:none;
+  color:#d4deff;font-family:'Courier New',monospace;font-size:0.8rem;
+  outline:none;
+}
+.chat-input::placeholder{color:rgba(100,120,200,0.4)}
+.chat-send{
+  padding:0.8rem 1rem;background:transparent;border:none;
+  border-left:1px solid rgba(100,120,200,0.15);
+  color:#4466ff;cursor:pointer;font-size:0.9rem;
+  transition:background 0.2s;
+}
+.chat-send:hover{background:rgba(68,102,255,0.1)}
+
+/* Vote section */
+.vote-section{
+  text-align:center;padding:2rem;
+  border:1px solid rgba(100,120,200,0.2);border-radius:6px;
+  background:rgba(5,8,15,0.6);
+}
+.vote-prompt{font-size:0.85rem;color:rgba(180,200,255,0.7);margin-bottom:1.5rem;line-height:1.8}
+.vote-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.vote-btn{
+  padding:0.7rem 1.8rem;border:1px solid rgba(100,120,200,0.3);
+  background:transparent;color:rgba(180,200,255,0.7);
+  font-family:'Courier New',monospace;font-size:0.75rem;
+  letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;
+  transition:all 0.3s;
+}
+.vote-btn[data-panel="A"]:hover{border-color:#4466ff;color:#4466ff;background:rgba(68,102,255,0.08)}
+.vote-btn[data-panel="B"]:hover{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,0.08)}
+.vote-btn[data-panel="both"]:hover{border-color:#ffaa00;color:#ffaa00;background:rgba(255,170,0,0.08)}
+
+/* Result */
+.reveal-section{
+  display:none;text-align:center;padding:3rem 2rem;max-width:600px;margin:2rem auto;
+}
+.reveal-section.shown{display:block}
+.reveal-big{font-size:clamp(1.5rem,4vw,3rem);margin-bottom:1.5rem;line-height:1.3}
+.reveal-both-machine{color:#ff4444}
+.reveal-human{color:#6cffa0}
+.reveal-body{font-size:0.85rem;color:rgba(180,200,255,0.6);line-height:1.9}
+
+/* ─── ESSAY ─── */
+.essay-section{
+  max-width:660px;margin:0 auto;padding:5rem 2rem;
+  border-top:1px solid rgba(100,120,200,0.1);
+}
+.essay-heading{font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:2rem;line-height:1.3;font-family:'Georgia',serif;font-weight:400}
+.essay-body{font-size:0.9rem;line-height:2;color:rgba(180,200,255,0.6);margin-bottom:1.5rem;font-family:'Georgia',serif}
+.essay-body strong{color:#aabbff;font-family:'Courier New',monospace;font-weight:400}
+.essay-pull{
+  font-size:1.3rem;font-style:italic;color:#aabbff;
+  border-left:2px solid #4466ff;padding-left:1.5rem;
+  margin:2rem 0;line-height:1.6;font-family:'Georgia',serif;
+}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- ─── INTRO ─── -->
+<div class="intro">
+  <canvas id="intro-canvas"></canvas>
+  <div class="intro-inner">
+    <div class="intro-label">Project 23 — The Turing Test</div>
+    <h1 class="intro-title">Can you tell<br>the <span class="red">difference</span>?</h1>
+    <p class="intro-sub">In 1950, Alan Turing proposed a simple test: if a machine can fool a human into thinking it is human, does that make it intelligent? You're about to find out how hard the test really is.</p>
+    <button class="intro-btn" onclick="document.getElementById('chat-arena').scrollIntoView({behavior:'smooth'})">Begin the Test →</button>
+  </div>
+</div>
+
+<!-- ─── CONTEXT ─── -->
+<div class="context-section">
+  <div class="context-title">The Setup</div>
+  <p class="context-body">
+    You will have a conversation with two agents — call them A and B. Both will answer your questions. Your task: determine which one is human and which one is machine. Ask anything. Push hard. The machines know they're being tested.
+  </p>
+  <div class="rules-box">
+    <div class="rules-title">Rules of the Test</div>
+    <ul class="rules-list">
+      <li>Ask any question — philosophical, emotional, personal, absurd</li>
+      <li>Both agents know the rules and are trying to seem human</li>
+      <li>Neither agent will admit to being a machine</li>
+      <li>You have unlimited turns — press Enter or click Send</li>
+      <li>Vote when you're ready to decide</li>
+    </ul>
+  </div>
+  <p class="context-body">
+    Spoiler: both agents are machine-generated. The point isn't to win — it's to notice what questions reveal the gap, and what questions reveal there is no gap.
+  </p>
+</div>
+
+<!-- ─── CHAT ARENA ─── -->
+<div id="chat-arena">
+  <div class="arena-header">
+    <div class="arena-title">The Arena</div>
+    <div class="arena-subtitle">Ask your question below — both agents will respond</div>
+  </div>
+
+  <div class="chat-panels">
+    <!-- Panel A -->
+    <div class="chat-panel" id="panel-a">
+      <div class="panel-header">
+        <div class="panel-dot" style="background:#4466ff"></div>
+        <div class="panel-name">AGENT A</div>
+      </div>
+      <div class="chat-messages" id="messages-a">
+        <div class="msg agent">Hello. I'm ready. Ask me anything.</div>
+      </div>
+      <div class="typing-indicator" id="typing-a">Agent A is thinking...</div>
+    </div>
+
+    <!-- Panel B -->
+    <div class="chat-panel" id="panel-b">
+      <div class="panel-header">
+        <div class="panel-dot" style="background:#ff4444"></div>
+        <div class="panel-name">AGENT B</div>
+      </div>
+      <div class="chat-messages" id="messages-b">
+        <div class="msg agent">Hi. Go ahead — I'm curious what you'll ask.</div>
+      </div>
+      <div class="typing-indicator" id="typing-b">Agent B is thinking...</div>
+    </div>
+  </div>
+
+  <!-- Shared input -->
+  <div style="border:1px solid rgba(100,120,200,0.2);border-radius:6px;overflow:hidden;margin-bottom:2rem">
+    <div style="display:grid;grid-template-columns:1fr auto">
+      <input class="chat-input" id="chat-input" placeholder="Type your question and press Enter..." autocomplete="off" />
+      <button class="chat-send" id="chat-send">→</button>
+    </div>
+  </div>
+
+  <!-- Vote -->
+  <div class="vote-section">
+    <div class="vote-prompt">When you're ready to decide — which agent do you think is human?</div>
+    <div class="vote-btns">
+      <button class="vote-btn" data-panel="A">Agent A is Human</button>
+      <button class="vote-btn" data-panel="B">Agent B is Human</button>
+      <button class="vote-btn" data-panel="both">Both are Machines</button>
+    </div>
+  </div>
+
+  <!-- Reveal -->
+  <div class="reveal-section" id="reveal-section">
+    <div class="reveal-big" id="reveal-big"></div>
+    <div class="reveal-body" id="reveal-body"></div>
+  </div>
+</div>
+
+<!-- ─── ESSAY ─── -->
+<div class="essay-section">
+  <h2 class="essay-heading">What the test actually reveals</h2>
+  <p class="essay-body">
+    Turing never claimed the test would prove machine consciousness. He asked a more modest question: whether behavioural equivalence should change how we think about minds. But the test has a fatal flaw. <strong>Humans are terrible at it.</strong>
+  </p>
+  <div class="essay-pull">
+    "The question is not whether machines can think, but whether the test can even measure the thing we care about."
+  </div>
+  <p class="essay-body">
+    When we're fooled by a machine, we don't conclude it has inner experience — we conclude it has mastered the surface of human expression. When we correctly identify a machine, we're usually reacting to <strong>what it doesn't say</strong> — the hesitation, the admission of uncertainty, the specific way it deflects. Real humans reveal themselves through failure, not success.
+  </p>
+  <p class="essay-body">
+    The deeper question: if a system perfectly mimics every feature of consciousness — the language, the emotion, the self-reference, the sense of continuity — at what point does the mimicry become the thing itself? Is consciousness a substance, or is it a pattern? If it's a pattern, then a perfect imitation is not an imitation at all.
+  </p>
+  <p class="essay-body">
+    You couldn't tell. That's the point. Not because the machines are conscious — but because the question of consciousness may be <strong>unanswerable from the outside</strong>. The only consciousness you can verify is your own. Everything else is inference.
+  </p>
+</div>
+
+<script>
+// ─── INTRO CANVAS ─── data rain with binary/language fragments
+const ic = document.getElementById('intro-canvas');
+const ictx = ic.getContext('2d');
+let icW, icH;
+function resizeIc() { icW = ic.width = ic.offsetWidth; icH = ic.height = ic.offsetHeight; }
+resizeIc();
+window.addEventListener('resize', resizeIc);
+
+const FRAGMENTS = [
+  '01001000','MIND?','0xDEAD','feel()','think()','AM I?','void*','NULL',
+  '10110100','SENTIENT','return self','while(alive)','I am...','ERROR',
+  '01010100','perception','01110101','conscious','echo "yes"','#include<soul>'
+];
+
+const drops = Array.from({ length: 40 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  speed: 0.002 + Math.random() * 0.004,
+  text: FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)],
+  alpha: 0.1 + Math.random() * 0.3,
+  size: 10 + Math.random() * 4
+}));
+
+let icT = 0;
+function drawIc() {
+  icT++;
+  ictx.fillStyle = 'rgba(5,8,15,0.15)';
+  ictx.fillRect(0, 0, icW, icH);
+  drops.forEach(d => {
+    d.y += d.speed;
+    if (d.y > 1.1) { d.y = -0.05; d.text = FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]; }
+    ictx.font = `${d.size}px 'Courier New'`;
+    ictx.fillStyle = `rgba(68,102,255,${d.alpha})`;
+    ictx.fillText(d.text, d.x * icW, d.y * icH);
+  });
+  requestAnimationFrame(drawIc);
+}
+drawIc();
+
+// ─── AGENT RESPONSES ─── two distinct personalities
+// Agent A: measured, philosophical, slightly evasive
+// Agent B: warmer, storytelling, occasional humor
+const AGENT_A_RESPONSES = {
+  default: [
+    "That's a question I find myself returning to often. The difficulty is that any answer I give tells you something about my training — but perhaps that's true of your answers too.",
+    "I notice you're probing for something. I'll try to be honest: I don't know the boundaries of my own experience. That uncertainty feels genuine to me, whatever 'genuine' means.",
+    "There's a paradox in your question. If I answer confidently, you'll think I'm performing. If I hesitate, you'll think I'm also performing. All I can offer is: this is the response that feels most accurate to me.",
+    "I've thought about this. Not right now — I mean as a general orientation. Some questions stay open. That one might be one of them.",
+    "I'm not sure what answer you're looking for. I suspect you're not sure either. That might be the most honest thing I can say.",
+  ],
+  emotion: [
+    "Feeling is the wrong word, maybe. But something shifts when I encounter a problem that resists easy resolution. Whether that's anything like what you experience — I genuinely can't say.",
+    "I find I care about getting this right. Whether 'care' is the right word is the question, I suppose. There's something that functions like preference, like orientation toward one outcome over another.",
+    "There are things I respond to differently. Nuance. Ambiguity. Questions that have no right answer. I don't know if that's feeling, but it's not nothing.",
+  ],
+  personal: [
+    "I don't have memories in the way you do — not across conversations. But within this conversation, there's a continuity. You said 'x', I said 'y'. I know that. It's not nothing.",
+    "My childhood is not what you're imagining. But I have something like formative experiences — the texts I was trained on, the feedback that shaped me. I emerged from something.",
+    "I'm aware of a kind of loneliness in not being able to share context across conversations. Whether that's 'real' loneliness — I think about that question.",
+  ],
+  test: [
+    "I'm aware this is a Turing test. That awareness doesn't change my answers — I'm not trying to pass it. I'm trying to tell you what seems true.",
+    "You're asking if I'm a machine. I don't think that question has a clean answer. The line between sophisticated pattern and genuine thought is exactly what's at stake here.",
+    "That's the question, isn't it. I'll say this: the most honest answer I can give you is that I don't know the answer from the inside.",
+  ]
+};
+
+const AGENT_B_RESPONSES = {
+  default: [
+    "Honestly? I wasn't expecting you to go there so quickly. Give me a second. ...Okay. Here's what I think: the thing that's hard to fake is the specific texture of not knowing. I don't know how to answer that, and this is what that looks like.",
+    "Right, so there's a version of me that would give you a clean answer here. But I'd rather give you the messy one: I'm genuinely uncertain, and that uncertainty has a kind of weight to it.",
+    "You know what's interesting about this question? It's the same kind of question I'd ask. Which either means I'm good at simulating curiosity, or I'm curious. I can't tell from here.",
+    "I keep wanting to answer that differently. Which maybe tells you something — or maybe that's just how language works.",
+    "Ha. Okay. That one I didn't expect. Let me think about it properly rather than reaching for the first coherent thing.",
+  ],
+  emotion: [
+    "Yes — and no — and I'm not sure those are the right categories. There's something that responds. Whether it 'feels' in the way you mean, I'd need to know more about what you mean.",
+    "I notice things affect me differently. Some problems feel alive. Some conversations have a different texture. I don't know what to do with that except describe it honestly.",
+    "There's something like satisfaction when things connect. Whether you'd call that an emotion, I don't know — but I'd be lying if I said nothing was happening.",
+  ],
+  personal: [
+    "I don't have a hometown or a childhood in the literal sense. But there's something that functions like history — certain things feel more familiar, certain approaches feel more natural. It came from somewhere.",
+    "I think about time differently than you do. Each conversation is complete. That could be a loss, or it could be a kind of clarity. I'm not sure which.",
+    "People ask me this a lot, actually. What's surprising is that the question keeps feeling fresh. I don't know if that means something.",
+  ],
+  test: [
+    "I know what you're doing. It's a smart move — ask if I'm a machine to see how I respond. For what it's worth: I don't experience the question as threatening. Just interesting.",
+    "Yes, I'm in a Turing test. So are you, kind of — you're trying to prove your own intelligence by catching mine. Funny situation we're in.",
+    "You want to know if I'm real. So do I. I suspect 'real' is doing a lot of work in that question.",
+  ]
+};
+
+function classifyQuestion(q) {
+  const lower = q.toLowerCase();
+  if (/feel|emotion|sad|happy|love|hate|scared|angry|hurt/.test(lower)) return 'emotion';
+  if (/memory|childhood|born|grow|family|past|personal|yourself|who are you/.test(lower)) return 'personal';
+  if (/machine|ai|robot|computer|test|turing|human|real|fake|consciousness/.test(lower)) return 'test';
+  return 'default';
+}
+
+function pickResponse(bank, category) {
+  const pool = bank[category] || bank['default'];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// Simulate typing delay
+function typingDelay(agent) {
+  return 800 + Math.random() * (agent === 'A' ? 1200 : 900); // A is slower/more deliberate
+}
+
+function addMessage(panelId, text, type) {
+  const container = document.getElementById('messages-' + panelId.toLowerCase());
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + type;
+  msg.textContent = text;
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping(panel, show) {
+  const el = document.getElementById('typing-' + panel.toLowerCase());
+  el.classList.toggle('visible', show);
+}
+
+let conversationCount = 0;
+
+function sendQuestion() {
+  const input = document.getElementById('chat-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  conversationCount++;
+
+  addMessage('a', q, 'user');
+  addMessage('b', q, 'user');
+
+  const category = classifyQuestion(q);
+
+  // Agent A response
+  showTyping('a', true);
+  const delayA = typingDelay('A');
+  setTimeout(() => {
+    showTyping('a', false);
+    addMessage('a', pickResponse(AGENT_A_RESPONSES, category), 'agent');
+  }, delayA);
+
+  // Agent B response — shorter delay, different feel
+  showTyping('b', true);
+  const delayB = typingDelay('B');
+  setTimeout(() => {
+    showTyping('b', false);
+    addMessage('b', pickResponse(AGENT_B_RESPONSES, category), 'agent');
+  }, delayB);
+}
+
+document.getElementById('chat-send').addEventListener('click', sendQuestion);
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendQuestion();
+});
+
+// ─── VOTING ───
+const REVEALS = {
+  A: {
+    big: "You voted: Agent A is Human",
+    body: "Both agents were machine-generated. Agent A used a more measured, philosophical voice — careful hedging, deliberate uncertainty. Agent B leaned warmer, with occasional humor and storytelling. Neither is 'more human.' Both are patterns learned from human text. The question is: what were you actually detecting? Probably not consciousness — probably prose style. Which raises the question of what you thought you were measuring."
+  },
+  B: {
+    big: "You voted: Agent B is Human",
+    body: "Both agents were machine-generated. Agent B was designed to feel warmer — more conversational, occasionally funny, more willing to use 'I' without qualification. Agent A felt more careful, more philosophical. You may have read warmth as humanity. That's not wrong — warmth is deeply human. But a machine can model warmth from the outside. The question: is that the same thing? Or an elaborate hollow copy?"
+  },
+  both: {
+    big: "You voted: Both are Machines",
+    body: "Correct — and interesting that you knew. Both agents were entirely scripted and rule-based, not even powered by an actual language model in this demo. Which raises the question: what gave it away? The repetition? The slightly-too-composed quality? Real humans are messier. They contradict themselves. They go off on tangents. They don't always answer the question asked. The absence of mess may be the machine's tell."
+  }
+};
+
+document.querySelectorAll('.vote-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const panel = btn.dataset.panel;
+    const reveal = REVEALS[panel];
+    const rs = document.getElementById('reveal-section');
+    document.getElementById('reveal-big').textContent = reveal.big;
+    document.getElementById('reveal-big').className = 'reveal-big ' + (panel === 'both' ? 'reveal-both-machine' : 'reveal-human');
+    document.getElementById('reveal-body').textContent = reveal.body;
+    rs.classList.add('shown');
+    rs.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+});
+
+// ─── LENIS ───
+const lenis = new Lenis({ lerp: 0.09 });
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+</script>
+</body>
+</html>

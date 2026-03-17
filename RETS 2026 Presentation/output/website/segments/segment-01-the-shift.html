@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Shift Has Already Happened — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0f14;
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --white: #FFFFFF;
+  --gray: #8899a6;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── INTRO HOOK ── */
+.intro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 4rem 2rem;
+  position: relative;
+}
+
+.intro::after {
+  content: '↓';
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: var(--teal);
+  animation: bounce 2s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+.label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--teal);
+  border: 1px solid rgba(0,212,170,0.3);
+  padding: 0.3rem 1rem;
+  border-radius: 3px;
+  margin-bottom: 2rem;
+  display: inline-block;
+}
+
+.intro-headline {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 6vw, 5rem);
+  line-height: 1.1;
+  max-width: 800px;
+}
+
+.intro-headline em {
+  font-style: normal;
+  color: var(--teal);
+}
+
+.intro-sub {
+  margin-top: 1.5rem;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: var(--gray);
+  max-width: 550px;
+}
+
+/* ── AGENT GRID VISUAL ── */
+.agent-grid-section {
+  min-height: 200vh;
+  position: relative;
+}
+
+.sticky-scene {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Dot grid representing 100 agents */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: clamp(8px, 2vw, 18px);
+  max-width: 600px;
+  width: 90%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 50%;
+  margin-left: -300px;
+}
+
+@media (max-width: 680px) {
+  .agent-grid {
+    left: 5%;
+    margin-left: 0;
+    max-width: 90vw;
+  }
+}
+
+.agent-dot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+  cursor: default;
+}
+
+.agent-dot.lit {
+  background: var(--teal);
+  box-shadow: 0 0 12px rgba(0,212,170,0.6);
+  transform: scale(1.15);
+}
+
+/* ── BIG STAT OVERLAY ── */
+.stat-overlay {
+  position: absolute;
+  right: clamp(2rem, 8vw, 12rem);
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .agent-grid-section { min-height: 280vh; }
+  .stat-overlay {
+    top: auto;
+    bottom: 12vh;
+    right: 50%;
+    transform: translateX(50%);
+    text-align: center;
+  }
+}
+
+.big-number {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(6rem, 18vw, 14rem);
+  line-height: 1;
+  color: var(--teal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.big-number .pct {
+  font-size: 0.4em;
+  margin-top: 0.25em;
+  margin-left: 0.05em;
+  color: var(--teal);
+  opacity: 0.7;
+}
+
+.stat-label {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  color: var(--white);
+  line-height: 1.3;
+  margin-top: 0.5rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
+}
+
+.stat-label.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stat-context {
+  margin-top: 0.8rem;
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  color: var(--gray);
+  opacity: 0;
+  transition: opacity 0.6s ease 0.5s;
+}
+
+.stat-context.visible {
+  opacity: 1;
+}
+
+/* ── COMPARISON SECTION ── */
+.comparison-section {
+  padding: 10rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 4rem;
+}
+
+.timeline-point {
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  transform: translateY(40px);
+  opacity: 0;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.timeline-point.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.timeline-point--then {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.timeline-point--now {
+  background: rgba(0,212,170,0.08);
+  border: 1px solid rgba(0,212,170,0.3);
+}
+
+.tp-year {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.timeline-point--then .tp-year { color: var(--gray); }
+.timeline-point--now .tp-year { color: var(--teal); }
+
+.tp-number {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-point--then .tp-number { color: rgba(255,255,255,0.25); }
+.timeline-point--now .tp-number { color: var(--teal); }
+
+.tp-desc {
+  font-size: 0.95rem;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+.timeline-arrow {
+  font-size: 2.5rem;
+  color: var(--amber);
+  opacity: 0;
+  transition: opacity 0.5s ease 0.4s;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+}
+
+.timeline-arrow.visible { opacity: 1; }
+
+.comparison-headline {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.comparison-sub {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--gray);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── PUNCHLINE ── */
+.punchline {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.punchline-text {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  line-height: 1.2;
+  max-width: 750px;
+}
+
+.punchline-text em {
+  font-style: normal;
+  color: var(--amber);
+}
+
+.source {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.15);
+  letter-spacing: 0.1em;
+}
+
+/* ── BACK LINK ── */
+.back {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  text-decoration: none;
+  z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--teal); }
+
+/* ── PROGRESS ── */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--teal);
+  z-index: 200;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- INTRO -->
+<section class="intro">
+  <div class="label">RETS 2026 &bull; The Shift</div>
+  <h1 class="intro-headline">The shift has<br>already <em>happened.</em></h1>
+  <p class="intro-sub">Three years ago, AI adoption by real estate agents was nearly zero. Scroll to see where we are now.</p>
+</section>
+
+<!-- AGENT GRID STICKY SCENE -->
+<section class="agent-grid-section" id="gridSection">
+  <div class="sticky-scene">
+    <!-- 100 dots = 100 agents -->
+    <div class="agent-grid" id="agentGrid">
+    </div>
+
+    <div class="stat-overlay">
+      <div class="big-number">
+        <span id="counter">0</span><span class="pct">%</span>
+      </div>
+      <div class="stat-label" id="statLabel">of US real estate agents<br>now use AI tools</div>
+      <div class="stat-context" id="statCtx">Source: NAR Technology Survey, 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison-section">
+  <h2 class="comparison-headline">Three years.<br>Zero to everywhere.</h2>
+  <p class="comparison-sub">The fastest technology adoption in real estate history — faster than MLS, faster than smartphones, faster than Zillow.</p>
+
+  <div class="timeline">
+    <div class="timeline-point timeline-point--then" data-reveal>
+      <div class="tp-year">2023</div>
+      <div class="tp-number">~0%</div>
+      <div class="tp-desc">AI tools barely existed.<br>ChatGPT had just launched.</div>
+    </div>
+
+    <div class="timeline-arrow" data-reveal-arrow>→</div>
+
+    <div class="timeline-point timeline-point--now" data-reveal>
+      <div class="tp-year">2026</div>
+      <div class="tp-number">82%</div>
+      <div class="tp-desc">Most US agents use AI<br>in their daily practice.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PUNCHLINE -->
+<section class="punchline">
+  <p class="punchline-text">
+    "If it happened in the US in three years —<br>
+    how long do you have before it happens<br>
+    in <em>Zimbabwe?</em>"
+  </p>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 01</div>
+
+<script>
+(function() {
+  // Progress bar
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    pb.style.width = (pct * 100) + '%';
+  });
+
+  // Build the agent grid (100 dots)
+  const grid = document.getElementById('agentGrid');
+  const dots = [];
+  for (let i = 0; i < 100; i++) {
+    const d = document.createElement('div');
+    d.className = 'agent-dot';
+    grid.appendChild(d);
+    dots.push(d);
+  }
+
+  // Sticky counter scroll logic
+  const section = document.getElementById('gridSection');
+  const counter = document.getElementById('counter');
+  const statLabel = document.getElementById('statLabel');
+  const statCtx = document.getElementById('statCtx');
+  let lastLit = 0;
+
+  function updateGrid() {
+    const rect = section.getBoundingClientRect();
+    const sectionH = section.offsetHeight - window.innerHeight;
+    // How far through the sticky scroll are we? 0 → 1
+    const scrolled = Math.max(0, Math.min(1, -rect.top / sectionH));
+
+    // Target value: 0 → 82
+    const target = Math.round(scrolled * 82);
+    counter.textContent = target;
+
+    // Light up dots
+    const toLit = target;
+    if (toLit !== lastLit) {
+      for (let i = 0; i < 100; i++) {
+        // We light up dots in a specific pattern — not just linear 0-82
+        // Mix it up so it looks organic (random-ish but deterministic)
+        dots[i].classList.toggle('lit', i < toLit);
+      }
+      lastLit = toLit;
+    }
+
+    // Show label and context once we hit 80+
+    if (target >= 75) {
+      statLabel.classList.add('visible');
+      statCtx.classList.add('visible');
+    } else {
+      statLabel.classList.remove('visible');
+      statCtx.classList.remove('visible');
+    }
+  }
+
+  window.addEventListener('scroll', updateGrid, { passive: true });
+  updateGrid();
+
+  // IntersectionObserver for comparison cards
+  const reveals = document.querySelectorAll('[data-reveal]');
+  const arrows = document.querySelectorAll('[data-reveal-arrow]');
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  reveals.forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.18) + 's';
+    io.observe(el);
+  });
+  arrows.forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>

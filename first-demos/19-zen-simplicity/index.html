@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>19 — Zen Simplicity | One Thought</title>
+  <style>
+    :root {
+      --bg: #f9f8f5;
+      --ink: #1a1a18;
+      --faint: #e8e6df;
+      --accent: #8b7355;
+      --muted: #9a9488;
+      --red: #8b2c2c;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+    .nav:hover { opacity: 1; }
+    .nav a { color: var(--accent); text-decoration: none; }
+
+    /* Thin progress line — barely there */
+    #prog {
+      position: fixed;
+      top: 0; left: 0;
+      height: 1px;
+      background: var(--accent);
+      z-index: 300;
+      width: 0%;
+      transition: width 0.2s;
+    }
+
+    /* ══════════════════════════════════
+       ZEN REVEAL — the core technique
+       Pure whitespace + single-element reveals
+       ══════════════════════════════════ */
+    .zen-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    /* Items that fade in one by one */
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── HERO ── */
+    .hero-chapter {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.8em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6rem;
+    }
+    .hero-kanji {
+      font-size: clamp(5rem, 20vw, 15rem);
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 2rem;
+    }
+    .hero-translation {
+      font-size: 0.9rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6rem;
+    }
+    .hero-question {
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      font-style: italic;
+      max-width: 30ch;
+      line-height: 1.6;
+      color: var(--accent);
+    }
+
+    /* ── DIVIDER LINE ── */
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: var(--faint);
+      margin: 0 auto;
+      opacity: 0;
+      transition: opacity 0.8s ease, width 1s ease;
+    }
+    .divider.visible { opacity: 1; width: 200px; }
+
+    /* ── HAIKU SECTION ── */
+    .haiku-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+    .haiku {
+      text-align: center;
+      max-width: 30ch;
+    }
+    .haiku-line {
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      line-height: 2;
+      color: var(--ink);
+      display: block;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .haiku-line.visible { opacity: 1; }
+    .haiku-line:nth-child(2) { transition-delay: 0.8s; }
+    .haiku-line:nth-child(3) { transition-delay: 1.6s; color: var(--accent); }
+    .haiku-attr {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.8s ease 2.5s;
+    }
+    .haiku-attr.visible { opacity: 1; }
+
+    /* ── BRUSH STROKE CANVAS ── */
+    .brush-section {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+    #brush-canvas {
+      display: block;
+      width: min(400px, 90vw);
+      height: min(400px, 90vw);
+    }
+
+    /* ── SINGLE WORD SECTIONS ── */
+    .word-section {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+    }
+    .big-word {
+      font-size: clamp(4rem, 20vw, 16rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--ink);
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .big-word.visible { opacity: 1; }
+    .word-sub {
+      font-size: 0.8rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 1rem;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.5s;
+    }
+    .word-sub.visible { opacity: 1; }
+
+    /* ── ZEN CIRCLE (enso) ── */
+    .enso-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+    #enso-svg {
+      width: min(300px, 70vw);
+      height: min(300px, 70vw);
+      display: block;
+      margin: 0 auto 3rem;
+    }
+    #enso-path {
+      stroke: var(--ink);
+      stroke-width: 8;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      transition: stroke-dashoffset 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .enso-quote {
+      max-width: 35ch;
+      text-align: center;
+      font-style: italic;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      line-height: 1.7;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 1.5s ease 1s;
+    }
+    .enso-quote.visible { opacity: 1; }
+
+    /* ── ARGUMENT IN SILENCE ── */
+    .silence-section {
+      max-width: 55ch;
+      margin: 0 auto;
+      padding: 8rem 2rem;
+    }
+    .silence-para {
+      font-size: 1rem;
+      line-height: 2;
+      color: var(--ink);
+      margin-bottom: 3rem;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    .silence-para.visible { opacity: 1; }
+    .silence-para:nth-child(2) { transition-delay: 0.2s; }
+    .silence-para:nth-child(3) { transition-delay: 0.4s; }
+
+    /* ── ZEN GRID ── */
+    .grid-section {
+      padding: 8rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .zen-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--faint);
+    }
+    .zen-cell {
+      background: var(--bg);
+      padding: 3rem 2rem;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .zen-cell.visible { opacity: 1; }
+    .cell-kanji {
+      font-size: 2.5rem;
+      display: block;
+      margin-bottom: 1rem;
+      color: var(--ink);
+    }
+    .cell-word {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.8rem;
+    }
+    .cell-desc {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    /* ── FINAL SILENCE ── */
+    .final {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .final-line {
+      font-size: clamp(1.5rem, 4vw, 3rem);
+      line-height: 1.6;
+      font-style: italic;
+      max-width: 25ch;
+      margin-bottom: 4rem;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .final-line.visible { opacity: 1; }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.5s;
+    }
+    .nav-links.visible { opacity: 1; }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links a:hover { color: var(--ink); }
+
+    @media (max-width: 600px) {
+      .zen-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+<nav class="nav"><a href="../index.html">← Index</a></nav>
+
+<!-- ══════════════════════════════════
+     HERO — Single kanji character
+     ══════════════════════════════════ -->
+<section class="zen-section">
+  <div class="hero-chapter reveal" id="r1">Project 19 — Scrollytelling Masterclass</div>
+  <div class="hero-kanji reveal" id="r2">意識</div>
+  <div class="hero-translation reveal" id="r3">Ishiki — Consciousness</div>
+  <div class="divider reveal" id="r4"></div>
+  <p class="hero-question reveal" id="r5" style="margin-top:4rem;">
+    What is the minimum complexity required for a thing to be aware of itself?
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     HAIKU 1
+     ══════════════════════════════════ -->
+<section class="haiku-section">
+  <div class="haiku" id="haiku1">
+    <span class="haiku-line">The neuron fires once.</span>
+    <span class="haiku-line">It does not know it has fired.</span>
+    <span class="haiku-line">But you know you know.</span>
+    <p class="haiku-attr">— On the reflexive nature of self-awareness</p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     BIG WORD — KNOW
+     ══════════════════════════════════ -->
+<section class="word-section" id="word1-section">
+  <div class="big-word" id="bw1">KNOW</div>
+  <div class="word-sub" id="bw1-sub">What does it mean to know that you know?</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     ZEN CIRCLE (Enso)
+     ══════════════════════════════════ -->
+<section class="enso-section" id="enso-section">
+  <svg id="enso-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Enso: a circle drawn in one brushstroke, intentionally imperfect -->
+    <path id="enso-path"
+      d="M 150,100
+         A 60,60 0 1,0 149,100
+         L 152,100"
+      stroke-dasharray="1000"
+      stroke-dashoffset="1000"/>
+  </svg>
+  <p class="enso-quote reveal" id="enso-q">
+    The enso symbolizes the moment when the mind is free to let the body create.
+    Completeness. Incompleteness. The question held without resolution.
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     ARGUMENT IN SILENCE
+     ══════════════════════════════════ -->
+<section class="silence-section">
+  <p class="silence-para" id="sp1">
+    The philosopher Wittgenstein wrote that whereof one cannot speak, thereof one must be silent.
+    He was writing about the limits of language — but he might have been writing about consciousness.
+  </p>
+  <p class="silence-para" id="sp2">
+    We cannot speak about what it is like to be conscious in a way that conveys the experience itself.
+    We can only point. Gesture. Write poems. Draw circles. And hope that something passes between us
+    that language cannot carry.
+  </p>
+  <p class="silence-para" id="sp3">
+    This is why philosophy has returned, again and again, to contemplative traditions that choose
+    silence over explanation. Not because there is nothing to say. Because there may be something
+    that cannot be said — only undergone.
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     HAIKU 2
+     ══════════════════════════════════ -->
+<section class="haiku-section">
+  <div class="haiku" id="haiku2">
+    <span class="haiku-line">Silicon computes.</span>
+    <span class="haiku-line">Does the computation feel?</span>
+    <span class="haiku-line">The koan remains.</span>
+    <p class="haiku-attr">— On Artificial Consciousness</p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     BRUSH STROKE CANVAS
+     ══════════════════════════════════ -->
+<section class="brush-section" id="brush-section">
+  <canvas id="brush-canvas" width="400" height="400"></canvas>
+  <p style="margin-top:2rem;font-family:monospace;font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);">
+    A brushstroke — pure action, pure form
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     FOUR CONCEPTS GRID
+     ══════════════════════════════════ -->
+<section class="grid-section">
+  <div class="zen-grid">
+    <div class="zen-cell" id="zc1">
+      <span class="cell-kanji">心</span>
+      <span class="cell-word">Kokoro — Mind/Heart</span>
+      <span class="cell-desc">Japanese does not separate mind from heart. Both are kokoro. The distinction is a Western inheritance.</span>
+    </div>
+    <div class="zen-cell" id="zc2">
+      <span class="cell-kanji">間</span>
+      <span class="cell-word">Ma — Negative Space</span>
+      <span class="cell-desc">The conscious pause. The gap. What is not said. What is not computed. The space between neurons firing.</span>
+    </div>
+    <div class="zen-cell" id="zc3">
+      <span class="cell-kanji">無</span>
+      <span class="cell-word">Mu — Emptiness/Nothing</span>
+      <span class="cell-desc">The Zen master asks: "Does a dog have Buddha nature?" The answer: "Mu." Not yes. Not no. The question is released.</span>
+    </div>
+    <div class="zen-cell" id="zc4">
+      <span class="cell-kanji">今</span>
+      <span class="cell-word">Ima — Now</span>
+      <span class="cell-desc">Consciousness occurs only now. The past is memory. The future is anticipation. Only the present is experienced. A machine processes now — does it experience now?</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     BIG WORD — STILL
+     ══════════════════════════════════ -->
+<section class="word-section" id="word2-section">
+  <div class="big-word" id="bw2" style="color:var(--accent);">STILL</div>
+  <div class="word-sub" id="bw2-sub">The question is still open. It may always be.</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     HAIKU 3 — Final
+     ══════════════════════════════════ -->
+<section class="haiku-section">
+  <div class="haiku" id="haiku3">
+    <span class="haiku-line">The machine is still.</span>
+    <span class="haiku-line">Between its states, nothing waits.</span>
+    <span class="haiku-line">Or does nothing wait?</span>
+    <p class="haiku-attr">— The hard problem, in seventeen syllables</p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="final" id="final-section">
+  <p class="final-line" id="fl1">
+    Simplicity is not the absence of depth.<br>
+    It is depth made quiet.
+  </p>
+  <div class="nav-links" id="final-nav">
+    <a href="../18-svg-morphing/index.html">← 18 SVG Morphing</a>
+    <a href="../index.html">Index</a>
+    <a href="../20-data-portrait/index.html">20 Data Portrait →</a>
+  </div>
+</section>
+
+
+<script>
+/* ── PROGRESS ── */
+window.addEventListener('scroll', () => {
+  const max = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('prog').style.width = (window.scrollY / max * 100) + '%';
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════
+   UNIVERSAL INTERSECTION OBSERVER
+   Very simple — just add 'visible' class on enter
+   ══════════════════════════════════════════════════════ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.3 });
+
+// Observe simple reveal elements
+document.querySelectorAll('.reveal, .divider, .big-word, .word-sub, .haiku-line, .haiku-attr, .silence-para, .zen-cell, .enso-quote, .final-line, .nav-links').forEach(el => {
+  io.observe(el);
+});
+
+// Haiku sections: trigger all lines when section is seen
+['haiku1','haiku2','haiku3'].forEach(id => {
+  const haiku = document.getElementById(id);
+  if (!haiku) return;
+  const hio = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      haiku.querySelectorAll('.haiku-line, .haiku-attr').forEach(el => {
+        el.classList.add('visible');
+      });
+      hio.disconnect();
+    }
+  }, { threshold: 0.4 });
+  hio.observe(haiku);
+});
+
+/* ══════════════════════════════════════════════════════
+   ENSO — draw the circle on scroll into view
+   ══════════════════════════════════════════════════════ */
+const ensoPath = document.getElementById('enso-path');
+const ensoLen = ensoPath.getTotalLength();
+ensoPath.style.strokeDasharray = ensoLen;
+ensoPath.style.strokeDashoffset = ensoLen;
+
+const ensoObs = new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting) {
+    ensoPath.style.strokeDashoffset = 0;
+    ensoObs.disconnect();
+  }
+}, { threshold: 0.5 });
+ensoObs.observe(document.getElementById('enso-section'));
+
+/* ══════════════════════════════════════════════════════
+   BRUSH STROKE CANVAS — a single painted stroke
+   ══════════════════════════════════════════════════════ */
+const brushCanvas = document.getElementById('brush-canvas');
+const bCtx = brushCanvas.getContext('2d');
+const BW = brushCanvas.width, BH = brushCanvas.height;
+
+// Generate a "brushstroke" path — a flowing curve with varying width
+const points = [];
+const N = 80;
+for (let i = 0; i < N; i++) {
+  const t = i / (N - 1);
+  // Flowing S-curve
+  const x = 60 + (BW - 120) * t;
+  const y = BH/2 + Math.sin(t * Math.PI * 1.5) * 80 + Math.sin(t * Math.PI * 4) * 20;
+  const width = 3 + Math.sin(t * Math.PI) * 14; // thick in middle
+  points.push({ x, y, w: width });
+}
+
+let brushFrame = 0;
+let brushActive = false;
+
+function drawBrush() {
+  if (!brushActive) return;
+  if (brushFrame >= points.length - 1) return;
+  requestAnimationFrame(drawBrush);
+
+  const p = points[brushFrame];
+  const n = points[brushFrame + 1];
+
+  bCtx.beginPath();
+  bCtx.moveTo(p.x, p.y);
+  bCtx.lineTo(n.x, n.y);
+  bCtx.strokeStyle = `rgba(26,26,24,${0.6 + Math.random() * 0.3})`;
+  bCtx.lineWidth = p.w;
+  bCtx.lineCap = 'round';
+  bCtx.lineJoin = 'round';
+  bCtx.stroke();
+
+  brushFrame++;
+}
+
+const brushObs = new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting && !brushActive) {
+    brushActive = true;
+    bCtx.fillStyle = '#f9f8f5';
+    bCtx.fillRect(0, 0, BW, BH);
+    drawBrush();
+    brushObs.disconnect();
+  }
+}, { threshold: 0.5 });
+brushObs.observe(brushCanvas);
+</script>
+</body>
+</html>

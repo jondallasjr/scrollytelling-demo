@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SimplaDocs — Data Atlas: 200+ Teams. One Planet.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;600;700;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.3.18/dist/lenis.min.js"></script>
+  <style>
+    :root {
+      --navy: #0d2d52;
+      --navy-deep: #071829;
+      --royal: #2e57ca;
+      --cyan: #3de3ff;
+      --sky: #199bde;
+      --lavender: #889beb;
+      --medium: #2d84ef;
+      --ice: #e4f0fb;
+      --bg: #f1f3f6;
+      --white: #ffffff;
+      --grad: linear-gradient(90deg, #2e57ca, #3de3ff);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: auto; }
+
+    body {
+      font-family: 'Rethink Sans', sans-serif;
+      background: var(--navy-deep);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ─── LOADING ─── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--navy-deep);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+    #loading img { height: 40px; opacity: 0.95; }
+    #loading-sub {
+      font-size: 14px;
+      color: var(--lavender);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    #loading-bar-wrap {
+      width: 220px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    #loading-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--grad);
+      border-radius: 99px;
+      transition: width 0.1s linear;
+    }
+
+    /* ─── NAV ─── */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 40px;
+      background: rgba(7, 24, 41, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(61, 227, 255, 0.08);
+    }
+    #nav img { height: 32px; }
+    #nav-links {
+      display: flex;
+      gap: 4px;
+      margin-left: 40px;
+      list-style: none;
+    }
+    #nav-links a {
+      display: block;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    #nav-links a:hover { background: rgba(255,255,255,0.07); color: #fff; }
+    #nav-cta {
+      margin-left: auto;
+      padding: 8px 20px;
+      border-radius: 99px;
+      background: var(--grad);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    /* ─── CANVAS WRAPPER ─── */
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    #globe-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ─── SCROLL CONTAINER ─── */
+    #scroll-root {
+      position: relative;
+      z-index: 1;
+      height: 500vh;
+    }
+
+    /* ─── PANELS ─── */
+    .panel {
+      position: absolute;
+      width: 420px;
+      max-width: calc(100vw - 80px);
+    }
+
+    .glass-card {
+      background: rgba(7, 24, 41, 0.82);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(61, 227, 255, 0.15);
+      border-radius: 16px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--grad);
+      border-radius: 16px 16px 0 0;
+    }
+
+    /* ─── SECTION 1: HERO ─── */
+    #panel-hero {
+      top: 50vh;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      text-align: center;
+      pointer-events: none;
+    }
+    #panel-hero .eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 20px;
+    }
+    #panel-hero h1 {
+      font-size: clamp(52px, 7vw, 96px);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      color: var(--white);
+    }
+    #panel-hero h1 em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      color: var(--cyan);
+      font-weight: 400;
+    }
+    #panel-hero p {
+      font-size: 17px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 24px;
+      line-height: 1.6;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+    #scroll-hint .arrow {
+      width: 24px;
+      height: 24px;
+      border-right: 2px solid rgba(255,255,255,0.3);
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+      transform: rotate(45deg);
+      animation: bounce 1.8s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: rotate(45deg) translateY(0); }
+      50% { transform: rotate(45deg) translateY(6px); }
+    }
+
+    /* ─── SECTION 2: WEST COAST ─── */
+    #panel-west {
+      top: 140vh;
+      right: 7%;
+      opacity: 0;
+    }
+    #panel-west .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+    #panel-west h2 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    #panel-west p { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+    .client-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .client-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+    .client-list li::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      flex-shrink: 0;
+    }
+    .client-list .city {
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.4);
+      margin-left: auto;
+    }
+
+    /* ─── SECTION 3: EAST COAST ─── */
+    #panel-east {
+      top: 240vh;
+      left: 7%;
+      opacity: 0;
+    }
+    #panel-east .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--lavender);
+      margin-bottom: 12px;
+    }
+    #panel-east h2 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    #panel-east h2 em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      color: var(--lavender);
+      font-weight: 400;
+    }
+    #panel-east p { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+
+    /* ─── SECTION 4: STATS ─── */
+    #panel-stats {
+      top: 340vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 760px;
+      text-align: center;
+      opacity: 0;
+    }
+    #panel-stats .label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+    }
+    #panel-stats h2 {
+      font-size: clamp(28px, 3.5vw, 42px);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    #panel-stats .sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 40px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 0;
+    }
+    .stat-card {
+      background: rgba(7, 24, 41, 0.82);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(61, 227, 255, 0.12);
+      border-radius: 12px;
+      padding: 24px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--grad);
+    }
+    .stat-num {
+      font-size: 36px;
+      font-weight: 800;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── SECTION 5: CTA ─── */
+    #panel-cta {
+      top: 440vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      text-align: center;
+      opacity: 0;
+    }
+    #panel-cta .label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 20px;
+    }
+    #panel-cta h2 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+    #panel-cta h2 em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      color: var(--cyan);
+      font-weight: 400;
+    }
+    #panel-cta p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .cta-btn {
+      display: inline-block;
+      padding: 16px 36px;
+      border-radius: 99px;
+      background: var(--grad);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 40px rgba(46, 87, 202, 0.4);
+    }
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 48px rgba(46, 87, 202, 0.6);
+    }
+    .trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 28px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+    }
+    .trust-row span { display: flex; align-items: center; gap: 6px; }
+    .trust-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+    /* ─── FOOTER ─── */
+    #footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.2);
+      font-size: 12px;
+      z-index: 2;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      #nav-links { display: none; }
+      #panel-hero { width: 90vw; }
+      #panel-west, #panel-east { left: 50%; right: auto; transform: translateX(-50%); width: 90vw; }
+      #panel-stats { width: 90vw; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      #panel-cta { width: 90vw; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <img src="https://bfwmmlvfkgrprcyaummp.storage.supabase.co/storage/v1/object/public/media/media/LogoSimpladocsBlueNoBackground.png" alt="SimplaDocs" />
+  <div id="loading-sub">Mapping your world...</div>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <img src="https://bfwmmlvfkgrprcyaummp.storage.supabase.co/storage/v1/object/public/media/media/LogoSimpladocsBlueNoBackground.png" alt="SimplaDocs" />
+  <ul id="nav-links">
+    <li><a href="#">Solutions</a></li>
+    <li><a href="#">Clients</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+  <a href="#" id="nav-cta">Let's Talk →</a>
+</nav>
+
+<!-- WEBGL CANVAS -->
+<div id="canvas-container">
+  <canvas id="globe-canvas"></canvas>
+</div>
+
+<!-- SCROLL CONTAINER -->
+<div id="scroll-root">
+
+  <!-- SECTION 1: HERO -->
+  <div id="panel-hero" class="panel" style="position:fixed;">
+    <div class="eyebrow">SimplaDocs · Global Impact</div>
+    <h1>200+ Teams.<br/><em>One Planet.</em></h1>
+    <p>SimplaDocs builds operations systems for teams across North America and beyond — turning complexity into clarity, at scale.</p>
+  </div>
+  <div id="scroll-hint" style="position:fixed;">
+    <span>SCROLL</span>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- SECTION 2: WEST COAST -->
+  <div id="panel-west" class="panel" style="position:fixed;">
+    <div class="glass-card">
+      <div class="label">West Coast</div>
+      <h2>50+ teams.<br/>One coastline.</h2>
+      <p>From San Francisco to Los Angeles, SimplaDocs powers operations at the companies shaping culture and commerce.</p>
+      <ul class="client-list">
+        <li>Spotify <span class="city">San Francisco, CA</span></li>
+        <li>Netflix <span class="city">Los Angeles, CA</span></li>
+        <li>DoorDash <span class="city">San Francisco, CA</span></li>
+        <li>Khosla Ventures <span class="city">Menlo Park, CA</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 3: EAST COAST + CENTRAL -->
+  <div id="panel-east" class="panel" style="position:fixed;">
+    <div class="glass-card">
+      <div class="label">East Coast & Central</div>
+      <h2>The connections <em>others said<br/>were impossible.</em></h2>
+      <p>From the Inner Harbor to Wall Street, from the Research Triangle to the Wasatch Range — no geography is too complex.</p>
+      <ul class="client-list">
+        <li>Baltimore Ravens <span class="city">Baltimore, MD</span></li>
+        <li>Fidelity <span class="city">Boston, MA</span></li>
+        <li>AlixPartners <span class="city">New York, NY</span></li>
+        <li>The Shelf <span class="city">New York, NY</span></li>
+        <li>MrBeast <span class="city">Greenville, NC</span></li>
+        <li>Qualtrics <span class="city">Provo, UT</span></li>
+        <li>NM Environment Dept <span class="city">Santa Fe, NM</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 4: STATS -->
+  <div id="panel-stats" class="panel" style="position:fixed;">
+    <div class="label">By the Numbers</div>
+    <h2>Operations built to scale.</h2>
+    <p class="sub">Since day one.</p>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-projects">0</div>
+        <div class="stat-label">Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-hours">0</div>
+        <div class="stat-label">Hours Saved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-teams">0</div>
+        <div class="stat-label">Teams Worldwide</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-years">0</div>
+        <div class="stat-label">Years of Expertise</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: CTA -->
+  <div id="panel-cta" class="panel" style="position:fixed;">
+    <div class="glass-card">
+      <div class="label">Join the Atlas</div>
+      <h2>Your team<br/>could be <em>next.</em></h2>
+      <p>SimplaDocs has helped 200+ teams across North America build operations that actually scale. Let's map yours.</p>
+      <a href="#" class="cta-btn">Let's Talk →</a>
+      <div class="trust-row">
+        <span><div class="trust-dot"></div>215+ Projects</span>
+        <span><div class="trust-dot"></div>83k Hours Saved</span>
+        <span><div class="trust-dot"></div>200+ Teams</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">© 2025 SimplaDocs. Operations built to scale.</div>
+
+</div><!-- end scroll-root -->
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js';
+
+// ─────────────────────────────────────────────
+// LOADING PROGRESS
+// ─────────────────────────────────────────────
+const loadingBar = document.getElementById('loading-bar');
+let loadPct = 0;
+const loadInterval = setInterval(() => {
+  loadPct = Math.min(loadPct + Math.random() * 12, 92);
+  loadingBar.style.width = loadPct + '%';
+}, 120);
+
+function finishLoading() {
+  clearInterval(loadInterval);
+  loadingBar.style.width = '100%';
+  setTimeout(() => {
+    const el = document.getElementById('loading');
+    gsap.to(el, { opacity: 0, duration: 0.6, onComplete: () => el.style.display = 'none' });
+  }, 300);
+}
+
+// ─────────────────────────────────────────────
+// THREE.JS SETUP
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('globe-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x071829, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 0, 9);
+
+// ─────────────────────────────────────────────
+// STARS
+// ─────────────────────────────────────────────
+const starCount = 800;
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(starCount * 3);
+const starSize = new Float32Array(starCount);
+for (let i = 0; i < starCount; i++) {
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  const r = 40 + Math.random() * 60;
+  starPos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+  starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+  starPos[i * 3 + 2] = r * Math.cos(phi);
+  starSize[i] = 0.5 + Math.random() * 2.5;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+starGeo.setAttribute('size', new THREE.BufferAttribute(starSize, 1));
+const starMat = new THREE.ShaderMaterial({
+  transparent: true,
+  uniforms: { uTime: { value: 0 } },
+  vertexShader: `
+    attribute float size;
+    varying float vSize;
+    void main() {
+      vSize = size;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * (300.0 / -mv.z);
+      gl_Position = projectionMatrix * mv;
+    }
+  `,
+  fragmentShader: `
+    varying float vSize;
+    void main() {
+      float d = length(gl_PointCoord - 0.5) * 2.0;
+      if (d > 1.0) discard;
+      float alpha = (1.0 - d) * 0.7;
+      gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+    }
+  `
+});
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// ─────────────────────────────────────────────
+// GLOBE — custom shader
+// ─────────────────────────────────────────────
+const globeGeo = new THREE.SphereGeometry(3, 64, 64);
+const globeMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime:    { value: 0 },
+    uRoyal:   { value: new THREE.Color(0x2e57ca) },
+    uCyan:    { value: new THREE.Color(0x3de3ff) },
+    uNavy:    { value: new THREE.Color(0x071829) },
+    uNavy2:   { value: new THREE.Color(0x0d2d52) },
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+    void main() {
+      vNormal   = normalize(normalMatrix * normal);
+      vPosition = position;
+      vUv       = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    uniform vec3 uRoyal;
+    uniform vec3 uCyan;
+    uniform vec3 uNavy;
+    uniform vec3 uNavy2;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+
+    float grid(vec2 uv, float freq, float width) {
+      vec2 g = abs(fract(uv * freq) - 0.5);
+      float line = min(g.x, g.y);
+      return 1.0 - smoothstep(0.0, width, line);
+    }
+
+    void main() {
+      // Base deep navy
+      vec3 col = uNavy;
+
+      // Rim lighting — royal blue glow at edges
+      vec3 viewDir = normalize(cameraPosition - vPosition);
+      float rim = 1.0 - clamp(dot(viewDir, vNormal), 0.0, 1.0);
+      rim = pow(rim, 2.0);
+      col = mix(col, uRoyal, rim * 0.9);
+
+      // Pole cyan highlight
+      float polarGlow = abs(vNormal.y);
+      polarGlow = pow(polarGlow, 4.0);
+      col = mix(col, uCyan, polarGlow * 0.3);
+
+      // Inner glow — subtle royal tint near center
+      float innerGlow = 1.0 - rim;
+      col = mix(col, uNavy2, innerGlow * 0.4);
+
+      // Lat/long grid lines
+      float latLines = grid(vUv, 10.0, 0.025);
+      float lngLines = grid(vUv, 20.0, 0.018);
+      float g = max(latLines * 0.6, lngLines * 0.4);
+      vec3 gridColor = mix(uRoyal, uCyan, 0.3);
+      col = mix(col, gridColor, g * 0.18);
+
+      // Very subtle pulse
+      float pulse = sin(uTime * 0.5) * 0.5 + 0.5;
+      col = mix(col, uCyan, rim * rim * pulse * 0.12);
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+  side: THREE.FrontSide,
+});
+// Globe group — all globe-relative objects live here so rotation is automatic
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
+
+const globe = new THREE.Mesh(globeGeo, globeMat);
+globeGroup.add(globe);
+
+// Atmosphere glow
+const atmGeo = new THREE.SphereGeometry(3.18, 64, 64);
+const atmMat = new THREE.ShaderMaterial({
+  transparent: true,
+  side: THREE.BackSide,
+  uniforms: { uCyan: { value: new THREE.Color(0x3de3ff) }, uRoyal: { value: new THREE.Color(0x2e57ca) } },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 uCyan;
+    uniform vec3 uRoyal;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vec3 viewDir = normalize(cameraPosition - vPosition);
+      float rim = 1.0 - clamp(dot(viewDir, -vNormal), 0.0, 1.0);
+      rim = pow(rim, 1.5);
+      vec3 col = mix(uRoyal, uCyan, rim);
+      gl_FragColor = vec4(col, rim * 0.35);
+    }
+  `
+});
+const atm = new THREE.Mesh(atmGeo, atmMat);
+globeGroup.add(atm);
+
+// ─────────────────────────────────────────────
+// CITY DATA
+// ─────────────────────────────────────────────
+const R = 3.0;
+function latLngToVec3(lat, lng, r) {
+  const phi   = (90 - lat) * (Math.PI / 180);
+  const theta = (lng + 180) * (Math.PI / 180);
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+     r * Math.cos(phi),
+     r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+const cities = [
+  { name: 'Spotify',             lat: 37.773972, lng: -122.431297, coast: 'west' },
+  { name: 'Netflix',             lat: 34.052235, lng: -118.243683, coast: 'west' },
+  { name: 'DoorDash',            lat: 37.783,    lng: -122.408,    coast: 'west' },
+  { name: 'Khosla Ventures',     lat: 37.453,    lng: -122.182,    coast: 'west' },
+  { name: 'Baltimore Ravens',    lat: 39.299236, lng: -76.609383,  coast: 'east' },
+  { name: 'Fidelity',            lat: 42.360082, lng: -71.058880,  coast: 'east' },
+  { name: 'AlixPartners',        lat: 40.712776, lng: -74.005974,  coast: 'east' },
+  { name: 'The Shelf',           lat: 40.720,    lng: -73.990,     coast: 'east' },
+  { name: 'MrBeast',             lat: 35.612766, lng: -77.366,     coast: 'east' },
+  { name: 'Qualtrics',           lat: 40.234,    lng: -111.658,    coast: 'central' },
+  { name: 'NM Env Dept',         lat: 35.687,    lng: -105.937,    coast: 'central' },
+];
+
+cities.forEach(c => {
+  c.pos = latLngToVec3(c.lat, c.lng, R);
+});
+
+// ─────────────────────────────────────────────
+// CITY DOTS — instanced glow spheres
+// ─────────────────────────────────────────────
+const dotGeo = new THREE.SphereGeometry(0.045, 8, 8);
+const dotMat = new THREE.ShaderMaterial({
+  transparent: true,
+  uniforms: {
+    uColor:   { value: new THREE.Color(0x3de3ff) },
+    uTime:    { value: 0 },
+    uOpacity: { value: 0 },
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 uColor;
+    uniform float uTime;
+    uniform float uOpacity;
+    varying vec3 vNormal;
+    void main() {
+      float pulse = sin(uTime * 3.0) * 0.5 + 0.5;
+      gl_FragColor = vec4(uColor, uOpacity * (0.7 + 0.3 * pulse));
+    }
+  `
+});
+
+const cityMeshes = cities.map(c => {
+  const m = new THREE.Mesh(dotGeo, dotMat.clone());
+  m.position.copy(c.pos);
+  m.visible = false;
+  globeGroup.add(m);
+  return m;
+});
+
+// Pulse rings around each city
+const ringGeo = new THREE.RingGeometry(0.06, 0.09, 24);
+const ringMat = new THREE.ShaderMaterial({
+  transparent: true,
+  side: THREE.DoubleSide,
+  uniforms: { uColor: { value: new THREE.Color(0x3de3ff) }, uTime: { value: 0 }, uOpacity: { value: 0 } },
+  vertexShader: `void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `
+    uniform vec3 uColor;
+    uniform float uTime;
+    uniform float uOpacity;
+    void main() {
+      float alpha = sin(uTime * 2.0 + 1.5) * 0.4 + 0.4;
+      gl_FragColor = vec4(uColor, uOpacity * alpha * 0.6);
+    }
+  `
+});
+
+const pulseMeshes = cities.map(c => {
+  const m = new THREE.Mesh(ringGeo, ringMat.clone());
+  m.position.copy(c.pos);
+  m.lookAt(new THREE.Vector3(0, 0, 0));
+  m.visible = false;
+  globeGroup.add(m);
+  return m;
+});
+
+// ─────────────────────────────────────────────
+// ARCS
+// ─────────────────────────────────────────────
+function makeArc(from, to, lift = 1.8) {
+  const mid = new THREE.Vector3()
+    .addVectors(from, to)
+    .normalize()
+    .multiplyScalar(R + lift);
+  const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
+  const pts   = curve.getPoints(60);
+  const geo   = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat   = new THREE.LineBasicMaterial({
+    color: 0x3de3ff,
+    transparent: true,
+    opacity: 0,
+    linewidth: 1,
+  });
+  const line = new THREE.Line(geo, mat);
+  globeGroup.add(line);
+
+  // Traveling particle
+  const partGeo = new THREE.SphereGeometry(0.03, 6, 6);
+  const partMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+  const particle = new THREE.Mesh(partGeo, partMat);
+  globeGroup.add(particle);
+
+  return { curve, line, particle, t: Math.random() };
+}
+
+const arcDefs = [
+  [0, 1], [0, 2], [1, 3],           // West coast
+  [0, 4], [1, 5], [0, 6], [1, 8],   // West to East
+  [4, 5], [5, 6], [6, 7],            // East coast
+  [9, 10], [8, 9],                   // Central
+];
+
+const arcs = arcDefs.map(([a, b]) => makeArc(cities[a].pos, cities[b].pos, 1.6 + Math.random() * 0.8));
+
+// ─────────────────────────────────────────────
+// SCROLL + GSAP
+// ─────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({ lerp: 0.08 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(time => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// Globe rotation targets
+const globeRot = { y: 0 };
+let globeTargetY = 0;
+
+// Section 1 → 2: globe rotates left to show west coast
+// Section 2 → 3: globe rotates right to show east coast
+// Section 4: full view, all cities
+// Section 5: zoom in slightly
+
+const tl = gsap.timeline({
+  scrollTrigger: {
+    trigger: '#scroll-root',
+    start: 'top top',
+    end: 'bottom bottom',
+    scrub: 1.5,
+  }
+});
+
+// 0–20% hero: base rotation
+tl.to(globeRot, { y: 0.3, ease: 'none' }, 0)
+// 20–40%: rotate to west coast view
+  .to(globeRot, { y: 0.9, ease: 'none' }, 0.2)
+// 40–60%: rotate to east coast view
+  .to(globeRot, { y: 1.6, ease: 'none' }, 0.4)
+// 60–80%: full planet centered
+  .to(globeRot, { y: 2.1, ease: 'none' }, 0.6)
+// 80–100%: settle
+  .to(globeRot, { y: 2.4, ease: 'none' }, 0.8);
+
+// Globe zoom
+const globeScale = { s: 1 };
+tl.to(globeScale, { s: 1.12, ease: 'none' }, 0.8);
+
+// Camera position
+const camZ = { z: 9 };
+tl.to(camZ, { z: 7.8, ease: 'none' }, 0.8);
+
+// ─── Panel animations ───
+// Hero: fade out at 15%
+ScrollTrigger.create({
+  trigger: '#scroll-root',
+  start: '12% top',
+  end: '22% top',
+  scrub: true,
+  onUpdate: self => {
+    const p = self.progress;
+    gsap.set('#panel-hero', { opacity: 1 - p, y: p * -40 });
+    gsap.set('#scroll-hint', { opacity: Math.max(0, 1 - p * 4) });
+  }
+});
+
+// West coast panel
+ScrollTrigger.create({
+  trigger: '#scroll-root',
+  start: '18% top',
+  end: '40% top',
+  scrub: true,
+  onUpdate: self => {
+    const p = self.progress;
+    let opacity, y;
+    if (p < 0.15) {
+      opacity = p / 0.15;
+      y = (1 - p / 0.15) * 30;
+    } else if (p > 0.8) {
+      opacity = 1 - (p - 0.8) / 0.2;
+      y = 0;
+    } else {
+      opacity = 1;
+      y = 0;
+    }
+    gsap.set('#panel-west', { opacity, y });
+    // Show west coast city dots
+    const shown = p > 0.1;
+    [0, 1, 2, 3].forEach((i, idx) => {
+      cityMeshes[i].visible = shown;
+      if (shown) {
+        cityMeshes[i].material.uniforms.uOpacity.value = Math.min(1, (p - 0.1) / 0.2 - idx * 0.05);
+      }
+      // Arcs west coast [0,1,2] subset
+      if (idx < 3 && arcs[idx]) {
+        arcs[idx].line.material.opacity = Math.min(0.6, Math.max(0, (p - 0.2) / 0.3));
+        arcs[idx].particle.material.opacity = Math.min(0.9, Math.max(0, (p - 0.25) / 0.2));
+      }
+    });
+  }
+});
+
+// East coast panel
+ScrollTrigger.create({
+  trigger: '#scroll-root',
+  start: '38% top',
+  end: '62% top',
+  scrub: true,
+  onUpdate: self => {
+    const p = self.progress;
+    let opacity, y;
+    if (p < 0.12) {
+      opacity = p / 0.12;
+      y = (1 - p / 0.12) * 30;
+    } else if (p > 0.82) {
+      opacity = 1 - (p - 0.82) / 0.18;
+      y = 0;
+    } else {
+      opacity = 1;
+      y = 0;
+    }
+    gsap.set('#panel-east', { opacity, y });
+    // Show all cities
+    cities.forEach((c, i) => {
+      cityMeshes[i].visible = true;
+      cityMeshes[i].material.uniforms.uOpacity.value = Math.min(1, p * 3);
+    });
+    // Show cross-country arcs [3..9]
+    for (let i = 3; i < arcs.length; i++) {
+      arcs[i].line.material.opacity = Math.min(0.5, Math.max(0, (p - 0.1) / 0.3) * 0.5);
+      arcs[i].particle.material.opacity = Math.min(0.8, Math.max(0, (p - 0.15) / 0.25));
+    }
+  }
+});
+
+// Stats panel
+let statsAnimated = false;
+ScrollTrigger.create({
+  trigger: '#scroll-root',
+  start: '60% top',
+  end: '82% top',
+  scrub: true,
+  onUpdate: self => {
+    const p = self.progress;
+    let opacity, y;
+    if (p < 0.1) { opacity = p / 0.1; y = (1 - p / 0.1) * 30; }
+    else if (p > 0.85) { opacity = 1 - (p - 0.85) / 0.15; y = 0; }
+    else { opacity = 1; y = 0; }
+    gsap.set('#panel-stats', { opacity, y });
+
+    // Show pulse rings
+    if (p > 0.15) {
+      pulseMeshes.forEach(m => { m.visible = true; m.material.uniforms.uOpacity.value = Math.min(1, (p - 0.15) / 0.2); });
+    }
+
+    // Animate counters once
+    if (p > 0.2 && !statsAnimated) {
+      statsAnimated = true;
+      animateCounter('stat-projects', 215, '+');
+      animateCounter('stat-hours', 83, 'k');
+      animateCounter('stat-teams', 200, '+');
+      animateCounter('stat-years', 15, '');
+    }
+  }
+});
+
+// CTA panel
+ScrollTrigger.create({
+  trigger: '#scroll-root',
+  start: '78% top',
+  end: '100% top',
+  scrub: true,
+  onUpdate: self => {
+    const p = self.progress;
+    const opacity = p < 0.12 ? p / 0.12 : 1;
+    const y = p < 0.12 ? (1 - p / 0.12) * 30 : 0;
+    gsap.set('#panel-cta', { opacity, y });
+    // All arcs slightly brighter
+    arcs.forEach(a => {
+      a.line.material.opacity = Math.min(0.7, a.line.material.opacity + 0.002);
+    });
+  }
+});
+
+// ─────────────────────────────────────────────
+// COUNTER ANIMATION
+// ─────────────────────────────────────────────
+function animateCounter(id, target, suffix) {
+  const el = document.getElementById(id);
+  const dur = 1.8;
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: dur,
+    ease: 'power2.out',
+    onUpdate: () => { el.textContent = Math.floor(obj.val) + suffix; }
+  });
+}
+
+// ─────────────────────────────────────────────
+// RENDER LOOP
+// ─────────────────────────────────────────────
+let clock = new THREE.Clock();
+
+function render() {
+  requestAnimationFrame(render);
+  const t = clock.getElapsedTime();
+
+  // Rotate entire globe group (globe + city dots + arcs + particles all move together)
+  globeGroup.rotation.y = t * 0.04 + globeRot.y;
+  globeGroup.scale.setScalar(globeScale.s);
+
+  // Update shader uniforms
+  globeMat.uniforms.uTime.value = t;
+  starMat.uniforms.uTime.value = t;
+
+  // Animate city dot uniforms
+  cityMeshes.forEach(m => {
+    m.material.uniforms.uTime.value = t;
+  });
+
+  // Pulse ring uniforms + scale animation
+  pulseMeshes.forEach((m, i) => {
+    m.material.uniforms.uTime.value = t;
+    if (m.visible) {
+      const phase = t * 1.5 + i * 0.9;
+      m.scale.setScalar(1 + (Math.sin(phase) * 0.5 + 0.5) * 0.6);
+    }
+  });
+
+  // Animate particles along arcs (all in globeGroup local space — no manual rotation needed)
+  arcs.forEach(a => {
+    if (a.particle.material.opacity > 0.01) {
+      a.t = (a.t + 0.005) % 1;
+      a.particle.position.copy(a.curve.getPoint(a.t));
+    }
+  });
+
+  // Stars slow drift
+  stars.rotation.y = t * 0.002;
+
+  camera.position.z = camZ.z;
+
+  renderer.render(scene, camera);
+}
+
+// ─────────────────────────────────────────────
+// RESIZE
+// ─────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+setTimeout(finishLoading, 1200);
+render();
+</script>
+</body>
+</html>

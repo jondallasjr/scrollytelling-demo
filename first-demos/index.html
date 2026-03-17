@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scrollytelling Masterclass — Does the Machine Dream?</title>
+  <style>
+    :root {
+      --bg: #010108;
+      --c1: #00e5ff;
+      --c2: #aa00ff;
+      --c3: #ff1744;
+      --c4: #ffd600;
+      --c5: #69f0ae;
+      --text: #f0f0f8;
+      --muted: #5a5a7a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+    }
+
+    /* Fixed background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 12vw, 10rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.06em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { color: #fff; display: block; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c2), var(--c3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ht3 { display: block; color: var(--muted); font-style: italic; }
+    .hero-desc {
+      max-width: 55ch;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+    .hero-subdesc {
+      max-width: 45ch;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: rgba(90,90,122,0.6);
+      margin-bottom: 4rem;
+    }
+
+    /* ── TECHNIQUE LEGEND ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+    .legend-item {
+      padding: 0.3rem 0.8rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    /* ── PROJECT GRID ── */
+    .projects {
+      position: relative;
+      z-index: 1;
+      padding: 0 2rem 8rem;
+    }
+    .projects-label {
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3rem;
+    }
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1px;
+      background: rgba(255,255,255,0.04);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .project-card {
+      background: var(--bg);
+      padding: 3rem 2.5rem;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .project-card:hover { background: rgba(255,255,255,0.02); }
+    .project-card:hover::before { transform: scaleX(1); }
+
+    .card-num {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: currentColor;
+      margin-bottom: 1.5rem;
+      opacity: 0.6;
+    }
+    .card-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    .card-subtitle {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: currentColor;
+      opacity: 0.5;
+      margin-bottom: 1.5rem;
+    }
+    .card-desc {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .card-tag {
+      font-family: monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid currentColor;
+      opacity: 0.4;
+      border-radius: 1px;
+    }
+    .card-arrow {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      font-family: monospace;
+      font-size: 1.2rem;
+      opacity: 0.2;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .project-card:hover .card-arrow {
+      opacity: 0.8;
+      transform: translate(4px, -4px);
+    }
+
+    /* complexity badge */
+    .complexity {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      gap: 2px;
+    }
+    .complexity-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .complexity-dot.empty {
+      background: transparent;
+      border: 1px solid currentColor;
+      opacity: 0.3;
+    }
+
+    /* ── STYLE GUIDE SECTION ── */
+    .guide-section {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .guide-title {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    .guide-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    .guide-card {
+      padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.01);
+    }
+    .guide-card h3 {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .guide-card p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .guide-card ul {
+      list-style: none;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+    .guide-card ul li::before {
+      content: '→ ';
+      color: var(--c1);
+      font-family: monospace;
+    }
+    .color-swatches {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .swatch {
+      height: 40px;
+      border-radius: 2px;
+      display: flex;
+      align-items: flex-end;
+      padding: 4px;
+    }
+    .swatch span {
+      font-family: monospace;
+      font-size: 0.5rem;
+      letter-spacing: 0.1em;
+      color: rgba(0,0,0,0.6);
+    }
+
+    @media (max-width: 768px) {
+      .guide-grid { grid-template-columns: 1fr; }
+      .project-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       HERO
+       ══════════════════════════════════ -->
+  <section class="hero">
+    <p class="hero-label">Scrollytelling Masterclass — 2026</p>
+    <h1 class="hero-title">
+      <span class="ht1">Does the</span>
+      <span class="ht2">Machine</span>
+      <span class="ht3">Dream?</span>
+    </h1>
+    <p class="hero-desc">
+      A progressively complex series of scrollytelling experiences exploring the
+      philosophical arguments for and against artificial consciousness.
+      Eight projects. Every major technique. No comfortable answers.
+    </p>
+    <p class="hero-subdesc">
+      Each project builds on the last — from pure CSS to Three.js WebGL.
+      Read the style guide below, then dive into any chapter.
+    </p>
+
+    <div class="legend">
+      <div class="legend-item">CSS Scroll-Driven Animations</div>
+      <div class="legend-item">GSAP ScrollTrigger</div>
+      <div class="legend-item">Canvas 2D Particles</div>
+      <div class="legend-item">Branching Narrative</div>
+      <div class="legend-item">Three.js WebGL</div>
+      <div class="legend-item">Horizontal Scroll</div>
+      <div class="legend-item">Sticky Pinning</div>
+      <div class="legend-item">Text Reveals</div>
+      <div class="legend-item">Clip-Path Morphing</div>
+      <div class="legend-item">Interactive Choices</div>
+      <div class="legend-item">Custom Cursors</div>
+      <div class="legend-item">SVG Path Drawing</div>
+      <div class="legend-item">Particle Text</div>
+      <div class="legend-item">Accordion UI</div>
+      <div class="legend-item">Magnetic Buttons</div>
+      <div class="legend-item">GLSL Shaders</div>
+    </div>
+
+    <div style="font-family:monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--muted);">
+      ↓ scroll to see all projects
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       PROJECT LIST
+       ══════════════════════════════════ -->
+  <div class="projects">
+    <p class="projects-label">All Projects — Progressively Complex</p>
+
+    <div class="project-list">
+
+      <!-- 01 -->
+      <a href="01-foundation/index.html" class="project-card" style="color:var(--c1);">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">01 / 08</div>
+        <h2 class="card-title">The Foundation</h2>
+        <p class="card-subtitle">Pure CSS / HTML</p>
+        <p class="card-desc">
+          Zero JavaScript. Pure CSS scroll-driven animations, sticky sections,
+          clip-path reveals, and floating particles. The baseline of what modern
+          CSS alone can achieve. Introduces the question of AI consciousness.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">CSS scroll()</span>
+          <span class="card-tag">view()</span>
+          <span class="card-tag">sticky</span>
+          <span class="card-tag">clip-path</span>
+          <span class="card-tag">glitch</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 02 -->
+      <a href="02-gsap-awakening/index.html" class="project-card" style="color:var(--c2);">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">02 / 08</div>
+        <h2 class="card-title">The Awakening</h2>
+        <p class="card-subtitle">GSAP ScrollTrigger</p>
+        <p class="card-desc">
+          GSAP ScrollTrigger introduced. Horizontal scroll through six arguments,
+          scrubbed quote reel, sticky statement sequence, philosophers' spectrum,
+          and a magnetic button. Timeline scrubbing as narrative tool.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">ScrollTrigger</span>
+          <span class="card-tag">scrub</span>
+          <span class="card-tag">horizontal scroll</span>
+          <span class="card-tag">stagger</span>
+          <span class="card-tag">magnetic</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 03 -->
+      <a href="03-canvas-depths/index.html" class="project-card" style="color:var(--c4);">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">03 / 08</div>
+        <h2 class="card-title">Neural Canvas</h2>
+        <p class="card-subtitle">Canvas 2D — Particle Systems</p>
+        <p class="card-desc">
+          Full-page canvas particle field, animated neural network with signal
+          propagation, brain wave visualization, and interactive particle text
+          that reforms when disturbed by the mouse. Spring physics.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">Canvas 2D</span>
+          <span class="card-tag">particles</span>
+          <span class="card-tag">getImageData</span>
+          <span class="card-tag">spring physics</span>
+          <span class="card-tag">IntersectionObserver</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 04 -->
+      <a href="04-interactive-chamber/index.html" class="project-card" style="color:var(--c5);">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">04 / 08</div>
+        <h2 class="card-title">The Chamber</h2>
+        <p class="card-subtitle">Interactive Branching Narrative</p>
+        <p class="card-desc">
+          A philosophical interrogation of your own beliefs. Five choices, each
+          with consequences. Accordion deep-dives. A stance meter that tracks
+          your responses. SVG path drawing. Terminal aesthetic. The Mirror.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">state machine</span>
+          <span class="card-tag">accordion</span>
+          <span class="card-tag">SVG stroke-dashoffset</span>
+          <span class="card-tag">custom cursor</span>
+          <span class="card-tag">scan lines</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 05 -->
+      <a href="05-webgl-cosmos/index.html" class="project-card" style="color:#00ffb4;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">05 / 08</div>
+        <h2 class="card-title">The Cosmos</h2>
+        <p class="card-subtitle">Three.js WebGL</p>
+        <p class="card-desc">
+          Full 3D WebGL experience. Procedural brain particle cloud with animated
+          signal, IIT icosahedra, dual particle clouds for the explanatory gap,
+          cosmic sphere field. Scroll-driven camera movement with lerp.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">Three.js</span>
+          <span class="card-tag">BufferGeometry</span>
+          <span class="card-tag">PointsMaterial</span>
+          <span class="card-tag">camera lerp</span>
+          <span class="card-tag">GPU particles</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 06 -->
+      <a href="06-full-immersion/index.html" class="project-card" style="color:var(--c3);">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">06 / 08</div>
+        <h2 class="card-title">Full Immersion</h2>
+        <p class="card-subtitle">Everything Combined</p>
+        <p class="card-desc">
+          The masterwork. Three.js background + GSAP ScrollTrigger + Canvas +
+          horizontal thinker reel + Snow Fall-style split layout + argument duel +
+          full-width thesis moment + cinematic closing. Every technique applied.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">Three.js + GSAP</span>
+          <span class="card-tag">Snow Fall style</span>
+          <span class="card-tag">horizontal reel</span>
+          <span class="card-tag">duel layout</span>
+          <span class="card-tag">chapter system</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 07 -->
+      <a href="07-morphing-identity/index.html" class="project-card" style="color:#ff9100;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">07 / 08</div>
+        <h2 class="card-title">Morphing Identity</h2>
+        <p class="card-subtitle">Clip-Path Morph · CSS Art</p>
+        <p class="card-desc">
+          Inspired by Species in Pieces. CSS clip-path polygon morphing between
+          states. Text that transforms character by character. Shapes that dissolve
+          and reform to represent philosophical transitions. Keyframe mastery.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">clip-path morph</span>
+          <span class="card-tag">polygon points</span>
+          <span class="card-tag">CSS art</span>
+          <span class="card-tag">keyframes</span>
+          <span class="card-tag">transition timing</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 08 -->
+      <a href="08-data-journalism/index.html" class="project-card" style="color:#e040fb;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">08 / 08</div>
+        <h2 class="card-title">Data Journalism</h2>
+        <p class="card-subtitle">Apple Scroll · Data Viz · Lenis</p>
+        <p class="card-desc">
+          Data-driven storytelling. Lenis smooth scroll. Scroll-driven counters
+          and charts. Timeline of AI development. Apple-product-page-style image
+          sequence driven by scroll position. The most journalistically rigorous chapter.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">Lenis</span>
+          <span class="card-tag">data visualization</span>
+          <span class="card-tag">counter animation</span>
+          <span class="card-tag">timeline</span>
+          <span class="card-tag">chart scrub</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="09-terminal-os/index.html" class="project-card" style="color:#69f0ae;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">09 / ∞</div>
+        <h2 class="card-title">Terminal OS</h2>
+        <p class="card-subtitle">World Transitions · Fake OS · Brain Scan</p>
+        <p class="card-desc">
+          Four complete aesthetic worlds — each with a dramatic full-screen clip-path
+          wipe transition. Fake terminal, consciousness instruments, neural training
+          dashboard, procedural fMRI brain scan. Interface mockups as philosophy.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">world transitions</span>
+          <span class="card-tag">clip-path wipe</span>
+          <span class="card-tag">fake OS</span>
+          <span class="card-tag">canvas instruments</span>
+          <span class="card-tag">brain scan</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="10-audio-visual/index.html" class="project-card" style="color:#ff6d00;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">10 / ∞</div>
+        <h2 class="card-title">Audio-Visual</h2>
+        <p class="card-subtitle">WebAudio API · Reactive Visuals · Oscilloscope</p>
+        <p class="card-desc">
+          Sound as consciousness metaphor. WebAudio API drives real-time visual
+          reactions — frequency bars, waveform oscilloscope, particle storms keyed
+          to audio energy. The question: does processing sound create experience?
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">WebAudio API</span>
+          <span class="card-tag">AnalyserNode</span>
+          <span class="card-tag">frequency visualization</span>
+          <span class="card-tag">reactive canvas</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="11-css-creatures/index.html" class="project-card" style="color:#f50057;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">11 / ∞</div>
+        <h2 class="card-title">CSS Creatures</h2>
+        <p class="card-subtitle">Species in Pieces · Polygon Art · Pure CSS</p>
+        <p class="card-desc">
+          Inspired by Species in Pieces — pure CSS polygon creatures, each embodying
+          a philosophical position on consciousness. Clip-path morphing transforms
+          each creature into the next as you scroll through the argument.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">clip-path polygon</span>
+          <span class="card-tag">CSS creatures</span>
+          <span class="card-tag">morphing</span>
+          <span class="card-tag">zero JS</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="12-parallax-depth/index.html" class="project-card" style="color:#00b4d8;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">12 / ∞</div>
+        <h2 class="card-title">Parallax Depth</h2>
+        <p class="card-subtitle">CSS 3D Perspective · GSAP Parallax · Layers of Mind</p>
+        <p class="card-desc">
+          Multi-layer parallax using CSS 3D perspective transforms and GSAP
+          scroll-linked animations. Maps the explanatory gap through spatial
+          depth — physical, functional, phenomenal layers literally stacked.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">CSS 3D perspective</span>
+          <span class="card-tag">translateZ layers</span>
+          <span class="card-tag">mouse parallax</span>
+          <span class="card-tag">floating geometry</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="13-motion-typography/index.html" class="project-card" style="color:#76ff03;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">13 / ∞</div>
+        <h2 class="card-title">Motion Typography</h2>
+        <p class="card-subtitle">Kinetic Type · SVG Text · Character Split</p>
+        <p class="card-desc">
+          Typography itself as the animation. SVG text on curved paths,
+          character-by-character reveals, stagger cascades, infinite marquees,
+          and a letter-grid neural firing simulation. The word reaches toward mind.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">SVG textPath</span>
+          <span class="card-tag">char split GSAP</span>
+          <span class="card-tag">marquee</span>
+          <span class="card-tag">kinetic type</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="14-liquid-transitions/index.html" class="project-card" style="color:#40c4ff;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">14 / ∞</div>
+        <h2 class="card-title">Liquid Transitions</h2>
+        <p class="card-subtitle">SVG Filters · Gooey Merge · Flow Field</p>
+        <p class="card-desc">
+          SVG feColorMatrix gooey filter merges floating circles. CSS border-radius
+          morphing makes breathing blobs. Canvas flow field via layered sine waves.
+          Experience — like a blob — refuses fixed geometric form.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">SVG gooey filter</span>
+          <span class="card-tag">feColorMatrix</span>
+          <span class="card-tag">blob morphing</span>
+          <span class="card-tag">flow field canvas</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="15-generative-art/index.html" class="project-card" style="color:#ff4081;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">15 / ∞</div>
+        <h2 class="card-title">Generative Art</h2>
+        <p class="card-subtitle">Truchet · Reaction-Diffusion · Fractal · Rule 110</p>
+        <p class="card-desc">
+          Four algorithmic pattern systems — each asking whether emergence explains
+          consciousness. Truchet tiles, Gray-Scott reaction-diffusion, fractal trees
+          with random variation, and Turing-complete Rule 110 cellular automata.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">Truchet tiles</span>
+          <span class="card-tag">Gray-Scott RD</span>
+          <span class="card-tag">fractal L-system</span>
+          <span class="card-tag">Rule 110 CA</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="16-scroll-cinema/index.html" class="project-card" style="color:#d4af37;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+        </div>
+        <div class="card-num">16 / ∞</div>
+        <h2 class="card-title">Scroll Cinema</h2>
+        <p class="card-subtitle">Canvas Sequence · Film Grain · Scrub Playback</p>
+        <p class="card-desc">
+          Scroll-scrubbed cinematic canvas animation with 7 scenes: dark void,
+          star field, neural formation, the explanatory gap, Phi integration,
+          dissolution, and a single remaining light. Film grain overlay adds texture.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">canvas sequence</span>
+          <span class="card-tag">scrub playback</span>
+          <span class="card-tag">film grain</span>
+          <span class="card-tag">letterbox</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="17-micro-interactions/index.html" class="project-card" style="color:#a5d6a7;">
+        <div class="complexity">
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">17 / ∞</div>
+        <h2 class="card-title">Micro-Interactions</h2>
+        <p class="card-subtitle">Hover Physics · Cursor Trail · Ripple Effects</p>
+        <p class="card-desc">
+          The smallest interactions. Magnetic buttons with spring physics,
+          cursor trails that leave particle wakes, ripple effects that propagate
+          outward. Asking: at what scale does interaction become sensation?
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">spring physics</span>
+          <span class="card-tag">cursor trail</span>
+          <span class="card-tag">ripple canvas</span>
+          <span class="card-tag">magnetic hover</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 18 -->
+      <a href="18-svg-morphing/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">18 / ∞</div>
+        <h2 class="card-title">SVG Morphing</h2>
+        <p class="card-subtitle">Path Animation · Motion Path · Draw Reveal</p>
+        <p class="card-desc">
+          Shapes that become other shapes. Paths that draw themselves. A
+          consciousness that morphs between states — fluid, structural, impossible.
+          GSAP MotionPathPlugin + getTotalLength for high-precision morphing.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">svg morphing</span>
+          <span class="card-tag">motion path</span>
+          <span class="card-tag">draw reveal</span>
+          <span class="card-tag">GSAP 3.13</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 19 -->
+      <a href="19-zen-simplicity/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">19 / ∞</div>
+        <h2 class="card-title">Zen Simplicity</h2>
+        <p class="card-subtitle">No GSAP · IntersectionObserver · Minimal</p>
+        <p class="card-desc">
+          Deliberate silence. Light theme. Japanese kanji as anchors. Haiku
+          sequences. An enso drawn in CSS. The question of whether stillness
+          itself is a kind of consciousness. Zero CDN dependencies.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">minimal</span>
+          <span class="card-tag">japanese</span>
+          <span class="card-tag">no-gsap</span>
+          <span class="card-tag">light theme</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 20 -->
+      <a href="20-data-portrait/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">20 / ∞</div>
+        <h2 class="card-title">Data Portrait</h2>
+        <p class="card-subtitle">Neural Network · Latent Space · Identity</p>
+        <p class="card-desc">
+          You as a dataset. A neural network trained on your habits, patterns,
+          and choices. Boid swarms, animated latent space clusters, and a
+          timeline of your life as training epochs. What does 73.2% accuracy mean?
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">boids</span>
+          <span class="card-tag">latent space</span>
+          <span class="card-tag">wave sim</span>
+          <span class="card-tag">identity</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 21 -->
+      <a href="21-worldbuilding/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">21 / ∞</div>
+        <h2 class="card-title">Seven Minds</h2>
+        <p class="card-subtitle">Seven Worlds · Boids · Wave Sim · Matrix</p>
+        <p class="card-desc">
+          Seven alien minds, each with its own visual universe: The Hive (boid
+          swarm), The Crystal (hex lattice), The Mycelium (slow growth network),
+          The Ghost (neon drift), The Ocean (wave sim), The Machine (terminal),
+          The Void (single breathing light).
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">boids</span>
+          <span class="card-tag">worldbuilding</span>
+          <span class="card-tag">wave simulation</span>
+          <span class="card-tag">mycelium</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+    </div>
+  </div>
+
+      <!-- 22 -->
+      <a href="22-synesthesia/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">22 / ∞</div>
+        <h2 class="card-title">Synesthesia</h2>
+        <p class="card-subtitle">WebAudio · Color Map · Paint Waveform</p>
+        <p class="card-desc">
+          Seeing sound. A chromesthetic keyboard where each note has a colour.
+          A 16×16 grid where hue maps to pitch. A canvas you draw on and then
+          play back. Consciousness as the place where senses overlap.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">webaudio</span>
+          <span class="card-tag">synesthesia</span>
+          <span class="card-tag">paint canvas</span>
+          <span class="card-tag">color-sound</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 23 -->
+      <a href="23-turing-test/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">23 / ∞</div>
+        <h2 class="card-title">The Turing Test</h2>
+        <p class="card-subtitle">Live Chat · Two Agents · Vote & Reveal</p>
+        <p class="card-desc">
+          Converse with two agents — A and B. Both claim to be thinking. One
+          is warmer, one more philosophical. Vote on which is human. Then read
+          why the test reveals more about you than about them.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">turing test</span>
+          <span class="card-tag">chat interface</span>
+          <span class="card-tag">AI consciousness</span>
+          <span class="card-tag">interactive</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 24 -->
+      <a href="24-memory-palace/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">24 / ∞</div>
+        <h2 class="card-title">Memory Palace</h2>
+        <p class="card-subtitle">CSS 3D · Room Navigation · Scroll-Driven</p>
+        <p class="card-desc">
+          A first-person 3D walk through five rooms, each containing a theory
+          of how memory constitutes consciousness. CSS perspective + translateZ
+          creates genuine depth. Scroll, arrow keys, or tap to walk forward.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">css 3d</span>
+          <span class="card-tag">perspective</span>
+          <span class="card-tag">memory</span>
+          <span class="card-tag">first-person</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 25 -->
+      <a href="25-time-perception/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">25 / ∞</div>
+        <h2 class="card-title">Time Perception</h2>
+        <p class="card-subtitle">Circadian Clock · Four Timescales · Subjective Time</p>
+        <p class="card-desc">
+          Five clocks: circadian (your body), geological (Earth's age), neural,
+          cardiac, cosmic. Plus a scroll-driven subjective time experience — from
+          flow state to anxiety. Includes a real live millisecond clock.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">circadian</span>
+          <span class="card-tag">deep time</span>
+          <span class="card-tag">flow state</span>
+          <span class="card-tag">live clock</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 26 -->
+      <a href="26-emergence/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">26 / ∞</div>
+        <h2 class="card-title">Emergence Engine</h2>
+        <p class="card-subtitle">Game of Life · Langton's Ant · Wolfram Rules · IIT Φ</p>
+        <p class="card-desc">
+          Four living simulations: Conway's Game of Life (interactive, draw cells),
+          Langton's Ant (chaos → highway at step 10,000), Wolfram's 256-rule
+          explorer, and an IIT Phi meter visualizing consciousness measurement.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">game of life</span>
+          <span class="card-tag">langton's ant</span>
+          <span class="card-tag">cellular automata</span>
+          <span class="card-tag">IIT phi</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 27 -->
+      <a href="27-body-map/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">27 / ∞</div>
+        <h2 class="card-title">The Body Map</h2>
+        <p class="card-subtitle">Interactive Brain · Nervous System · Gut Brain</p>
+        <p class="card-desc">
+          Click 7 brain regions (prefrontal, parietal, claustrum, thalamus...) to
+          reveal their role in consciousness. Animated nervous system with signal
+          propagation. Deep dive into the enteric nervous system as a second brain.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">interactive SVG</span>
+          <span class="card-tag">brain anatomy</span>
+          <span class="card-tag">neuroscience</span>
+          <span class="card-tag">enteric system</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 28 -->
+      <a href="28-philosophy-deep-dive/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">28 / ∞</div>
+        <h2 class="card-title">The Hardest Question</h2>
+        <p class="card-subtitle">Deep Essay · 10 Arguments · Philosophy of Mind</p>
+        <p class="card-desc">
+          A 7,000-word scrollytelling essay covering the hard problem, Mary's Room,
+          philosophical zombies, the Chinese Room, IIT, Global Workspace Theory,
+          biological naturalism, and the 2023 Butlin et al. findings. Reading progress bar.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">hard problem</span>
+          <span class="card-tag">IIT</span>
+          <span class="card-tag">chinese room</span>
+          <span class="card-tag">philosophical essay</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 29 -->
+      <a href="29-dream-machine/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot empty"></div>
+        </div>
+        <div class="card-num">29 / ∞</div>
+        <h2 class="card-title">The Dream Machine</h2>
+        <p class="card-subtitle">Full-Screen Canvas · 7 Dream Phases · Floating Words</p>
+        <p class="card-desc">
+          A procedurally generated dreamscape that transforms as you scroll through 7 phases: hypnagogic, REM onset, memory intrusion, lucidity, dissolution, hypnopompic, and waking. Each phase has its own canvas world — particles, trails, sparks, melt effects.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">dreamscape</span>
+          <span class="card-tag">procedural</span>
+          <span class="card-tag">phase transitions</span>
+          <span class="card-tag">full-screen canvas</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <!-- 30 -->
+      <a href="30-observatory/index.html" class="project-card">
+        <div class="complexity-dots">
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+          <div class="complexity-dot active"></div>
+        </div>
+        <div class="card-num">30 / ∞</div>
+        <h2 class="card-title">The Observatory</h2>
+        <p class="card-subtitle">Three.js · 14 Thinkers · Click Stars · 3D Navigation</p>
+        <p class="card-desc">
+          Every philosopher is a star. Every theory is a constellation. Drag to rotate the sky, scroll to zoom, click any star to reveal what that thinker knew — and what they didn't. 14 thinkers, 8 constellations, genuine uncertainty in three dimensions.
+        </p>
+        <div class="card-tags">
+          <span class="card-tag">three.js</span>
+          <span class="card-tag">interactive 3D</span>
+          <span class="card-tag">raycasting</span>
+          <span class="card-tag">constellations</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STYLE GUIDE
+       ══════════════════════════════════ -->
+  <section class="guide-section">
+    <h2 class="guide-title">Style Guide &amp; Brief</h2>
+
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h3>Editorial Voice</h3>
+        <p>
+          Intellectually serious but not academic. Precise without being dry.
+          Honest about uncertainty — this is not a polemic, it is an inquiry.
+          The reader should feel they are on a journey with a thoughtful guide,
+          not being lectured at. Questions are more powerful than declarations.
+          Quotes are used as evidence, not decoration.
+        </p>
+      </div>
+      <div class="guide-card">
+        <h3>Visual Philosophy</h3>
+        <p>
+          Dark backgrounds. Light emitted rather than reflected. Colours that
+          suggest electronics, neurons, and the void of space. Typography at
+          scale — big display type is the primary visual element. Animations
+          serve meaning: particles represent neurons, orbits represent information
+          flow, gaps represent the explanatory gap. Nothing decorative.
+        </p>
+      </div>
+      <div class="guide-card">
+        <h3>Colour System</h3>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#00e5ff;"><span>Cyan</span></div>
+          <div class="swatch" style="background:#aa00ff;"><span>Violet</span></div>
+          <div class="swatch" style="background:#ff1744;"><span>Rose</span></div>
+          <div class="swatch" style="background:#ffd600;"><span>Gold</span></div>
+          <div class="swatch" style="background:#69f0ae;"><span>Mint</span></div>
+        </div>
+        <p style="margin-top:1rem;font-size:0.8rem;">
+          Each chapter uses a dominant accent from this palette.
+          White text on black. Muted at ~35% opacity for body text.
+        </p>
+      </div>
+      <div class="guide-card">
+        <h3>Typography</h3>
+        <ul>
+          <li>Display: Georgia serif, 900 weight, tight tracking</li>
+          <li>Body: Georgia serif, 1.8 line-height, muted colour</li>
+          <li>Labels: monospace, uppercase, 0.3em letter-spacing</li>
+          <li>Quotes: italic, Georgia, left border accent</li>
+          <li>Code: Courier New, terminal green</li>
+          <li>Sizing: always clamp() — responsive without breakpoints</li>
+        </ul>
+      </div>
+      <div class="guide-card">
+        <h3>Scrollytelling Principles</h3>
+        <ul>
+          <li>Scroll should always reveal, not just scroll</li>
+          <li>Sticky sections should hold for long enough to read</li>
+          <li>Scrub animations: scrub: 1–2 for smooth following</li>
+          <li>Horizontal scrolls: always include visual cue</li>
+          <li>Text reveals: overflow:hidden + translateY(110%)</li>
+          <li>Performance: IntersectionObserver gate canvas loops</li>
+        </ul>
+      </div>
+      <div class="guide-card">
+        <h3>Philosophical Integrity</h3>
+        <ul>
+          <li>Always steelman both sides of the argument</li>
+          <li>Never resolve the question — hold it open</li>
+          <li>Attribute quotes and ideas accurately</li>
+          <li>Use "after" when paraphrasing a thinker's position</li>
+          <li>The Hard Problem is taken seriously, not dismissed</li>
+          <li>Dennett's view is given fair treatment despite being unpopular</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

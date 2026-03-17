@@ -1,0 +1,44 @@
+{
+  "query": "Harare CBD skyline Zimbabwe",
+  "num_requested": 3,
+  "num_found": 3,
+  "num_downloaded": 3,
+  "images": [
+    {
+      "index": 1,
+      "filename": "01.jpg",
+      "title": "A skyline view of the CBD, Harare Zimbabwe Stock Photo - Alamy",
+      "source": "Alamy",
+      "domain": "www.alamy.com",
+      "imageUrl": "https://c8.alamy.com/comp/JCB4FG/a-skyline-view-of-the-cbd-harare-zimbabwe-JCB4FG.jpg",
+      "width": 1300,
+      "height": 1382,
+      "downloaded": true,
+      "filesize_kb": 322.6
+    },
+    {
+      "index": 2,
+      "filename": "02.jpg",
+      "title": "100+ Harare Skyline Stock Photos, Pictures & Royalty-Free ...",
+      "source": "iStock",
+      "domain": "www.istockphoto.com",
+      "imageUrl": "https://media.istockphoto.com/id/1460745093/photo/harare-city-centre-zimbabwe.jpg?s=612x612&w=0&k=20&c=eNJfigwLJYaU3ddQyX_URr-LR9Jx6CFdMohu4A3AaBU=",
+      "width": 612,
+      "height": 408,
+      "downloaded": true,
+      "filesize_kb": 55.0
+    },
+    {
+      "index": 3,
+      "filename": "03.jpg",
+      "title": "A skyline view of the CBD, Harare Zimbabwe Stock Photo - Alamy",
+      "source": "Alamy",
+      "domain": "www.alamy.com",
+      "imageUrl": "https://c8.alamy.com/comp/JCB4GA/a-skyline-view-of-the-cbd-harare-zimbabwe-JCB4GA.jpg",
+      "width": 1300,
+      "height": 957,
+      "downloaded": true,
+      "filesize_kb": 189.8
+    }
+  ]
+}

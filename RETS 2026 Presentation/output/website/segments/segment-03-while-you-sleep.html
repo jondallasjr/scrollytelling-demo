@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Answers While You Sleep — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d1117;
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --white: #FFFFFF;
+  --gray: #8b9ab0;
+  --wa-green: #25D366;
+  --wa-dark: #111b21;
+  --wa-bubble-out: #005c4b;
+  --wa-bubble-in: #1f2c34;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--teal); z-index: 200; width: 0%;
+}
+.back {
+  position: fixed; top: 1.5rem; left: 1.5rem;
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); text-decoration: none; z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--teal); }
+
+/* ── INTRO ── */
+.intro {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 6rem 2rem;
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(0,212,170,0.04) 0%, transparent 70%);
+}
+
+.intro-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--teal); border: 1px solid rgba(0,212,170,0.3);
+  padding: 0.3rem 1rem; border-radius: 3px; margin-bottom: 2.5rem;
+  display: inline-block;
+}
+
+.intro-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.2rem, 6vw, 5rem); line-height: 1.1; max-width: 780px;
+}
+.intro-headline em { font-style: normal; color: var(--teal); }
+
+.intro-sub {
+  margin-top: 1.5rem; font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--gray); max-width: 540px; line-height: 1.65;
+}
+
+.clock {
+  margin-top: 3rem; display: flex; align-items: center;
+  gap: 0.8rem; color: var(--gray);
+}
+
+.clock-display {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.5rem); color: var(--amber);
+  letter-spacing: 0.05em;
+}
+
+.clock-label { font-size: 0.9rem; line-height: 1.5; text-align: left; }
+.clock-label strong { color: var(--white); display: block; }
+
+.scroll-cue {
+  margin-top: 4rem; color: rgba(255,255,255,0.15);
+  font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  animation: pls 2s ease-in-out infinite;
+}
+@keyframes pls { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* ── WHATSAPP SCROLL SCENE ── */
+.wa-scene {
+  min-height: 400vh;
+  position: relative;
+}
+
+.wa-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  gap: 4rem; padding: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Phone frame */
+.phone-wrap {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.phone-frame {
+  width: clamp(260px, 35vw, 340px);
+  height: clamp(480px, 65vh, 620px);
+  background: #1b1b1b;
+  border-radius: 44px;
+  border: 2px solid rgba(255,255,255,0.12);
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,0.7),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column;
+  position: relative;
+}
+
+/* Status bar */
+.phone-status {
+  background: var(--wa-dark);
+  padding: 0.6rem 1.2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.phone-status-time {
+  font-size: 0.8rem; font-weight: 600; color: var(--white);
+}
+
+.phone-status-icons {
+  display: flex; gap: 0.3rem; align-items: center;
+  font-size: 0.65rem; color: var(--white);
+}
+
+/* WhatsApp header */
+.wa-header {
+  background: #1f2c34;
+  padding: 0.8rem 1rem;
+  display: flex; align-items: center; gap: 0.8rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.wa-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #00a884, #25d366);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem; color: white; flex-shrink: 0;
+}
+
+.wa-contact-name {
+  font-weight: 600; font-size: 0.9rem; color: var(--white);
+}
+
+.wa-contact-status {
+  font-size: 0.7rem; color: var(--wa-green); margin-top: 1px;
+}
+
+/* Chat body */
+.wa-chat {
+  flex: 1;
+  background: var(--wa-dark);
+  padding: 1rem 0.8rem;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  gap: 0.6rem;
+  position: relative;
+}
+
+/* Subtle chat background pattern */
+.wa-chat::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.wa-bubble {
+  max-width: 80%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  position: relative;
+}
+
+.wa-bubble.shown { opacity: 1; transform: translateY(0) !important; }
+
+/* Incoming (lead/buyer) */
+.wa-bubble--in {
+  background: var(--wa-bubble-in);
+  color: #e9edef;
+  align-self: flex-start;
+  border-radius: 0 10px 10px 10px;
+  transform: translateX(-10px) translateY(4px);
+}
+
+/* Outgoing (agent/AI) */
+.wa-bubble--out {
+  background: var(--wa-bubble-out);
+  color: #e9edef;
+  align-self: flex-end;
+  border-radius: 10px 0 10px 10px;
+  transform: translateX(10px) translateY(4px);
+}
+
+/* AI badge on outgoing */
+.wa-bubble--out .ai-badge {
+  display: inline-block; font-size: 0.6rem;
+  background: rgba(0,212,170,0.25); color: var(--teal);
+  border-radius: 3px; padding: 0 0.3rem; margin-left: 0.4rem;
+  vertical-align: middle; font-weight: 700; letter-spacing: 0.05em;
+}
+
+.wa-time {
+  font-size: 0.6rem; color: rgba(255,255,255,0.35);
+  text-align: right; margin-top: 0.2rem;
+}
+
+/* Typing indicator */
+.wa-typing {
+  background: var(--wa-bubble-in);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 10px 10px 10px;
+  align-self: flex-start;
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex; gap: 3px; align-items: center;
+}
+
+.wa-typing.shown { opacity: 1; }
+.wa-typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+.wa-typing span:nth-child(2) { animation-delay: 0.2s; }
+.wa-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce {
+  0%,80%,100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+}
+
+/* Input area */
+.wa-input {
+  background: #1f2c34; padding: 0.7rem 0.8rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.wa-input-field {
+  flex: 1; background: rgba(255,255,255,0.06);
+  border-radius: 20px; padding: 0.5rem 0.9rem;
+  font-size: 0.75rem; color: rgba(255,255,255,0.4);
+}
+
+.wa-send { color: var(--wa-green); font-size: 1.1rem; }
+
+/* ── RIGHT SIDE STATS ── */
+.side-stats {
+  flex: 0 0 auto; max-width: 380px;
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+
+.side-stat {
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+  opacity: 0; transform: translateX(30px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.side-stat.visible {
+  opacity: 1; transform: translateX(0);
+}
+
+.ss-number {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 4vw, 2.8rem); color: var(--teal);
+  line-height: 1;
+}
+.ss-label {
+  font-size: 0.85rem; color: var(--gray); margin-top: 0.4rem; line-height: 1.5;
+}
+.ss-label strong { color: var(--white); }
+
+/* ── RESPONSE TIME SECTION ── */
+.response-section {
+  padding: 10rem 2rem;
+  text-align: center;
+  background: radial-gradient(ellipse at center, rgba(231,76,60,0.04) 0%, transparent 70%);
+}
+
+.response-inner { max-width: 800px; margin: 0 auto; }
+
+.rs-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: #E74C3C; background: rgba(231,76,60,0.1);
+  border: 1px solid rgba(231,76,60,0.3);
+  display: inline-block; padding: 0.3rem 1rem; border-radius: 3px;
+  margin-bottom: 2rem;
+}
+
+.rs-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 1.5rem;
+}
+
+.response-bars {
+  display: flex; gap: 1rem; margin: 3rem 0; flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rbar-wrap {
+  flex: 1; min-width: 140px; max-width: 220px;
+  text-align: center;
+}
+
+.rbar-label { font-size: 0.8rem; color: var(--gray); margin-bottom: 0.6rem; }
+
+.rbar-bg {
+  height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px;
+  overflow: hidden; margin-bottom: 0.4rem;
+}
+
+.rbar-fill {
+  height: 100%; border-radius: 4px; width: 0;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rbar-value {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.rbar--bad .rbar-fill { background: #E74C3C; }
+.rbar--bad .rbar-value { color: #E74C3C; }
+.rbar--good .rbar-fill { background: var(--teal); }
+.rbar--good .rbar-value { color: var(--teal); }
+
+.rs-note {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem); color: var(--gray);
+  line-height: 1.65; max-width: 600px; margin: 0 auto;
+}
+
+.rs-note strong { color: var(--white); }
+
+.reveal-up {
+  opacity: 0; transform: translateY(25px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-up.visible { opacity: 1; transform: translateY(0); }
+
+.source {
+  text-align: center; padding: 3rem 2rem;
+  font-size: 0.7rem; color: rgba(255,255,255,0.1);
+  letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- INTRO -->
+<section class="intro">
+  <span class="intro-label">RETS 2026 &bull; Lead Response</span>
+  <h1 class="intro-headline">
+    AI answers your leads<br><em>while you sleep.</em>
+  </h1>
+  <p class="intro-sub">
+    Response time is the #1 killer of hot leads. The agent who replies in 5 minutes closes. The one who replies tomorrow loses.
+  </p>
+  <div class="clock">
+    <div class="clock-display">02:47 AM</div>
+    <div class="clock-label">
+      <strong>A lead just came in.</strong>
+      You're asleep. What happens?
+    </div>
+  </div>
+  <div class="scroll-cue"><span>scroll to find out</span><span>↓</span></div>
+</section>
+
+<!-- WHATSAPP SCENE -->
+<section class="wa-scene" id="waScene">
+  <div class="wa-sticky">
+
+    <!-- Phone -->
+    <div class="phone-wrap">
+      <div class="phone-frame">
+        <div class="phone-status">
+          <span class="phone-status-time">02:47</span>
+          <span class="phone-status-icons">▪ ▪ ▪</span>
+        </div>
+
+        <div class="wa-header">
+          <div class="wa-avatar">T</div>
+          <div>
+            <div class="wa-contact-name">Tendai Moyo</div>
+            <div class="wa-contact-status">● online</div>
+          </div>
+        </div>
+
+        <div class="wa-chat" id="waChat">
+          <div class="wa-bubble wa-bubble--in" id="msg1">
+            Hi! I saw your listing on Propertybook — the 3-bed in Borrowdale. Is it still available?
+            <div class="wa-time">02:47</div>
+          </div>
+
+          <div class="wa-typing" id="typing1"><span></span><span></span><span></span></div>
+
+          <div class="wa-bubble wa-bubble--out" id="msg2">
+            Hi Tendai! Yes, the Borrowdale property is still available. <span class="ai-badge">AI</span>
+            <div class="wa-time">02:47</div>
+          </div>
+
+          <div class="wa-bubble wa-bubble--out" id="msg3">
+            It's a 3-bed, 2-bath at $185,000. The owner is motivated. Want to schedule a viewing this week? <span class="ai-badge">AI</span>
+            <div class="wa-time">02:47</div>
+          </div>
+
+          <div class="wa-bubble wa-bubble--in" id="msg4">
+            Wow, fast reply! Yes I'd love a viewing — Saturday morning?
+            <div class="wa-time">02:48</div>
+          </div>
+
+          <div class="wa-typing" id="typing2"><span></span><span></span><span></span></div>
+
+          <div class="wa-bubble wa-bubble--out" id="msg5">
+            Saturday 9 AM works. I'll send you the address and a form to collect your details. The agent will confirm in the morning. <span class="ai-badge">AI</span>
+            <div class="wa-time">02:48</div>
+          </div>
+
+          <div class="wa-bubble wa-bubble--in" id="msg6">
+            Perfect. Thank you!
+            <div class="wa-time">02:48</div>
+          </div>
+        </div>
+
+        <div class="wa-input">
+          <div class="wa-input-field">Message</div>
+          <span class="wa-send">●</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats sidebar -->
+    <div class="side-stats">
+      <div class="side-stat" id="ss0">
+        <div class="ss-number">98%</div>
+        <div class="ss-label"><strong>WhatsApp open rate</strong><br>vs 20% for email. Every message is read.</div>
+      </div>
+      <div class="side-stat" id="ss1">
+        <div class="ss-number">320M</div>
+        <div class="ss-label"><strong>WhatsApp users in Africa</strong><br>Your buyers are already there.</div>
+      </div>
+      <div class="side-stat" id="ss2">
+        <div class="ss-number">3 days → 6 min</div>
+        <div class="ss-label"><strong>NoBroker India</strong> — AI photo processing that once took 3 days now takes 6 minutes.</div>
+      </div>
+      <div class="side-stat" id="ss3">
+        <div class="ss-number">1 in 8</div>
+        <div class="ss-label"><strong>US apartments managed by EliseAI</strong><br>The AI leasing revolution is already here.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RESPONSE TIME SECTION -->
+<section class="response-section">
+  <div class="response-inner">
+    <span class="rs-label reveal-up" data-reveal>The #1 Lead Killer</span>
+    <h2 class="rs-headline reveal-up" data-reveal style="transition-delay:0.1s;">
+      How fast you respond<br>decides if you close.
+    </h2>
+
+    <div class="response-bars" id="rbars">
+      <div class="rbar-wrap">
+        <div class="rbar-label">Lead contact rate</div>
+        <div class="rbar-bg"><div class="rbar-fill rbar--bad" data-target="100" style="background:#E74C3C"></div></div>
+        <div class="rbar-value rbar--bad">100%</div>
+        <div style="font-size:0.7rem;color:var(--gray);margin-top:0.3rem;">Reply in 5 min</div>
+      </div>
+      <div class="rbar-wrap">
+        <div class="rbar-label">Contact rate drops to</div>
+        <div class="rbar-bg"><div class="rbar-fill rbar--bad" data-target="25" style="background:#E74C3C"></div></div>
+        <div class="rbar-value rbar--bad" id="rval2">25%</div>
+        <div style="font-size:0.7rem;color:var(--gray);margin-top:0.3rem;">Reply in 30 min</div>
+      </div>
+      <div class="rbar-wrap">
+        <div class="rbar-label">Contact rate drops to</div>
+        <div class="rbar-bg"><div class="rbar-fill rbar--bad" data-target="8" style="background:#E74C3C"></div></div>
+        <div class="rbar-value rbar--bad">8%</div>
+        <div style="font-size:0.7rem;color:var(--gray);margin-top:0.3rem;">Reply next day</div>
+      </div>
+      <div class="rbar-wrap">
+        <div class="rbar-label">AI agent replies in</div>
+        <div class="rbar-bg"><div class="rbar-fill rbar--good" data-target="100" style="background:var(--teal)"></div></div>
+        <div class="rbar-value" style="color:var(--teal)">0:47 sec</div>
+        <div style="font-size:0.7rem;color:var(--gray);margin-top:0.3rem;">Every. Single. Time.</div>
+      </div>
+    </div>
+
+    <p class="rs-note reveal-up" data-reveal>
+      <strong>The math is simple:</strong> a WhatsApp AI responder on a single $200,000 listing
+      could be the difference between closing and losing. Set it up once.
+      Let it work while you sleep.
+    </p>
+  </div>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 03</div>
+
+<script>
+(function() {
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    pb.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  });
+
+  // WhatsApp chat scroll reveal
+  const scene = document.getElementById('waScene');
+  const messages = [
+    { el: 'msg1', type: 'in', delay: 0 },
+    { el: 'typing1', type: 'typing', delay: 0.15 },
+    { el: 'msg2', type: 'out', delay: 0.35 },
+    { el: 'msg3', type: 'out', delay: 0.5 },
+    { el: 'msg4', type: 'in', delay: 0.62 },
+    { el: 'typing2', type: 'typing', delay: 0.72 },
+    { el: 'msg5', type: 'out', delay: 0.82 },
+    { el: 'msg6', type: 'in', delay: 0.93 },
+  ];
+
+  const sideStats = ['ss0','ss1','ss2','ss3'];
+
+  let shownMessages = new Set();
+  let shownStats = new Set();
+
+  function onScroll() {
+    const rect = scene.getBoundingClientRect();
+    const sectionH = scene.offsetHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+
+    // Reveal messages
+    messages.forEach(m => {
+      if (progress >= m.delay && !shownMessages.has(m.el)) {
+        shownMessages.add(m.el);
+        const el = document.getElementById(m.el);
+        if (m.type === 'typing') {
+          el.classList.add('shown');
+          // Hide typing bubble shortly after showing it
+          setTimeout(() => el.classList.remove('shown'), 900);
+        } else {
+          el.classList.add('shown');
+        }
+      }
+    });
+
+    // Reveal side stats based on scroll progress
+    const statThresholds = [0.15, 0.35, 0.55, 0.75];
+    statThresholds.forEach((t, i) => {
+      if (progress >= t && !shownStats.has(i)) {
+        shownStats.add(i);
+        const el = document.getElementById(sideStats[i]);
+        el.style.transitionDelay = '0s';
+        el.classList.add('visible');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Bar chart animation
+  const barsSection = document.getElementById('rbars');
+  let barsAnimated = false;
+
+  const barsIO = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !barsAnimated) {
+      barsAnimated = true;
+      document.querySelectorAll('.rbar-fill').forEach(bar => {
+        const target = parseFloat(bar.dataset.target);
+        bar.style.width = target + '%';
+      });
+    }
+  }, { threshold: 0.4 });
+
+  barsIO.observe(barsSection);
+
+  // General reveals
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>

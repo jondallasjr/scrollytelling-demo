@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>15 — Generative Art | Emergence and Mind</title>
+  <style>
+    :root {
+      --bg: #000204;
+      --c1: #ff4081;
+      --c2: #f50057;
+      --c3: #ff80ab;
+      --c4: #ff6d00;
+      --c5: #ffd740;
+      --text: #fff0f8;
+      --muted: #4a1a2a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c1); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    #prog {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--c2), var(--c1), var(--c5));
+      z-index: 300;
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    /* ══════════════════════════════════
+       HERO — full canvas behind text
+       ══════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    #hero-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c4), var(--c5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 52ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 0 auto 2rem;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ── CONTENT SECTIONS ── */
+    .content-section {
+      position: relative;
+      z-index: 1;
+      padding: 8rem clamp(2rem, 8vw, 8rem);
+      display: flex;
+      align-items: center;
+      gap: 6rem;
+      min-height: 100vh;
+    }
+    .content-section:nth-child(even) { flex-direction: row-reverse; }
+    .content-text { flex: 1; max-width: 50ch; }
+    .content-canvas-wrap { flex: 1; display: flex; justify-content: center; }
+    .content-canvas-wrap canvas {
+      display: block;
+      width: min(450px, 90vw);
+      height: min(450px, 90vw);
+    }
+
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 0.95;
+      margin-bottom: 2rem;
+    }
+    .section-body {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: rgba(255,240,248,0.6);
+    }
+    .section-body + .section-body { margin-top: 1rem; }
+
+    /* ── INTERLUDE ── */
+    .interlude {
+      padding: 10rem 2rem;
+      max-width: 60ch;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .interlude-quote {
+      font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+      font-style: italic;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.9s ease;
+    }
+    .interlude-quote.visible { opacity: 1; transform: translateY(0); }
+    .interlude-attr {
+      margin-top: 1.5rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.6s ease 0.4s;
+    }
+    .interlude-quote.visible ~ .interlude-attr { opacity: 1; }
+
+    /* ── FRACTAL SECTION ── */
+    #fractal-canvas {
+      display: block;
+      width: min(600px, 90vw);
+      height: min(600px, 90vw);
+      margin: 0 auto;
+      cursor: pointer;
+    }
+    .fractal-controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .ctrl-btn {
+      padding: 0.7rem 1.5rem;
+      background: rgba(255,64,129,0.1);
+      border: 1px solid rgba(255,64,129,0.3);
+      color: var(--text);
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ctrl-btn:hover {
+      background: rgba(255,64,129,0.2);
+      border-color: var(--c1);
+      color: var(--c1);
+    }
+
+    /* ── CLOSING ── */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .closing-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .content-section, .content-section:nth-child(even) {
+        flex-direction: column;
+        gap: 3rem;
+        padding: 4rem 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+<nav class="nav"><a href="../index.html">← Index</a></nav>
+
+<!-- Fixed bg canvas — Truchet tiles -->
+<canvas id="hero-canvas"></canvas>
+
+<!-- ══════════════════════════════════
+     HERO
+     ══════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-label">Project 15 — Scrollytelling Masterclass</div>
+    <h1 class="hero-title">
+      <span class="ht1">Emergence</span>
+      <span class="ht2">and Mind</span>
+    </h1>
+    <p class="hero-sub">
+      Simple rules. Complex patterns. From Truchet tiles to fractal trees —
+      the same question echoes: at what point does pattern become awareness?
+    </p>
+    <div class="scroll-hint">↓ watch it emerge ↓</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     SECTION 1 — TRUCHET TILES
+     ══════════════════════════════════ -->
+<section class="content-section" style="background:rgba(0,0,0,0.4);">
+  <div class="content-text">
+    <div class="section-label">Pattern I — Truchet Tiles</div>
+    <h2 class="section-title">Local Rules,<br>Global Order</h2>
+    <p class="section-body">
+      Sébastien Truchet discovered in 1704 that a single tile — a square
+      divided diagonally — placed randomly produces global patterns from
+      local indifference. No tile "knows" the pattern it contributes to.
+      The pattern emerges from their aggregate arrangement.
+    </p>
+    <p class="section-body">
+      This is the standard story of emergence. Neurons don't "know" they
+      are producing consciousness. They fire. The firing propagates. Somewhere
+      in the aggregate, a pattern arises that is aware of itself.
+      But how? The tiles don't explain the pattern — they are the pattern.
+    </p>
+    <p class="section-body">
+      Whether emergence is explanatory or just descriptive remains contested.
+      Daniel Dennett says it explains everything. David Chalmers says it
+      explains the easy problems but not the hard one.
+    </p>
+  </div>
+  <div class="content-canvas-wrap">
+    <canvas id="truchet-canvas" width="450" height="450"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     INTERLUDE 1
+     ══════════════════════════════════ -->
+<div class="interlude">
+  <p class="interlude-quote" id="iq1" style="color:var(--c3);">
+    "The question is not whether emergent phenomena are real but whether
+    emergence is a satisfying explanation — or just a name for our ignorance."
+  </p>
+  <p class="interlude-attr">— After Philip Anderson, "More Is Different" 1972</p>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 2 — REACTION-DIFFUSION
+     ══════════════════════════════════ -->
+<section class="content-section">
+  <div class="content-text">
+    <div class="section-label">Pattern II — Reaction-Diffusion</div>
+    <h2 class="section-title">Two chemicals.<br>Infinite<br>complexity.</h2>
+    <p class="section-body">
+      Alan Turing — who spent much of his career asking whether machines
+      could think — also developed the mathematics of biological pattern
+      formation. Two chemical species, an activator and an inhibitor,
+      interacting via diffusion, produce leopard spots, zebrafish stripes,
+      and coral reef patterns.
+    </p>
+    <p class="section-body">
+      Two variables. Two rules. Infinite variety. This is the seductive
+      promise of emergence as explanation: show us the simple rules and
+      we will show you the complex result. What we cannot show you is
+      why that result has an interior.
+    </p>
+  </div>
+  <div class="content-canvas-wrap">
+    <canvas id="rd-canvas" width="450" height="450"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     INTERLUDE 2
+     ══════════════════════════════════ -->
+<div class="interlude">
+  <p class="interlude-quote" id="iq2" style="color:var(--c1);">
+    "A machine can solve equations. Does it experience solving them?"
+  </p>
+  <p class="interlude-attr">— After Alan Turing, "Computing Machinery and Intelligence" 1950</p>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 3 — FRACTAL / L-SYSTEM TREE
+     Click to regenerate
+     ══════════════════════════════════ -->
+<section class="content-section" style="background:rgba(0,0,0,0.3);">
+  <div class="content-text">
+    <div class="section-label">Pattern III — Recursive Growth</div>
+    <h2 class="section-title">The branch<br>contains the<br>whole tree</h2>
+    <p class="section-body">
+      Lindenmayer systems — L-systems — use a small grammar to produce
+      arbitrarily complex plant forms. The same rewriting rule applied
+      recursively generates structures indistinguishable from biological
+      growth. The rule is not the tree. The rule generates the tree.
+      The tree is not in the rule.
+    </p>
+    <p class="section-body">
+      Douglas Hofstadter called this "strange loops" — self-referential
+      structures where the top level is also the bottom level. The I that
+      perceives the pattern is itself a pattern of the same kind.
+      Consciousness as a strange loop: the brain's model of itself is
+      what the self is.
+    </p>
+    <div class="fractal-controls">
+      <button class="ctrl-btn" id="regen-btn">↺ Regenerate</button>
+      <button class="ctrl-btn" id="depth-btn" data-depth="7">Depth: 7</button>
+      <button class="ctrl-btn" id="angle-btn" data-angle="25">Angle: 25°</button>
+    </div>
+  </div>
+  <div class="content-canvas-wrap">
+    <canvas id="fractal-canvas" width="450" height="450"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     SECTION 4 — CELLULAR AUTOMATA (Rule 110)
+     ══════════════════════════════════ -->
+<section class="content-section">
+  <div class="content-text">
+    <div class="section-label">Pattern IV — Cellular Automata</div>
+    <h2 class="section-title">Rule 110:<br>Universal<br>computation</h2>
+    <p class="section-body">
+      Rule 110 — one of the simplest cellular automata — is Turing complete.
+      A one-dimensional strip of cells, each either on or off, updated by
+      a rule that checks three cells. From this triviality: universal
+      computation. Any algorithm, any program, any thought — representable
+      in principle in Rule 110.
+    </p>
+    <p class="section-body">
+      Stephen Wolfram argues this shows that simple rules underlie all
+      complexity, including consciousness. The hard problem, on this view,
+      is an illusion created by the fact that we are inside the computation
+      looking out. What it's like to be Rule 110 may be precisely what
+      it is like to be you — we simply can't see it from outside.
+    </p>
+  </div>
+  <div class="content-canvas-wrap">
+    <canvas id="ca-canvas" width="450" height="450"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div class="section-label">The Emergence Question</div>
+  <h2 class="closing-title">
+    <span style="background:linear-gradient(135deg,var(--c1),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Pattern</span><br>
+    <span style="color:var(--muted);font-size:0.5em;">is not yet presence.</span>
+  </h2>
+  <p class="closing-body">
+    Every pattern shown here emerges from simple rules. None of them —
+    as far as we know — experiences anything. And yet the gap between
+    "complex emergent pattern" and "experiencing subject" is not obviously
+    large. We sit at the edge of the question. The pattern continues.
+  </p>
+  <div class="nav-links">
+    <a href="../14-liquid-transitions/index.html">← 14 Liquid</a>
+    <a href="../index.html">Index</a>
+    <a href="../16-scroll-cinema/index.html">16 Scroll Cinema →</a>
+  </div>
+</section>
+
+
+<script>
+/* ── PROGRESS ── */
+window.addEventListener('scroll', () => {
+  const max = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('prog').style.width = (window.scrollY / max * 100) + '%';
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════
+   HERO CANVAS — Animated Truchet tiles
+   ══════════════════════════════════════════════════════ */
+const heroCanvas = document.getElementById('hero-canvas');
+const hCtx = heroCanvas.getContext('2d');
+let heroTiles = [];
+const TILE_SIZE = 60;
+
+function resizeHero() {
+  heroCanvas.width = window.innerWidth;
+  heroCanvas.height = window.innerHeight;
+  buildHeroTiles();
+}
+
+function buildHeroTiles() {
+  heroTiles = [];
+  const cols = Math.ceil(heroCanvas.width / TILE_SIZE) + 1;
+  const rows = Math.ceil(heroCanvas.height / TILE_SIZE) + 1;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      heroTiles.push({
+        x: c * TILE_SIZE,
+        y: r * TILE_SIZE,
+        type: Math.random() > 0.5 ? 0 : 1, // two orientations
+        alpha: Math.random() * 0.06 + 0.02,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.005 + 0.002
+      });
+    }
+  }
+}
+
+resizeHero();
+window.addEventListener('resize', resizeHero);
+
+function drawHeroCanvas(t) {
+  requestAnimationFrame(drawHeroCanvas);
+  hCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+
+  heroTiles.forEach(tile => {
+    tile.phase += tile.speed;
+    const a = tile.alpha * (Math.sin(tile.phase) * 0.5 + 0.5);
+
+    hCtx.save();
+    hCtx.translate(tile.x, tile.y);
+    hCtx.strokeStyle = `rgba(255,64,129,${a})`;
+    hCtx.lineWidth = 1;
+
+    hCtx.beginPath();
+    if (tile.type === 0) {
+      // Arc from bottom-left to top-right
+      hCtx.arc(0, TILE_SIZE, TILE_SIZE, -Math.PI/2, 0);
+      hCtx.moveTo(TILE_SIZE, 0);
+      hCtx.arc(TILE_SIZE, 0, TILE_SIZE, Math.PI/2, Math.PI);
+    } else {
+      // Arc from top-left to bottom-right
+      hCtx.arc(0, 0, TILE_SIZE, 0, Math.PI/2);
+      hCtx.moveTo(TILE_SIZE, TILE_SIZE);
+      hCtx.arc(TILE_SIZE, TILE_SIZE, TILE_SIZE, Math.PI, Math.PI*1.5);
+    }
+    hCtx.stroke();
+    hCtx.restore();
+  });
+}
+drawHeroCanvas(0);
+
+/* ══════════════════════════════════════════════════════
+   TRUCHET CANVAS — Static + animated section
+   ══════════════════════════════════════════════════════ */
+const truchetCanvas = document.getElementById('truchet-canvas');
+const tCtx = truchetCanvas.getContext('2d');
+const W = truchetCanvas.width, H = truchetCanvas.height;
+const TS = 30;
+
+function drawTruchet() {
+  tCtx.clearRect(0, 0, W, H);
+  tCtx.fillStyle = 'rgba(0,2,4,0.95)';
+  tCtx.fillRect(0, 0, W, H);
+
+  const cols = Math.ceil(W / TS);
+  const rows = Math.ceil(H / TS);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * TS, y = r * TS;
+      const type = Math.random() > 0.5 ? 0 : 1;
+      const alpha = Math.random() * 0.5 + 0.3;
+
+      tCtx.save();
+      tCtx.translate(x, y);
+      tCtx.strokeStyle = `rgba(255,64,129,${alpha})`;
+      tCtx.lineWidth = 1.5;
+
+      tCtx.beginPath();
+      if (type === 0) {
+        tCtx.arc(0, TS, TS, -Math.PI/2, 0);
+        tCtx.moveTo(TS, 0);
+        tCtx.arc(TS, 0, TS, Math.PI/2, Math.PI);
+      } else {
+        tCtx.arc(0, 0, TS, 0, Math.PI/2);
+        tCtx.moveTo(TS, TS);
+        tCtx.arc(TS, TS, TS, Math.PI, Math.PI*1.5);
+      }
+      tCtx.stroke();
+      tCtx.restore();
+    }
+  }
+}
+
+const truchetObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    drawTruchet();
+    // Redraw every 3s for living quality
+    setInterval(drawTruchet, 3000);
+    truchetObs.disconnect();
+  }
+}, { threshold: 0.3 });
+truchetObs.observe(truchetCanvas);
+
+/* ══════════════════════════════════════════════════════
+   REACTION-DIFFUSION CANVAS
+   Simplified Gray-Scott model
+   ══════════════════════════════════════════════════════ */
+const rdCanvas = document.getElementById('rd-canvas');
+const rdCtx = rdCanvas.getContext('2d');
+const RW = rdCanvas.width, RH = rdCanvas.height;
+const SCALE = 3; // Each cell = 3x3 pixels
+const CW = Math.floor(RW / SCALE);
+const CH = Math.floor(RH / SCALE);
+
+let rdActive = false;
+let A, B, A2, B2;
+
+function initRD() {
+  A = new Float32Array(CW * CH).fill(1);
+  B = new Float32Array(CW * CH).fill(0);
+  A2 = new Float32Array(CW * CH);
+  B2 = new Float32Array(CW * CH);
+
+  // Seed center with B
+  for (let i = CH/2 - 8; i < CH/2 + 8; i++) {
+    for (let j = CW/2 - 8; j < CW/2 + 8; j++) {
+      if (Math.random() > 0.5) {
+        B[i * CW + j] = 1;
+        A[i * CW + j] = 0;
+      }
+    }
+  }
+}
+
+function stepRD() {
+  const Da = 1.0, Db = 0.5;
+  const f = 0.055, k = 0.062;
+
+  for (let y = 1; y < CH - 1; y++) {
+    for (let x = 1; x < CW - 1; x++) {
+      const idx = y * CW + x;
+      const a = A[idx], b = B[idx];
+      const laplaceA = A[(y-1)*CW+x] + A[(y+1)*CW+x] + A[y*CW+(x-1)] + A[y*CW+(x+1)] - 4*a;
+      const laplaceB = B[(y-1)*CW+x] + B[(y+1)*CW+x] + B[y*CW+(x-1)] + B[y*CW+(x+1)] - 4*b;
+      const abb = a * b * b;
+      A2[idx] = a + (Da * laplaceA - abb + f * (1 - a)) * 0.5;
+      B2[idx] = b + (Db * laplaceB + abb - (k + f) * b) * 0.5;
+      A2[idx] = Math.max(0, Math.min(1, A2[idx]));
+      B2[idx] = Math.max(0, Math.min(1, B2[idx]));
+    }
+  }
+  [A, A2] = [A2, A];
+  [B, B2] = [B2, B];
+}
+
+function renderRD() {
+  const imageData = rdCtx.createImageData(RW, RH);
+  const data = imageData.data;
+  for (let y = 0; y < CH; y++) {
+    for (let x = 0; x < CW; x++) {
+      const val = A[y * CW + x];
+      const r = Math.floor((1 - val) * 255);
+      const g = Math.floor(val * 40);
+      const b = Math.floor(val * 120);
+      for (let py = 0; py < SCALE; py++) {
+        for (let px = 0; px < SCALE; px++) {
+          const pidx = ((y * SCALE + py) * RW + (x * SCALE + px)) * 4;
+          data[pidx] = r;
+          data[pidx+1] = g;
+          data[pidx+2] = b;
+          data[pidx+3] = 255;
+        }
+      }
+    }
+  }
+  rdCtx.putImageData(imageData, 0, 0);
+}
+
+let rdFrame = 0;
+function animateRD() {
+  if (!rdActive) return;
+  requestAnimationFrame(animateRD);
+  for (let i = 0; i < 5; i++) stepRD(); // Multiple steps per frame
+  rdFrame++;
+  if (rdFrame % 2 === 0) renderRD(); // Render every other frame
+}
+
+const rdObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !rdActive) {
+    rdActive = true;
+    initRD();
+    animateRD();
+    rdObs.disconnect();
+  }
+}, { threshold: 0.3 });
+rdObs.observe(rdCanvas);
+
+/* ══════════════════════════════════════════════════════
+   FRACTAL TREE (L-System inspired)
+   ══════════════════════════════════════════════════════ */
+const fracCanvas = document.getElementById('fractal-canvas');
+const fCtx = fracCanvas.getContext('2d');
+const FW = fracCanvas.width, FH = fracCanvas.height;
+let fracDepth = 7;
+let fracAngle = 25 * Math.PI / 180;
+
+function drawBranch(ctx, x, y, len, angle, depth, hue) {
+  if (depth === 0 || len < 1) return;
+  const x2 = x + Math.cos(angle) * len;
+  const y2 = y + Math.sin(angle) * len;
+
+  const alpha = depth / fracDepth;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = `hsla(${hue + (fracDepth - depth) * 15}, 90%, 65%, ${alpha * 0.9})`;
+  ctx.lineWidth = depth * 0.5;
+  ctx.stroke();
+
+  const spread = fracAngle + (Math.random() - 0.5) * 0.15;
+  drawBranch(ctx, x2, y2, len * 0.72, angle - spread, depth - 1, hue);
+  drawBranch(ctx, x2, y2, len * 0.72, angle + spread, depth - 1, hue + 5);
+
+  // Sometimes add a third branch
+  if (depth > 3 && Math.random() > 0.6) {
+    drawBranch(ctx, x2, y2, len * 0.5, angle, depth - 2, hue - 10);
+  }
+}
+
+function drawFractal() {
+  fCtx.fillStyle = 'rgba(0,2,4,1)';
+  fCtx.fillRect(0, 0, FW, FH);
+  drawBranch(fCtx, FW/2, FH - 20, FH * 0.28, -Math.PI/2, fracDepth, 330);
+}
+
+const fracObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    drawFractal();
+    fracObs.disconnect();
+  }
+}, { threshold: 0.3 });
+fracObs.observe(fracCanvas);
+
+// Controls
+document.getElementById('regen-btn').addEventListener('click', drawFractal);
+
+const depthBtn = document.getElementById('depth-btn');
+depthBtn.addEventListener('click', () => {
+  fracDepth = fracDepth === 7 ? 9 : fracDepth === 9 ? 5 : 7;
+  depthBtn.textContent = `Depth: ${fracDepth}`;
+  drawFractal();
+});
+
+const angleBtn = document.getElementById('angle-btn');
+angleBtn.addEventListener('click', () => {
+  const angles = [15, 25, 35, 45];
+  const current = Math.round(fracAngle * 180 / Math.PI);
+  const nextIdx = (angles.indexOf(current) + 1) % angles.length;
+  fracAngle = angles[nextIdx] * Math.PI / 180;
+  angleBtn.textContent = `Angle: ${angles[nextIdx]}°`;
+  drawFractal();
+});
+
+/* ══════════════════════════════════════════════════════
+   CELLULAR AUTOMATA — Rule 110
+   ══════════════════════════════════════════════════════ */
+const caCanvas = document.getElementById('ca-canvas');
+const caCtx = caCanvas.getContext('2d');
+const CaW = caCanvas.width, CaH = caCanvas.height;
+const CELL_W = 2;
+const CA_COLS = Math.floor(CaW / CELL_W);
+const CA_ROWS = Math.floor(CaH / CELL_W);
+
+// Rule 110 lookup: index by (left, center, right) = 3-bit pattern
+const RULE110 = [0,1,1,1,0,1,1,0]; // Rule 110: 01101110 in binary
+
+function ruleResult(l, c, r) {
+  const idx = (l << 2) | (c << 1) | r;
+  return RULE110[idx];
+}
+
+function drawCA() {
+  caCtx.fillStyle = '#000204';
+  caCtx.fillRect(0, 0, CaW, CaH);
+
+  let row = new Uint8Array(CA_COLS);
+  // Start with single cell in center
+  row[Math.floor(CA_COLS / 2)] = 1;
+
+  for (let y = 0; y < CA_ROWS; y++) {
+    const next = new Uint8Array(CA_COLS);
+    for (let x = 0; x < CA_COLS; x++) {
+      const l = row[(x - 1 + CA_COLS) % CA_COLS];
+      const c = row[x];
+      const r = row[(x + 1) % CA_COLS];
+      next[x] = ruleResult(l, c, r);
+      if (row[x]) {
+        const progress = y / CA_ROWS;
+        const hue = 330 + progress * 60;
+        caCtx.fillStyle = `hsl(${hue}, 90%, 70%)`;
+        caCtx.fillRect(x * CELL_W, y * CELL_W, CELL_W, CELL_W);
+      }
+    }
+    row = next;
+  }
+}
+
+const caObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    drawCA();
+    caObs.disconnect();
+  }
+}, { threshold: 0.3 });
+caObs.observe(caCanvas);
+
+/* ── QUOTE REVEALS ── */
+const qObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.interlude-quote').forEach(el => qObs.observe(el));
+</script>
+</body>
+</html>

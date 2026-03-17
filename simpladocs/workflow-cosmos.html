@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimplaDocs — Your Operations, Visualized</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;600;700;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0d2d52;
+    --navy-deep: #071829;
+    --royal: #2e57ca;
+    --cyan: #3de3ff;
+    --sky: #199bde;
+    --lavender: #889beb;
+    --medium: #2d84ef;
+    --ice: #e4f0fb;
+    --bg: #f1f3f6;
+    --white: #ffffff;
+    --grad: linear-gradient(90deg, #2e57ca, #3de3ff);
+  }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    font-family: 'Rethink Sans', sans-serif;
+    background: var(--navy-deep);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ─── LOADING SCREEN ─────────────────────────────── */
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--navy-deep);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .loading-logo {
+    height: 36px;
+    opacity: 0.9;
+    filter: brightness(0) invert(1);
+  }
+  .loading-bar-track {
+    width: 240px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--grad);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+  .loading-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ─── SCROLL PROGRESS BAR ────────────────────────── */
+  #scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: var(--grad);
+    z-index: 200;
+    transform-origin: left;
+  }
+
+  /* ─── NAV ─────────────────────────────────────────── */
+  #nav {
+    position: fixed;
+    top: 2px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0 48px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(7, 24, 41, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(61, 227, 255, 0.08);
+    transition: background 0.3s ease;
+  }
+  .nav-logo img {
+    height: 32px;
+    filter: brightness(0) invert(1);
+    display: block;
+  }
+  .nav-pills {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+  }
+  .nav-pills a {
+    display: block;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .nav-pills a:hover {
+    color: var(--white);
+    background: rgba(255,255,255,0.06);
+  }
+  .nav-cta {
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .nav-cta::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 11px;
+    background: var(--grad);
+    z-index: -1;
+    transition: opacity 0.2s;
+  }
+  .nav-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background: var(--navy-deep);
+    z-index: -1;
+  }
+  .nav-cta:hover::after {
+    background: rgba(46, 87, 202, 0.3);
+  }
+
+  /* ─── CANVAS ─────────────────────────────────────── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  /* ─── SCROLL CONTAINER ───────────────────────────── */
+  #scroll-container {
+    position: relative;
+    z-index: 2;
+    height: 500vh;
+  }
+
+  /* ─── SECTIONS ───────────────────────────────────── */
+  .section {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 48px;
+  }
+  .section:nth-child(odd)  { justify-content: flex-start;  }
+  .section:nth-child(even) { justify-content: flex-end;    }
+  .section:nth-child(5)    { justify-content: center;      }
+
+  /* ─── PANEL CARDS ────────────────────────────────── */
+  .panel {
+    width: min(520px, 90vw);
+    background: rgba(7, 24, 41, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(61, 227, 255, 0.15);
+    border-radius: 20px;
+    padding: 40px 40px 36px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2e57ca, #3de3ff);
+    border-radius: 20px 20px 0 0;
+  }
+  .panel-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 14px;
+  }
+  .panel-title {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 800;
+    line-height: 1.22;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  .panel-title em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .panel-body {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: rgba(228, 240, 251, 0.75);
+    margin-bottom: 0;
+  }
+
+  /* Stats row (scene 4) */
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    flex: 1;
+    min-width: 90px;
+    padding: 16px;
+    background: rgba(46, 87, 202, 0.15);
+    border: 1px solid rgba(61, 227, 255, 0.2);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .stat-number {
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(228, 240, 251, 0.5);
+  }
+
+  /* CTA button */
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    padding: 14px 28px;
+    font-family: 'Rethink Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy-deep);
+    background: linear-gradient(90deg, #2e57ca, #3de3ff);
+    border: none;
+    border-radius: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .cta-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  .cta-btn:active { transform: translateY(0); }
+
+  /* Client logos strip */
+  .clients-strip {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(61, 227, 255, 0.1);
+  }
+  .clients-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 12px;
+  }
+  .clients-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .client-pill {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(228, 240, 251, 0.5);
+    padding: 5px 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── SECTION 5 CENTER PANEL ─────────────────────── */
+  .section:nth-child(5) .panel {
+    text-align: center;
+  }
+  .section:nth-child(5) .panel .panel-title { font-size: clamp(26px, 3.5vw, 38px); }
+
+  /* ─── RESPONSIVE ─────────────────────────────────── */
+  @media (max-width: 768px) {
+    #nav { padding: 0 20px; }
+    .nav-pills { display: none; }
+    .section { padding: 0 20px; justify-content: center !important; }
+    .panel { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <img class="loading-logo"
+       src="https://bfwmmlvfkgrprcyaummp.storage.supabase.co/storage/v1/object/public/media/media/LogoSimpladocsBlueNoBackground.png"
+       alt="SimplaDocs">
+  <div>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill" id="loading-fill"></div>
+    </div>
+  </div>
+  <div class="loading-label">Initializing workspace</div>
+</div>
+
+<!-- Scroll Progress Bar -->
+<div id="scroll-progress"></div>
+
+<!-- Navigation -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <img src="https://bfwmmlvfkgrprcyaummp.storage.supabase.co/storage/v1/object/public/media/media/LogoSimpladocsBlueNoBackground.png"
+         alt="SimplaDocs" height="32">
+  </a>
+  <ul class="nav-pills">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Services</a></li>
+    <li><a href="#">Work</a></li>
+    <li><a href="#">Team</a></li>
+    <li><a href="#">Blog</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Let's Talk →</a>
+</nav>
+
+<!-- WebGL Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Scrollable Content -->
+<div id="scroll-container">
+
+  <!-- Scene 1: CHAOS -->
+  <section class="section" id="scene-1">
+    <div class="panel" id="panel-1">
+      <div class="panel-eyebrow">The breaking point</div>
+      <h2 class="panel-title">Every growing team reaches <em>this moment.</em></h2>
+      <p class="panel-body">The tools that got you here are now slowing you down. Spreadsheets sprawl. Docs fragment. Nobody knows what's happening — or why things keep breaking.</p>
+      <div class="clients-strip">
+        <div class="clients-label">Trusted by</div>
+        <div class="clients-list">
+          <span class="client-pill">Spotify</span>
+          <span class="client-pill">Netflix</span>
+          <span class="client-pill">MrBeast</span>
+          <span class="client-pill">Fidelity</span>
+          <span class="client-pill">DoorDash</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scene 2: RECOGNITION -->
+  <section class="section" id="scene-2">
+    <div class="panel" id="panel-2">
+      <div class="panel-eyebrow">Operational clarity</div>
+      <h2 class="panel-title">We map the <em>invisible architecture</em> of how your team actually works.</h2>
+      <p class="panel-body">SimplaDocs doesn't bring a framework — we bring eyes. We trace your real workflows, find the gaps, and design around how your team already thinks and moves.</p>
+    </div>
+  </section>
+
+  <!-- Scene 3: ORGANIZATION -->
+  <section class="section" id="scene-3">
+    <div class="panel" id="panel-3">
+      <div class="panel-eyebrow">Built for you</div>
+      <h2 class="panel-title">Custom Coda solutions. Not templates. <em>Not guesswork.</em></h2>
+      <p class="panel-body">Every doc, every automation, every dashboard — purpose-built for your exact operations. From intake forms to cross-team reporting, we engineer systems that hold up under real pressure.</p>
+    </div>
+  </section>
+
+  <!-- Scene 4: SCALE -->
+  <section class="section" id="scene-4">
+    <div class="panel" id="panel-4">
+      <div class="panel-eyebrow">Operations built to scale</div>
+      <h2 class="panel-title">From 5-person startups to <em>500+ person organizations.</em></h2>
+      <p class="panel-body">Your operational infrastructure should grow with you, not against you. We've done this 215 times. We know what scales.</p>
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-number">215+</span>
+          <span class="stat-label">Projects</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">83K+</span>
+          <span class="stat-label">Hours saved</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">200+</span>
+          <span class="stat-label">Teams worldwide</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scene 5: CTA -->
+  <section class="section" id="scene-5" id="contact">
+    <div class="panel" id="panel-5">
+      <div class="panel-eyebrow">Ready when you are</div>
+      <h2 class="panel-title">Let's build <em>yours.</em></h2>
+      <p class="panel-body">Bring us your chaos. We'll bring the clarity. Most engagements start with a 30-minute discovery call — no decks, no pitch, just an honest conversation about your operations.</p>
+      <a href="#contact" class="cta-btn">
+        Let's build yours
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<!-- THREE.JS + SCROLL ENGINE -->
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js';
+
+// ─── LENIS + GSAP (non-module, loaded dynamically) ──────────────────────────
+const loadScript = (src) => new Promise((res, rej) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = res; s.onerror = rej;
+  document.head.appendChild(s);
+});
+
+await loadScript('https://unpkg.com/lenis@1.3.18/dist/lenis.min.js');
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js');
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js');
+
+const { gsap, ScrollTrigger, Lenis } = window;
+
+// ─── LOADING PROGRESS ───────────────────────────────────────────────────────
+const loadingFill = document.getElementById('loading-fill');
+let loadPct = 0;
+const tickLoad = setInterval(() => {
+  loadPct = Math.min(loadPct + Math.random() * 12, 92);
+  loadingFill.style.width = loadPct + '%';
+}, 80);
+
+// ─── CONSTANTS ──────────────────────────────────────────────────────────────
+const PARTICLE_COUNT = 2500;
+const W = window.innerWidth;
+const H = window.innerHeight;
+
+// ─── RENDERER ───────────────────────────────────────────────────────────────
+const canvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(W, H);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x071829, 1);
+
+// ─── SCENE + CAMERA ─────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x071829, 0.018);
+
+const camera = new THREE.PerspectiveCamera(60, W / H, 0.01, 200);
+camera.position.set(0, 0, 8);
+
+// ─── SHADERS ────────────────────────────────────────────────────────────────
+const vertexShader = `
+  attribute float aSize;
+  attribute vec3 aColor;
+  attribute vec3 aVelocity;
+  attribute vec3 aTarget;
+  attribute float aPhase;
+
+  uniform float uTime;
+  uniform float uProgress;
+  uniform float uPixelRatio;
+
+  varying vec3 vColor;
+  varying float vAlpha;
+
+  void main() {
+    // Lerp from current chaos position toward target graph position
+    vec3 chaosPos = position + aVelocity * sin(uTime * 0.4 + aPhase) * (1.0 - uProgress) * 0.6;
+    vec3 pos = mix(chaosPos, aTarget, uProgress);
+
+    // Gentle orbit for CTA state (progress near 1)
+    float orbit = smoothstep(0.85, 1.0, uProgress);
+    float angle = uTime * 0.3 + aPhase;
+    float r = length(pos.xy) * orbit * 0.15;
+    pos.x += sin(angle + aPhase * 6.28) * r;
+    pos.y += cos(angle * 0.7 + aPhase * 6.28) * r;
+
+    vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mvPos;
+
+    float dist = -mvPos.z;
+    float sizeAttenuation = 1.0 / (dist * 0.12 + 0.5);
+    gl_PointSize = aSize * uPixelRatio * sizeAttenuation * clamp(1.0 - uProgress * 0.3, 0.5, 1.0);
+
+    vColor = aColor;
+    // fade based on distance from camera
+    vAlpha = clamp(1.0 - dist * 0.04, 0.2, 1.0);
+  }
+`;
+
+const fragmentShader = `
+  varying vec3 vColor;
+  varying float vAlpha;
+
+  void main() {
+    vec2 uv = gl_PointCoord - 0.5;
+    float dist = length(uv);
+    if (dist > 0.5) discard;
+
+    // Glowing soft circle — core bright, halo fade
+    float core   = smoothstep(0.5, 0.0, dist);
+    float glow   = pow(1.0 - dist * 2.0, 3.5);
+    float alpha  = (core * 0.9 + glow * 0.6) * vAlpha;
+
+    // Additive-style boost for glow color
+    vec3 col = vColor + vColor * glow * 1.2;
+
+    gl_FragColor = vec4(col, alpha);
+  }
+`;
+
+// ─── GEOMETRY ───────────────────────────────────────────────────────────────
+const geometry = new THREE.BufferGeometry();
+
+const positions  = new Float32Array(PARTICLE_COUNT * 3);
+const colors     = new Float32Array(PARTICLE_COUNT * 3);
+const sizes      = new Float32Array(PARTICLE_COUNT);
+const velocities = new Float32Array(PARTICLE_COUNT * 3);
+const targets    = new Float32Array(PARTICLE_COUNT * 3);
+const phases     = new Float32Array(PARTICLE_COUNT);
+
+// Color palette: navy, royal, cyan, sky, lavender
+const palette = [
+  new THREE.Color('#0d2d52'),
+  new THREE.Color('#2e57ca'),
+  new THREE.Color('#3de3ff'),
+  new THREE.Color('#199bde'),
+  new THREE.Color('#889beb'),
+  new THREE.Color('#2d84ef'),
+];
+
+// ── Build target graph (workflow nodes in 3D) ────────────────────────────────
+// Arrange targets in: hub ring, satellite rings, hierarchy levels
+function buildTargetPositions() {
+  const pts = [];
+
+  // Central hub cluster (80 particles)
+  for (let i = 0; i < 80; i++) {
+    const t = Math.random() * Math.PI * 2;
+    const r = Math.random() * 0.6;
+    pts.push(r * Math.cos(t), r * Math.sin(t), (Math.random() - 0.5) * 0.4);
+  }
+
+  // Inner ring — 6 nodes × 30 particles each = 180
+  const innerNodes = 6;
+  for (let n = 0; n < innerNodes; n++) {
+    const angle = (n / innerNodes) * Math.PI * 2;
+    const cx = Math.cos(angle) * 2.2;
+    const cy = Math.sin(angle) * 2.2;
+    const cz = (Math.random() - 0.5) * 0.8;
+    for (let i = 0; i < 30; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.35;
+      pts.push(cx + r * Math.cos(t), cy + r * Math.sin(t), cz + (Math.random() - 0.5) * 0.3);
+    }
+  }
+
+  // Mid ring — 10 nodes × 25 = 250
+  const midNodes = 10;
+  for (let n = 0; n < midNodes; n++) {
+    const angle = (n / midNodes) * Math.PI * 2 + 0.31;
+    const cx = Math.cos(angle) * 4.0;
+    const cy = Math.sin(angle) * 4.0;
+    const cz = (Math.random() - 0.5) * 1.5;
+    for (let i = 0; i < 25; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.3;
+      pts.push(cx + r * Math.cos(t), cy + r * Math.sin(t), cz + (Math.random() - 0.5) * 0.25);
+    }
+  }
+
+  // Outer ring — 14 nodes × 18 = 252
+  const outerNodes = 14;
+  for (let n = 0; n < outerNodes; n++) {
+    const angle = (n / outerNodes) * Math.PI * 2;
+    const cx = Math.cos(angle) * 6.0;
+    const cy = Math.sin(angle) * 6.0;
+    const cz = (Math.random() - 0.5) * 2.0;
+    for (let i = 0; i < 18; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.28;
+      pts.push(cx + r * Math.cos(t), cy + r * Math.sin(t), cz + (Math.random() - 0.5) * 0.2);
+    }
+  }
+
+  // Hierarchical level nodes — 3 levels × 8 nodes × 15 = 360
+  for (let level = 0; level < 3; level++) {
+    const y = (level - 1) * 2.8;
+    const nodeCount = 8 - level * 2;
+    for (let n = 0; n < nodeCount; n++) {
+      const angle = (n / nodeCount) * Math.PI * 2;
+      const radius = 1.4 + level * 0.6;
+      const cx = Math.cos(angle) * radius;
+      const cz = -3.0 + level * 1.2 + Math.sin(angle) * 0.4;
+      for (let i = 0; i < 15; i++) {
+        const t = Math.random() * Math.PI * 2;
+        const r = Math.random() * 0.28;
+        pts.push(cx + r * Math.cos(t), y + r * Math.sin(t), cz + (Math.random() - 0.5) * 0.2);
+      }
+    }
+  }
+
+  // Fill remaining with scattered targets
+  while (pts.length / 3 < PARTICLE_COUNT) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = 2 + Math.random() * 5;
+    pts.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+  }
+
+  return pts;
+}
+
+const targetPts = buildTargetPositions();
+
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const i3 = i * 3;
+
+  // Chaos initial positions — random sphere
+  const theta = Math.random() * Math.PI * 2;
+  const phi   = Math.acos(2 * Math.random() - 1);
+  const r     = 3 + Math.random() * 9;
+  positions[i3]     = r * Math.sin(phi) * Math.cos(theta);
+  positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+  positions[i3 + 2] = r * Math.cos(phi);
+
+  // Velocity for chaos turbulence
+  velocities[i3]     = (Math.random() - 0.5) * 2.5;
+  velocities[i3 + 1] = (Math.random() - 0.5) * 2.5;
+  velocities[i3 + 2] = (Math.random() - 0.5) * 2.5;
+
+  // Target graph position
+  const ti = Math.min(i, targetPts.length / 3 - 1);
+  targets[i3]     = targetPts[ti * 3];
+  targets[i3 + 1] = targetPts[ti * 3 + 1];
+  targets[i3 + 2] = targetPts[ti * 3 + 2];
+
+  // Color
+  const col = palette[Math.floor(Math.random() * palette.length)].clone();
+  // Slightly randomize brightness
+  col.multiplyScalar(0.6 + Math.random() * 0.8);
+  colors[i3]     = col.r;
+  colors[i3 + 1] = col.g;
+  colors[i3 + 2] = col.b;
+
+  // Size (variety)
+  sizes[i] = 1.5 + Math.random() * 4.5;
+
+  // Phase offset for unique animation
+  phases[i] = Math.random() * Math.PI * 2;
+}
+
+geometry.setAttribute('position',  new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute('aColor',    new THREE.BufferAttribute(colors, 3));
+geometry.setAttribute('aSize',     new THREE.BufferAttribute(sizes, 1));
+geometry.setAttribute('aVelocity', new THREE.BufferAttribute(velocities, 3));
+geometry.setAttribute('aTarget',   new THREE.BufferAttribute(targets, 3));
+geometry.setAttribute('aPhase',    new THREE.BufferAttribute(phases, 1));
+
+// ─── MATERIAL ────────────────────────────────────────────────────────────────
+const material = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uTime:       { value: 0 },
+    uProgress:   { value: 0 },
+    uPixelRatio: { value: renderer.getPixelRatio() },
+  },
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+
+const particles = new THREE.Points(geometry, material);
+scene.add(particles);
+
+// ─── CONNECTION LINES ─────────────────────────────────────────────────────────
+// We'll build a line mesh that shows connections between graph nodes.
+// Recomputed once at organization/scale state and faded in.
+const linePositions = [];
+// Inner-ring to hub
+const innerNodes = 6;
+for (let n = 0; n < innerNodes; n++) {
+  const angle = (n / innerNodes) * Math.PI * 2;
+  linePositions.push(0, 0, 0, Math.cos(angle) * 2.2, Math.sin(angle) * 2.2, 0);
+}
+// Inner ring connections (ring)
+for (let n = 0; n < innerNodes; n++) {
+  const a1 = (n / innerNodes) * Math.PI * 2;
+  const a2 = ((n + 1) / innerNodes) * Math.PI * 2;
+  linePositions.push(
+    Math.cos(a1) * 2.2, Math.sin(a1) * 2.2, 0,
+    Math.cos(a2) * 2.2, Math.sin(a2) * 2.2, 0
+  );
+}
+// Inner to mid connections
+const midNodes = 10;
+for (let n = 0; n < midNodes; n++) {
+  const a2 = (n / midNodes) * Math.PI * 2 + 0.31;
+  const nearest = Math.round((a2 / (Math.PI * 2)) * innerNodes) % innerNodes;
+  const a1 = (nearest / innerNodes) * Math.PI * 2;
+  linePositions.push(
+    Math.cos(a1) * 2.2, Math.sin(a1) * 2.2, 0,
+    Math.cos(a2) * 4.0, Math.sin(a2) * 4.0, 0
+  );
+}
+
+const lineGeo = new THREE.BufferGeometry();
+lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3));
+
+const lineMat = new THREE.LineBasicMaterial({
+  color: 0x3de3ff,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const lines = new THREE.LineSegments(lineGeo, lineMat);
+scene.add(lines);
+
+// ─── AMBIENT GLOW PLANES ───────────────────────────────────────────────────
+// Soft radial fog lights to add atmosphere
+const glowGeo = new THREE.PlaneGeometry(18, 18);
+const glowMat = new THREE.MeshBasicMaterial({
+  color: 0x2e57ca,
+  transparent: true,
+  opacity: 0.04,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+});
+const glow = new THREE.Mesh(glowGeo, glowMat);
+glow.position.z = -5;
+scene.add(glow);
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let scrollProgress = 0;
+let targetScrollProgress = 0;
+let animationId = null;
+let time = 0;
+let lastTimestamp = 0;
+let isVisible = true;
+
+// ─── INTERSECTION OBSERVER ────────────────────────────────────────────────────
+const observer = new IntersectionObserver(([entry]) => {
+  isVisible = entry.isIntersecting;
+  if (isVisible && !animationId) startLoop();
+  if (!isVisible && animationId) stopLoop();
+}, { threshold: 0 });
+observer.observe(canvas);
+
+// ─── SCROLL PROGRESS BAR ──────────────────────────────────────────────────────
+const progressBar = document.getElementById('scroll-progress');
+
+// ─── LENIS SMOOTH SCROLL ──────────────────────────────────────────────────────
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+});
+
+lenis.on('scroll', ({ progress }) => {
+  targetScrollProgress = progress;
+  progressBar.style.width = (progress * 100) + '%';
+});
+
+function lenisRaf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(lenisRaf);
+}
+requestAnimationFrame(lenisRaf);
+
+// ─── GSAP + ScrollTrigger PANEL ANIMATIONS ───────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+// Update ScrollTrigger with Lenis
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(time => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// Animate panels in/out on scroll
+document.querySelectorAll('.panel').forEach((panel, i) => {
+  gsap.to(panel, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: panel.closest('.section'),
+      start: 'top 80%',
+      end: 'top 30%',
+      scrub: false,
+      toggleActions: 'play none none reverse',
+    }
+  });
+});
+
+// ─── CAMERA ANIMATION ─────────────────────────────────────────────────────────
+// Scroll zones: 0–0.2 z=8, 0.4–0.6 z=20, 0.8–1.0 z=12
+function getCameraZ(p) {
+  if (p < 0.2)  return 8;
+  if (p < 0.4)  return 8 + (p - 0.2) / 0.2 * 12;
+  if (p < 0.6)  return 20;
+  if (p < 0.8)  return 20 - (p - 0.6) / 0.2 * 8;
+  return 12;
+}
+
+function getLineOpacity(p) {
+  if (p < 0.35) return 0;
+  if (p < 0.55) return (p - 0.35) / 0.2;
+  return 1;
+}
+
+function getGlowOpacity(p) {
+  if (p < 0.5) return 0.04;
+  return 0.04 + (p - 0.5) / 0.5 * 0.06;
+}
+
+// ─── RENDER LOOP ──────────────────────────────────────────────────────────────
+function startLoop() {
+  function tick(timestamp) {
+    if (!isVisible) return;
+    animationId = requestAnimationFrame(tick);
+
+    const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+    time += delta;
+
+    // Lerp scroll progress smoothly
+    scrollProgress += (targetScrollProgress - scrollProgress) * 0.06;
+
+    // Update uniforms
+    material.uniforms.uTime.value = time;
+    material.uniforms.uProgress.value = scrollProgress;
+
+    // Camera: auto-rotate + scroll zoom
+    const targetZ = getCameraZ(scrollProgress);
+    camera.position.z += (targetZ - camera.position.z) * 0.04;
+
+    const rotAngle = time * 0.06;
+    const camRadius = Math.sqrt(camera.position.x ** 2 + camera.position.y ** 2);
+    const targetCamX = Math.cos(rotAngle) * 0.8;
+    const targetCamY = Math.sin(rotAngle * 0.7) * 0.4;
+    camera.position.x += (targetCamX - camera.position.x) * 0.008;
+    camera.position.y += (targetCamY - camera.position.y) * 0.008;
+    camera.lookAt(0, 0, 0);
+
+    // Line opacity
+    lineMat.opacity = getLineOpacity(scrollProgress);
+
+    // Glow
+    glowMat.opacity = getGlowOpacity(scrollProgress);
+
+    // Background color lerp: deep navy → slightly lighter at scale
+    const bgR = 7  + scrollProgress * 3;
+    const bgG = 24 + scrollProgress * 8;
+    const bgB = 41 + scrollProgress * 10;
+    renderer.setClearColor(new THREE.Color(`rgb(${Math.round(bgR)},${Math.round(bgG)},${Math.round(bgB)})`), 1);
+
+    // Pulse lines with time
+    if (lineMat.opacity > 0) {
+      lineMat.color.setHSL(
+        0.54 + Math.sin(time * 0.5) * 0.04,
+        0.9,
+        0.6 + Math.sin(time * 1.2) * 0.1
+      );
+    }
+
+    renderer.render(scene, camera);
+  }
+  animationId = requestAnimationFrame(tick);
+}
+
+function stopLoop() {
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
+
+// ─── RESIZE ───────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+});
+
+// ─── FINISH LOADING ───────────────────────────────────────────────────────────
+clearInterval(tickLoad);
+loadingFill.style.width = '100%';
+setTimeout(() => {
+  document.getElementById('loading-screen').classList.add('hidden');
+  startLoop();
+}, 600);
+
+</script>
+</body>
+</html>

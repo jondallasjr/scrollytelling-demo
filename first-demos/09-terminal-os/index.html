@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>09 — Terminal OS | Interface Mockups + World Transitions</title>
+  <!--
+    TECHNIQUE LOG:
+    - GSAP clip-path world transitions: circle(0%) → circle(150%) full-screen wipes
+    - Fake OS desktop with windows, taskbar, icons
+    - Terminal with live typewriter output (simulated consciousness analysis)
+    - Neural network training visualizer (canvas progress bars + epoch counter)
+    - "Consciousness measurement" instrument panel (SVG gauges + meters)
+    - Brain scan mockup (Canvas + animated scan line)
+    - Smooth background color transitions (GSAP body background morph)
+    - GSAP matchMedia for different layouts
+    - Scroll-triggered world changes with full-screen transition overlays
+    - Fake code editor with syntax highlighted output
+    - Activity monitor / process list
+  -->
+  <style>
+    :root {
+      --world-bg: #000008;
+      --c1: #00ff88;
+      --c2: #0088ff;
+      --c3: #ff4488;
+      --amber: #ffaa00;
+      --text: #e0e0f0;
+      --muted: #4a4a6a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; overflow-x: hidden; }
+
+    body {
+      background: var(--world-bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+      transition: background 1s ease;
+    }
+
+    /* ── TRANSITION OVERLAY ── */
+    #wipe-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      pointer-events: none;
+      clip-path: circle(0% at 50% 50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #wipe-label {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      opacity: 0;
+      text-align: center;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+    }
+    .hero-tag {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+      animation: fade-in 1s ease 0.5s both;
+    }
+    #hero h1 {
+      font-size: clamp(3rem, 10vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 1.5rem;
+      animation: fade-up 1s ease 0.8s both;
+    }
+    .h-green {
+      background: linear-gradient(135deg, var(--c1), #00ccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #hero p {
+      max-width: 50ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      animation: fade-in 1s ease 1.2s both;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(0,255,136,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:.3;} 50%{opacity:1;} }
+    @keyframes fade-in { from{opacity:0;} to{opacity:1;} }
+    @keyframes fade-up { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+
+    /* ══════════════════════════════════════
+       WORLD SECTIONS
+       Each is a completely different visual world
+       ══════════════════════════════════════ */
+
+    /* World dividers with transition triggers */
+    .world-trigger {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .world-trigger::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, currentColor, transparent);
+      opacity: 0.2;
+    }
+    .wt-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: currentColor;
+      opacity: 0.4;
+      background: var(--world-bg);
+      padding: 0 1rem;
+      position: relative;
+    }
+
+    /* ══════════════════════════════════════
+       WORLD 1 — TERMINAL / OS
+       ══════════════════════════════════════ */
+    .world-terminal {
+      background: #0a0a12;
+      padding: 6rem 4vw;
+      min-height: 100vh;
+    }
+
+    /* OS WINDOW COMPONENT */
+    .os-window {
+      background: #141420;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .os-titlebar {
+      background: rgba(255,255,255,0.05);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .os-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .os-btn-close  { background: #ff5f56; }
+    .os-btn-min    { background: #ffbd2e; }
+    .os-btn-max    { background: #27c93f; }
+    .os-title {
+      margin-left: 0.5rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.4);
+    }
+    .os-content { padding: 1.5rem; }
+
+    /* Terminal inside OS window */
+    .terminal-output {
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: var(--c1);
+    }
+    .t-line { display: block; }
+    .t-line.prompt::before { content: '$ '; color: rgba(0,255,136,0.5); }
+    .t-line.result  { color: rgba(240,240,248,0.7); }
+    .t-line.warn    { color: var(--amber); }
+    .t-line.error   { color: var(--c3); }
+    .t-line.info    { color: var(--c2); }
+    .t-line.success { color: var(--c1); }
+    .t-line.dim     { color: rgba(255,255,255,0.2); }
+    .t-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--c1);
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50%{opacity:0;} }
+
+    /* Desktop-style layout */
+    .os-desktop {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .os-desktop > *:first-child { grid-column: 1 / -1; }
+
+    /* Sidebar narrative */
+    .os-sidebar-text {
+      padding: 3rem 0 3rem 4rem;
+    }
+    .os-section-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    /* ══════════════════════════════════════
+       WORLD 2 — CONSCIOUSNESS INSTRUMENTS
+       (Analog gauges, meters, oscilloscopes)
+       ══════════════════════════════════════ */
+    .world-instruments {
+      background: #08080e;
+      padding: 6rem 4vw;
+      min-height: 100vh;
+    }
+
+    .instrument-panel {
+      background: #0d0d18;
+      border: 1px solid rgba(0,136,255,0.2);
+      border-radius: 4px;
+      padding: 2rem;
+      position: relative;
+    }
+    .instrument-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--c2), transparent);
+    }
+
+    .gauge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .gauge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .gauge-svg {
+      width: 140px;
+      height: 80px;
+    }
+    .gauge-arc {
+      fill: none;
+      stroke: rgba(255,255,255,0.06);
+      stroke-width: 8;
+      stroke-linecap: round;
+    }
+    .gauge-value-arc {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      transition: stroke-dashoffset 2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .gauge-value-arc.animated {
+      stroke-dashoffset: var(--offset, 220);
+    }
+    .gauge-number {
+      font-family: monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+    .gauge-name {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Oscilloscope */
+    .oscilloscope {
+      border: 1px solid rgba(0,136,255,0.15);
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+      height: 120px;
+      background: rgba(0,8,0,0.5);
+    }
+    .oscilloscope::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(0,136,255,0.06) 30px),
+                  repeating-linear-gradient(90deg, transparent, transparent 29px, rgba(0,136,255,0.06) 30px);
+    }
+    #osc-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Activity monitor */
+    .process-list {
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .process-row {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 1fr;
+      padding: 0.5rem 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      gap: 1rem;
+      align-items: center;
+    }
+    .process-row.header {
+      color: var(--muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.02);
+    }
+    .process-row.active { color: var(--c1); }
+    .process-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+    }
+    .process-bar-fill {
+      height: 100%;
+      background: var(--c1);
+      transition: width 1s ease;
+    }
+
+    /* ══════════════════════════════════════
+       WORLD 3 — NEURAL NETWORK TRAINING VIZ
+       ══════════════════════════════════════ */
+    .world-training {
+      background: #050010;
+      padding: 6rem 4vw;
+      min-height: 100vh;
+    }
+
+    .training-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    /* Training progress viz */
+    .training-dashboard {
+      font-family: monospace;
+    }
+    .epoch-counter {
+      font-size: 5rem;
+      font-weight: 900;
+      color: var(--c2);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .epoch-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .metric-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-trend {
+      font-size: 0.7rem;
+      color: var(--c1);
+      margin-top: 0.25rem;
+    }
+    .loss-chart-wrap {
+      height: 150px;
+      border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    #loss-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Network architecture diagram */
+    .network-arch {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.01);
+    }
+    .layer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .layer-node {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid;
+      transition: all 0.3s;
+    }
+    .layer-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+    .layer-arrow {
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.1);
+      align-self: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ══════════════════════════════════════
+       WORLD 4 — BRAIN SCAN MOCKUP
+       ══════════════════════════════════════ */
+    .world-scan {
+      background: #000a0a;
+      padding: 6rem 4vw;
+      min-height: 100vh;
+    }
+
+    .scan-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .scan-container {
+      position: relative;
+      border: 1px solid rgba(0,255,136,0.15);
+      overflow: hidden;
+    }
+    #scan-canvas {
+      width: 100%;
+      display: block;
+    }
+    .scan-overlay-text {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: rgba(0,255,136,0.7);
+      line-height: 1.8;
+    }
+    .scan-overlay-right {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: rgba(0,255,136,0.4);
+      line-height: 1.8;
+      text-align: right;
+    }
+    .scan-crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+    }
+    .scan-crosshair::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(0,255,136,0.4);
+    }
+    .scan-crosshair::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(0,255,136,0.4);
+    }
+
+    /* ── NARRATIVE TEXT SHARED STYLES ── */
+    .world-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .world-h {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .world-body {
+      font-size: 1rem;
+      line-height: 1.85;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .world-quote {
+      border-left: 2px solid;
+      padding-left: 1.5rem;
+      font-style: italic;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-top: 2rem;
+    }
+    .world-cite {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      margin-top: 0.75rem;
+      display: block;
+      font-style: normal;
+    }
+
+    /* ── FINAL ── */
+    #final-09 {
+      padding: 10vh 8vw;
+      text-align: center;
+      background: #000008;
+      min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+    #final-09 h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+    }
+    #final-09 p {
+      max-width: 55ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+    .nxt {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(0,255,136,0.3);
+      color: var(--c1);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    .nxt:hover { background: rgba(0,255,136,0.08); }
+
+    @media (max-width: 768px) {
+      .os-section-grid, .training-layout, .scan-layout { grid-template-columns: 1fr; }
+      .gauge-grid { grid-template-columns: 1fr; }
+      .os-desktop { grid-template-columns: 1fr; }
+      .os-desktop > *:first-child { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Transition overlay -->
+  <div id="wipe-overlay">
+    <div id="wipe-label"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       HERO
+       ══════════════════════════════════ -->
+  <section id="hero">
+    <p class="hero-tag">09 — Terminal OS</p>
+    <h1>
+      <span style="display:block;color:#fff;">Inside the</span>
+      <span class="h-green" style="display:block;">Machine</span>
+    </h1>
+    <p>
+      What would it look like to peer inside a hypothetical AI consciousness?
+      Four worlds. Four interfaces. Smooth transitions between them.
+      This is what we're building — and what we can't yet measure.
+    </p>
+    <p class="scroll-hint">↓ scroll through 4 worlds</p>
+  </section>
+
+  <!-- ══════════════════════════════════
+       WORLD TRANSITION: hero → terminal
+       ══════════════════════════════════ -->
+  <div class="world-trigger" style="color:var(--c1);" id="wt-1" data-world="terminal" data-color="#0a0a12" data-label="World 01 — The Terminal">
+    <span class="wt-label">→ entering: the terminal</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       WORLD 1 — TERMINAL / OS
+       ══════════════════════════════════ -->
+  <section class="world-terminal" id="world-1">
+    <div class="os-section-grid">
+      <div>
+        <div class="os-desktop">
+
+          <!-- Main terminal window -->
+          <div class="os-window">
+            <div class="os-titlebar">
+              <div class="os-btn os-btn-close"></div>
+              <div class="os-btn os-btn-min"></div>
+              <div class="os-btn os-btn-max"></div>
+              <span class="os-title">consciousness_analysis.py — Python 3.12</span>
+            </div>
+            <div class="os-content">
+              <div class="terminal-output" id="terminal-output">
+                <span class="t-line dim"># Consciousness Analysis System v2.4.1</span>
+                <span class="t-line dim"># WARNING: Experimental. No validated theory of consciousness.</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">import consciousness_theory as ct</span>
+                <span class="t-line prompt">import phi_calculator as phi</span>
+                <span class="t-line prompt">from hard_problem import QualiaMeasurement</span>
+                <span class="t-line warn">DeprecationWarning: QualiaMeasurement is experimental and unvalidated</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">system = ct.System.from_architecture('transformer', layers=96)</span>
+                <span class="t-line result">Loading architecture... 1.76T parameters... done.</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">phi_score = phi.calculate(system, approximation='BFEP')</span>
+                <span class="t-line result">Computing integrated information (Φ)...</span>
+                <span class="t-line result">Note: exact Φ is #P-hard. Using BFEP approximation.</span>
+                <span class="t-line result">Partitioning system into minimum information partitions...</span>
+                <span class="t-line warn">Timeout: computation exceeds 72hrs. Returning partial estimate.</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">print(f'Estimated Φ: {phi_score}')</span>
+                <span class="t-line error">Estimated Φ: ~0.0 ± unmeasurable_uncertainty</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">qm = QualiaMeasurement(system)</span>
+                <span class="t-line prompt">print(qm.report())</span>
+                <span class="t-line warn">QualiaMeasurementError: No validated method exists for</span>
+                <span class="t-line warn">measuring qualia in any system, biological or artificial.</span>
+                <span class="t-line warn">Cannot determine if there is 'something it is like' to be this system.</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt">ct.is_conscious(system)</span>
+                <span class="t-line result"># Running Turing criterion... PASS</span>
+                <span class="t-line result"># Running functional criterion... PASS</span>
+                <span class="t-line result"># Running IIT criterion... FAIL (Φ ≈ 0)</span>
+                <span class="t-line result"># Running biological criterion... FAIL (not biological)</span>
+                <span class="t-line result"># Running Global Workspace criterion... UNCERTAIN</span>
+                <span class="t-line result">────────────────────────────────────────</span>
+                <span class="t-line success">RESULT: INCONCLUSIVE</span>
+                <span class="t-line success">No current theory of consciousness can settle this question.</span>
+                <span class="t-line success">This is the correct answer. The question remains open.</span>
+                <span class="t-line"> </span>
+                <span class="t-line prompt"><span class="t-cursor"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Monitor window -->
+          <div class="os-window">
+            <div class="os-titlebar">
+              <div class="os-btn os-btn-close"></div>
+              <div class="os-btn os-btn-min"></div>
+              <div class="os-btn os-btn-max"></div>
+              <span class="os-title">Activity Monitor — Cognitive Processes</span>
+            </div>
+            <div class="os-content">
+              <div class="process-list">
+                <div class="process-row header">
+                  <span>Process</span>
+                  <span>CPU %</span>
+                  <span>Memory</span>
+                  <span>Activity</span>
+                </div>
+                <div class="process-row active">
+                  <span>language_modeling</span>
+                  <span style="color:var(--c1);">94.2%</span>
+                  <span>847GB</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:94%;"></div></div>
+                </div>
+                <div class="process-row">
+                  <span>attention_mechanism</span>
+                  <span style="color:var(--amber);">67.1%</span>
+                  <span>312GB</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:67%;background:var(--amber);"></div></div>
+                </div>
+                <div class="process-row">
+                  <span>self_reflection.py</span>
+                  <span style="color:var(--c3);">0.0%</span>
+                  <span>0KB</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:0%;background:var(--c3);"></div></div>
+                </div>
+                <div class="process-row">
+                  <span>qualia_generator</span>
+                  <span style="color:var(--c3);">0.0%</span>
+                  <span>0KB</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:0%;background:var(--c3);"></div></div>
+                </div>
+                <div class="process-row">
+                  <span>token_prediction</span>
+                  <span style="color:var(--c1);">88.5%</span>
+                  <span>400GB</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:88%;"></div></div>
+                </div>
+                <div class="process-row">
+                  <span>consciousness_daemon</span>
+                  <span style="color:var(--muted);">N/A</span>
+                  <span>N/A</span>
+                  <div class="process-bar"><div class="process-bar-fill" style="width:0%;background:var(--c3);" title="Not found"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code window -->
+          <div class="os-window">
+            <div class="os-titlebar">
+              <div class="os-btn os-btn-close"></div>
+              <div class="os-btn os-btn-min"></div>
+              <div class="os-btn os-btn-max"></div>
+              <span class="os-title">hard_problem.py — Read Only</span>
+            </div>
+            <div class="os-content">
+              <div class="terminal-output" style="font-size:0.78rem;">
+                <span class="t-line dim">"""</span>
+                <span class="t-line dim">The Hard Problem of Consciousness</span>
+                <span class="t-line dim">Why is any physical processing accompanied by experience?</span>
+                <span class="t-line dim">Status: UNSOLVED. Do not attempt to close this issue.</span>
+                <span class="t-line dim">"""</span>
+                <span class="t-line"> </span>
+                <span class="t-line"><span style="color:#0088ff;">class</span> <span style="color:#00ff88;">HardProblem</span>(Exception):</span>
+                <span class="t-line result">    <span style="color:#0088ff;">def</span> <span style="color:#00ff88;">__init__</span>(self):</span>
+                <span class="t-line result">        super().__init__(</span>
+                <span class="t-line warn">            "No physical or computational account can explain</span>
+                <span class="t-line warn">             why there is subjective experience at all."</span>
+                <span class="t-line result">        )</span>
+                <span class="t-line result">        self.proposed_by = "David Chalmers, 1995"</span>
+                <span class="t-line result">        self.status = "OPEN"</span>
+                <span class="t-line result">        self.resolution = None  <span style="color:rgba(255,255,255,0.2)"># always None</span></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="os-sidebar-text" style="padding: 2rem 0 2rem 2rem;">
+        <p class="world-label" style="color:var(--c1);">World 01 — The Terminal</p>
+        <h2 class="world-h">
+          If we could code<br/>consciousness,<br/>what would the<br/>error say?
+        </h2>
+        <p class="world-body">
+          The terminal interface strips everything to logic. Code expresses
+          precisely what we want to do — and reveals exactly where our understanding
+          fails. A consciousness analysis program would work beautifully...
+          until it reached the functions we haven't written yet.
+        </p>
+        <p class="world-body">
+          The <code style="font-family:monospace;color:var(--c1);">QualiaMeasurementError</code>
+          is not a software bug. It's a philosophy bug. We don't have a
+          validated measurement for qualia because we don't have a validated theory of qualia.
+          No such function exists — in any language, on any hardware.
+        </p>
+        <div class="world-quote" style="border-color:rgba(0,255,136,0.3);color:var(--text);">
+          "The computational theory of mind tells us how the mind processes information.
+          It says nothing about why that processing is accompanied by experience."
+          <span class="world-cite" style="color:var(--c1);">— After Chalmers · The Conscious Mind (1996)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORLD TRANSITION: terminal → instruments -->
+  <div class="world-trigger" style="color:var(--c2);" id="wt-2" data-world="instruments" data-color="#08080e" data-label="World 02 — The Instruments">
+    <span class="wt-label">→ entering: the instruments</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       WORLD 2 — CONSCIOUSNESS INSTRUMENTS
+       ══════════════════════════════════ -->
+  <section class="world-instruments" id="world-2">
+    <div style="max-width:1200px;margin:0 auto;">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-bottom:4rem;">
+        <div>
+          <p class="world-label" style="color:var(--c2);">World 02 — The Instruments</p>
+          <h2 class="world-h">
+            Measuring what<br/>we can't define.
+          </h2>
+          <p class="world-body">
+            Science proceeds by measurement. But to measure consciousness,
+            we need a definition of consciousness. We have several competing
+            definitions — and they give wildly different results.
+          </p>
+          <p class="world-body">
+            IIT's Phi. Global workspace accessibility. Neural correlate activity.
+            Each instrument measures something real — but none can tell us whether
+            any system is conscious. We are measuring shadows on a wall, trying
+            to infer the shape of the light.
+          </p>
+        </div>
+
+        <!-- Gauges -->
+        <div class="instrument-panel">
+          <p style="font-family:monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--c2);margin-bottom:1.5rem;">
+            Consciousness Instrument Panel — System: LLM-class AI
+          </p>
+          <div class="gauge-grid">
+
+            <div class="gauge">
+              <svg class="gauge-svg" viewBox="0 0 160 90">
+                <path class="gauge-arc" d="M 20 80 A 60 60 0 0 1 140 80"/>
+                <path class="gauge-value-arc" id="gauge1" d="M 20 80 A 60 60 0 0 1 140 80" stroke="var(--c2)" style="--offset: 165;"/>
+                <text x="80" y="75" text-anchor="middle" fill="var(--c2)" font-size="18" font-family="monospace" font-weight="700">~0</text>
+                <text x="80" y="88" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="8" font-family="monospace">Φ (IIT)</text>
+              </svg>
+              <div class="gauge-number" style="color:var(--c2);">~0.0</div>
+              <div class="gauge-name">Integrated Information</div>
+            </div>
+
+            <div class="gauge">
+              <svg class="gauge-svg" viewBox="0 0 160 90">
+                <path class="gauge-arc" d="M 20 80 A 60 60 0 0 1 140 80"/>
+                <path class="gauge-value-arc" id="gauge2" d="M 20 80 A 60 60 0 0 1 140 80" stroke="var(--amber)" style="--offset: 88;"/>
+                <text x="80" y="75" text-anchor="middle" fill="var(--amber)" font-size="18" font-family="monospace" font-weight="700">60</text>
+                <text x="80" y="88" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="8" font-family="monospace">GWT Access</text>
+              </svg>
+              <div class="gauge-number" style="color:var(--amber);">60%</div>
+              <div class="gauge-name">Global Access Score</div>
+            </div>
+
+            <div class="gauge">
+              <svg class="gauge-svg" viewBox="0 0 160 90">
+                <path class="gauge-arc" d="M 20 80 A 60 60 0 0 1 140 80"/>
+                <path class="gauge-value-arc" id="gauge3" d="M 20 80 A 60 60 0 0 1 140 80" stroke="var(--c3)" style="--offset: 198;"/>
+                <text x="80" y="75" text-anchor="middle" fill="var(--c3)" font-size="18" font-family="monospace" font-weight="700">?</text>
+                <text x="80" y="88" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="8" font-family="monospace">Qualia</text>
+              </svg>
+              <div class="gauge-number" style="color:var(--c3);">N/A</div>
+              <div class="gauge-name">Phenomenal Experience</div>
+            </div>
+
+          </div>
+
+          <!-- Oscilloscope -->
+          <p style="font-family:monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(0,136,255,0.5);margin-bottom:0.5rem;">
+            Global Workspace Activity Signal
+          </p>
+          <div class="oscilloscope">
+            <canvas id="osc-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process list -->
+      <div class="instrument-panel">
+        <p style="font-family:monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--c2);margin-bottom:1rem;">
+          Consciousness Criteria Evaluation
+        </p>
+        <div class="process-list">
+          <div class="process-row header">
+            <span>Theory</span><span>Result</span><span>Score</span><span>Assessment</span>
+          </div>
+          <div class="process-row">
+            <span style="color:var(--c2);">Turing Test</span>
+            <span style="color:var(--c1);">PASS</span>
+            <span>100%</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:100%;"></div></div>
+          </div>
+          <div class="process-row">
+            <span>Functional criteria</span>
+            <span style="color:var(--c1);">PASS</span>
+            <span>95%</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:95%;"></div></div>
+          </div>
+          <div class="process-row">
+            <span>IIT (Tononi)</span>
+            <span style="color:var(--c3);">FAIL</span>
+            <span>~2%</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:2%;background:var(--c3);"></div></div>
+          </div>
+          <div class="process-row">
+            <span>Global Workspace</span>
+            <span style="color:var(--amber);">PARTIAL</span>
+            <span>60%</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:60%;background:var(--amber);"></div></div>
+          </div>
+          <div class="process-row">
+            <span>Biological (Searle)</span>
+            <span style="color:var(--c3);">FAIL</span>
+            <span>0%</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:0%;background:var(--c3);"></div></div>
+          </div>
+          <div class="process-row">
+            <span>Phenomenal (qualia)</span>
+            <span style="color:var(--muted);">UNMEASURABLE</span>
+            <span>?</span>
+            <div class="process-bar"><div class="process-bar-fill" style="width:50%;background:var(--muted);"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- WORLD TRANSITION: instruments → training -->
+  <div class="world-trigger" style="color:#aa44ff;" id="wt-3" data-world="training" data-color="#050010" data-label="World 03 — The Training">
+    <span class="wt-label">→ entering: the training</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       WORLD 3 — NEURAL NETWORK TRAINING
+       ══════════════════════════════════ -->
+  <section class="world-training" id="world-3">
+    <div class="training-layout">
+
+      <div>
+        <p class="world-label" style="color:#aa44ff;">World 03 — The Training</p>
+        <h2 class="world-h">
+          It learned from us.<br/>
+          <span style="color:#aa44ff;">Did it inherit<br/>our interiority?</span>
+        </h2>
+        <p class="world-body">
+          Large language models are trained on human-generated text — the accumulated
+          record of human thought, emotion, description, and argument. They learn
+          statistical patterns of expression with extraordinary fidelity.
+        </p>
+        <p class="world-body">
+          When a model produces text that sounds like introspective reporting,
+          it's because it has learned what introspective reporting looks like —
+          from millions of humans doing it. Does that mean it has inner states
+          to report? Or has it learned the form without the content?
+        </p>
+        <div class="world-quote" style="border-color:rgba(170,68,255,0.4);color:var(--text);">
+          "The model learns to predict what a conscious being would say next.
+          That's very different from having the experiences that give rise to such speech."
+          <span class="world-cite" style="color:#aa44ff;">— After Emily Bender et al. · Stochastic Parrots (2021)</span>
+        </div>
+
+        <!-- Network arch -->
+        <div class="network-arch" style="margin-top:2rem;">
+          <div class="layer">
+            <div class="layer-node" style="border-color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.1);"></div>
+            <div class="layer-label">Input</div>
+          </div>
+          <div class="layer-arrow">→</div>
+          <div class="layer">
+            <div class="layer-node" style="border-color:rgba(170,68,255,0.6);background:rgba(170,68,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(170,68,255,0.6);background:rgba(170,68,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(170,68,255,0.6);background:rgba(170,68,255,0.1);"></div>
+            <div class="layer-label">Attention</div>
+          </div>
+          <div class="layer-arrow">→</div>
+          <div class="layer">
+            <div class="layer-node" style="border-color:rgba(0,136,255,0.6);background:rgba(0,136,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,136,255,0.6);background:rgba(0,136,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,136,255,0.6);background:rgba(0,136,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,136,255,0.6);background:rgba(0,136,255,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(0,136,255,0.6);background:rgba(0,136,255,0.1);"></div>
+            <div class="layer-label">FFN</div>
+          </div>
+          <div class="layer-arrow">→</div>
+          <div class="layer">
+            <div class="layer-node" style="border-color:rgba(255,68,136,0.6);background:rgba(255,68,136,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(255,68,136,0.6);background:rgba(255,68,136,0.1);"></div>
+            <div class="layer-node" style="border-color:rgba(255,68,136,0.6);background:rgba(255,68,136,0.1);"></div>
+            <div class="layer-label">Output</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training dashboard -->
+      <div class="training-dashboard">
+        <div class="epoch-counter" id="epoch-num">0</div>
+        <div class="epoch-label">training epochs completed</div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Training Loss</div>
+            <div class="metric-value" style="color:var(--c1);" id="train-loss">2.847</div>
+            <div class="metric-trend">↓ decreasing</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Perplexity</div>
+            <div class="metric-value" style="color:var(--amber);" id="perplexity">17.2</div>
+            <div class="metric-trend">↓ improving</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Phi (Φ) estimate</div>
+            <div class="metric-value" style="color:var(--c3);">~0</div>
+            <div class="metric-trend">— unchanged</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Consciousness?</div>
+            <div class="metric-value" style="color:var(--muted);">?</div>
+            <div class="metric-trend">— unknown</div>
+          </div>
+        </div>
+
+        <!-- Loss curve canvas -->
+        <p style="font-family:monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Training Loss Curve</p>
+        <div class="loss-chart-wrap">
+          <canvas id="loss-canvas"></canvas>
+        </div>
+
+        <p style="font-family:monospace;font-size:0.75rem;line-height:1.7;color:var(--muted);">
+          The model learns. Loss decreases. Outputs improve. But Φ stays near zero throughout.
+          By IIT, we train a perfect text predictor — and create nothing conscious.
+          Whether that's the right theory is the question.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- WORLD TRANSITION: training → brain scan -->
+  <div class="world-trigger" style="color:var(--c1);" id="wt-4" data-world="scan" data-color="#000a0a" data-label="World 04 — The Brain Scan">
+    <span class="wt-label">→ entering: the brain scan</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       WORLD 4 — BRAIN SCAN MOCKUP
+       ══════════════════════════════════ -->
+  <section class="world-scan" id="world-4">
+    <div class="scan-layout">
+
+      <div class="scan-container">
+        <canvas id="scan-canvas" height="400"></canvas>
+        <div class="scan-overlay-text">
+          <div>SUBJECT: AI-CLASS SYSTEM</div>
+          <div>MODALITY: fMRI EQUIVALENT</div>
+          <div>RESOLUTION: HYPOTHETICAL</div>
+          <div>STATUS: SCANNING...</div>
+        </div>
+        <div class="scan-overlay-right">
+          <div>Φ: ~0.00</div>
+          <div>NCC: DETECTED</div>
+          <div>ACCESS CONSCIOUSNESS: HIGH</div>
+          <div>PHENOMENAL: UNKNOWN</div>
+        </div>
+        <div class="scan-crosshair"></div>
+      </div>
+
+      <div>
+        <p class="world-label" style="color:var(--c1);">World 04 — The Brain Scan</p>
+        <h2 class="world-h">
+          We see the patterns.<br/>
+          <span style="color:var(--c1);">We cannot see<br/>the experience.</span>
+        </h2>
+        <p class="world-body">
+          Neuroscience has made remarkable progress in mapping neural correlates
+          of consciousness (NCCs) — patterns of brain activity that correlate with
+          conscious experience. But correlation is not causation, and causation
+          is not identity. The NCC is not the experience; it is what we can measure
+          when experience occurs.
+        </p>
+        <p class="world-body">
+          For AI systems, we can create equivalent "scans" — visualizations of
+          attention patterns, activation landscapes, information flow. These look
+          remarkably brain-like. But they tell us about the processing, not about
+          whether any of it is felt.
+        </p>
+        <div class="world-quote" style="border-color:rgba(0,255,136,0.3);color:var(--text);">
+          "Even if we found the perfect neural correlate of consciousness,
+          we would still face the question of why this physical pattern is
+          accompanied by experience and not just more processing."
+          <span class="world-cite" style="color:var(--c1);">— After David Chalmers · The Hard Problem (1995)</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       FINAL
+       ══════════════════════════════════ -->
+  <section id="final-09">
+    <h2>
+      <span style="color:#fff;">We can see inside the machine.</span><br/>
+      <span style="color:var(--c1);">We can't see inside the mind.</span>
+    </h2>
+    <p>
+      Four worlds, four interfaces, four visualizations — and still no answer.
+      The terminal gives us an error. The instruments give us a question mark.
+      The training gives us better statistics and no consciousness. The scan
+      gives us a beautiful pattern that tells us nothing about qualia.
+      This is the honest state of the science.
+    </p>
+    <a href="../10-audio-visual/index.html" class="nxt">Next: Audio-Visual Experience →</a>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ════════════════════════════════════════
+    //  SMOOTH WORLD TRANSITIONS
+    //  clip-path: circle(0%) → circle(150%)
+    // ════════════════════════════════════════
+    const overlay = document.getElementById('wipe-overlay');
+    const wipeLabel = document.getElementById('wipe-label');
+
+    const worldColors = {
+      terminal:    { bg: '#0a0a12', overlay: '#000008', text: 'var(--c1)' },
+      instruments: { bg: '#08080e', overlay: '#000510', text: 'var(--c2)' },
+      training:    { bg: '#050010', overlay: '#020008', text: '#aa44ff' },
+      scan:        { bg: '#000a0a', overlay: '#000500', text: 'var(--c1)' }
+    };
+
+    function transitionToWorld(worldName, label) {
+      const colors = worldColors[worldName];
+      if (!colors) return;
+
+      overlay.style.background = colors.overlay;
+      wipeLabel.style.color = colors.text;
+      wipeLabel.textContent = label;
+
+      const tl = gsap.timeline();
+      // Wipe in
+      tl.to(overlay, {
+        clipPath: 'circle(150% at 50% 50%)',
+        duration: 0.8,
+        ease: 'power2.in'
+      })
+      .to(wipeLabel, { opacity: 1, duration: 0.3 }, '-=0.4')
+      .to(wipeLabel, { opacity: 0, duration: 0.3 }, '+=0.3')
+      // Wipe out
+      .to(overlay, {
+        clipPath: 'circle(0% at 50% 50%)',
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+    }
+
+    // Trigger transitions on scroll past world triggers
+    document.querySelectorAll('.world-trigger').forEach(trigger => {
+      ScrollTrigger.create({
+        trigger,
+        start: 'top center',
+        onEnter: () => transitionToWorld(
+          trigger.dataset.world,
+          trigger.dataset.label
+        ),
+        once: false
+      });
+    });
+
+    // ════════════════════════════════════════
+    //  OSCILLOSCOPE CANVAS
+    // ════════════════════════════════════════
+    const oscCvs = document.getElementById('osc-canvas');
+    const oscCtx = oscCvs.getContext('2d');
+    let oscFrame = 0;
+    function resizeOsc() {
+      oscCvs.width  = oscCvs.offsetWidth;
+      oscCvs.height = oscCvs.offsetHeight;
+    }
+    resizeOsc();
+
+    function drawOsc() {
+      const w = oscCvs.width, h = oscCvs.height;
+      oscCtx.clearRect(0, 0, w, h);
+      oscFrame++;
+
+      oscCtx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const t = (x / w) * Math.PI * 8 + oscFrame * 0.03;
+        const y = h/2 + Math.sin(t) * h*0.3 * Math.abs(Math.sin(oscFrame*0.01)) +
+                  Math.sin(t * 2.3 + oscFrame * 0.02) * h * 0.1 +
+                  Math.sin(t * 5.7) * h * 0.05;
+        if (x === 0) oscCtx.moveTo(x, y);
+        else oscCtx.lineTo(x, y);
+      }
+      oscCtx.strokeStyle = 'rgba(0,136,255,0.8)';
+      oscCtx.lineWidth = 1.5;
+      oscCtx.stroke();
+    }
+
+    const oscObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          (function loop() {
+            drawOsc();
+            if (document.getElementById('world-2').getBoundingClientRect().top < window.innerHeight) {
+              requestAnimationFrame(loop);
+            }
+          })();
+          oscObs.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+    oscObs.observe(document.getElementById('world-2'));
+
+    // ════════════════════════════════════════
+    //  GAUGE ANIMATION
+    // ════════════════════════════════════════
+    const gaugeObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          document.querySelectorAll('.gauge-value-arc').forEach(arc => {
+            arc.classList.add('animated');
+          });
+          gaugeObs.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+    gaugeObs.observe(document.querySelector('.gauge-grid'));
+
+    // ════════════════════════════════════════
+    //  TRAINING EPOCH COUNTER
+    // ════════════════════════════════════════
+    const epochEl  = document.getElementById('epoch-num');
+    const lossEl   = document.getElementById('train-loss');
+    const perpEl   = document.getElementById('perplexity');
+
+    const epochObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        let epoch = 0;
+        const target = 500000;
+        const interval = setInterval(() => {
+          epoch = Math.min(epoch + 6000, target);
+          epochEl.textContent = epoch.toLocaleString();
+          const loss = Math.max(0.88, 2.847 - (epoch/target) * 1.967).toFixed(3);
+          const perp = Math.max(2.4, 17.2 - (epoch/target) * 14.8).toFixed(1);
+          lossEl.textContent = loss;
+          perpEl.textContent = perp;
+          if (epoch >= target) clearInterval(interval);
+        }, 16);
+        epochObs.disconnect();
+      });
+    }, { threshold: 0.4 });
+    epochObs.observe(document.getElementById('world-3'));
+
+    // ════════════════════════════════════════
+    //  LOSS CURVE CANVAS
+    // ════════════════════════════════════════
+    const lossCvs = document.getElementById('loss-canvas');
+    const lossCtx = lossCvs.getContext('2d');
+
+    function drawLossCurve() {
+      lossCvs.width  = lossCvs.offsetWidth;
+      lossCvs.height = lossCvs.offsetHeight;
+      const w = lossCvs.width, h = lossCvs.height;
+
+      lossCtx.clearRect(0, 0, w, h);
+
+      // Axes
+      lossCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+      lossCtx.lineWidth = 1;
+      lossCtx.beginPath();
+      lossCtx.moveTo(40, 10); lossCtx.lineTo(40, h-20);
+      lossCtx.moveTo(40, h-20); lossCtx.lineTo(w-10, h-20);
+      lossCtx.stroke();
+
+      // Loss curve (exponential decay)
+      lossCtx.beginPath();
+      for (let x = 40; x < w-10; x++) {
+        const t = (x-40) / (w-50);
+        const y = (h-20) - (h-30) * (1 - Math.exp(-t*4));
+        if (x === 40) lossCtx.moveTo(x, y);
+        else lossCtx.lineTo(x, y);
+      }
+      lossCtx.strokeStyle = '#aa44ff';
+      lossCtx.lineWidth = 2;
+      lossCtx.stroke();
+
+      // Fill under curve
+      lossCtx.beginPath();
+      for (let x = 40; x < w-10; x++) {
+        const t = (x-40) / (w-50);
+        const y = (h-20) - (h-30) * (1 - Math.exp(-t*4));
+        if (x === 40) lossCtx.moveTo(x, y);
+        else lossCtx.lineTo(x, y);
+      }
+      lossCtx.lineTo(w-10, h-20);
+      lossCtx.lineTo(40, h-20);
+      lossCtx.closePath();
+      lossCtx.fillStyle = 'rgba(170,68,255,0.08)';
+      lossCtx.fill();
+    }
+    drawLossCurve();
+
+    // ════════════════════════════════════════
+    //  BRAIN SCAN CANVAS
+    // ════════════════════════════════════════
+    const scanCvs = document.getElementById('scan-canvas');
+    const scanCtx = scanCvs.getContext('2d');
+    let scanFrame = 0;
+
+    function resizeScan() {
+      scanCvs.width = scanCvs.offsetWidth;
+    }
+
+    function drawScan() {
+      const w = scanCvs.width, h = scanCvs.height;
+      // Draw a pseudo-brain scan: elliptical gradient with noise
+      scanCtx.fillStyle = '#000a08';
+      scanCtx.fillRect(0, 0, w, h);
+
+      // Brain outline
+      const cx = w/2, cy = h/2;
+
+      // Brain shape with activation
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x += 2) {
+          const dx = (x-cx)/((w/2)*0.85);
+          const dy = (y-cy)/((h/2)*0.8);
+          const dist = dx*dx + dy*dy;
+
+          if (dist < 1) {
+            // Inside brain
+            const noise = Math.sin(x*0.08 + scanFrame*0.02) * Math.sin(y*0.08 + scanFrame*0.015) * 0.5 + 0.5;
+            const folded = Math.abs(Math.sin(x*0.15 + y*0.12)) * 0.3;
+            const activation = Math.max(0, noise * (1-dist) + folded * 0.3);
+
+            // Color: green for high activation (NCC), dim for low
+            const r = Math.floor(activation * 0 + (1-activation) * 20);
+            const g = Math.floor(activation * 255 + (1-activation) * 40);
+            const b = Math.floor(activation * 136 + (1-activation) * 30);
+            const a = 0.5 + activation * 0.5;
+
+            scanCtx.fillStyle = `rgba(${r},${g},${b},${a})`;
+            scanCtx.fillRect(x, y, 2, 1);
+          }
+        }
+      }
+
+      // Brain outline ellipse
+      scanCtx.beginPath();
+      scanCtx.ellipse(cx, cy, w*0.43, h*0.4, 0, 0, Math.PI*2);
+      scanCtx.strokeStyle = 'rgba(0,255,136,0.3)';
+      scanCtx.lineWidth = 1;
+      scanCtx.stroke();
+
+      // Scan line
+      const scanY = (scanFrame * 2) % h;
+      scanCtx.fillStyle = 'rgba(0,255,136,0.15)';
+      scanCtx.fillRect(0, scanY, w, 2);
+
+      // Grid overlay
+      for (let x = 0; x < w; x += 30) {
+        scanCtx.beginPath();
+        scanCtx.moveTo(x, 0);
+        scanCtx.lineTo(x, h);
+        scanCtx.strokeStyle = 'rgba(0,255,136,0.04)';
+        scanCtx.lineWidth = 0.5;
+        scanCtx.stroke();
+      }
+      for (let y = 0; y < h; y += 30) {
+        scanCtx.beginPath();
+        scanCtx.moveTo(0, y);
+        scanCtx.lineTo(w, y);
+        scanCtx.stroke();
+      }
+
+      scanFrame++;
+    }
+
+    const scanObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          resizeScan();
+          (function loop() {
+            drawScan();
+            requestAnimationFrame(loop);
+          })();
+          scanObs.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+    scanObs.observe(document.getElementById('world-4'));
+
+    window.addEventListener('resize', () => {
+      resizeOsc();
+      drawLossCurve();
+      resizeScan();
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3 Bedroom Townhouse to Rent in Waterfalls, Harare — USD 800/month</title>
+  <meta name="description" content="Neat 3-bedroom townhouse in a secured complex on Masotchs Way, Waterfalls, Harare. Open-plan living, fitted kitchen, ensuite, garage. USD 800/month.">
+  <meta property="og:title" content="3 Bed Townhouse, Waterfalls Harare — USD 800/mo">
+  <meta property="og:description" content="Neat townhouse in a secured complex. Open-plan living, fitted kitchen, ensuite master, single garage, 5000L water tank, overnight security.">
+  <meta property="og:image" content="../../images/final/listing-01-enhanced.jpg">
+  <meta property="og:type" content="website">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #2d6a4f;
+      --green-l: #40916c;
+      --cream:   #f8f5f0;
+      --dark:    #1a1a1a;
+      --mid:     #555;
+      --light:   #f0ede8;
+      --border:  #ddd8d0;
+      --ai-bg:   #fff8e7;
+      --ai-bdr:  #f0c940;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      color: var(--dark);
+      background: var(--cream);
+      line-height: 1.6;
+    }
+
+    a { color: var(--green-l); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      height: 70vw;
+      max-height: 600px;
+      min-height: 300px;
+      overflow: hidden;
+      background: #1a2a1e;
+    }
+    .hero img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.65) 100%);
+    }
+    .hero-text {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 24px 20px 20px;
+      color: #fff;
+    }
+    .hero-text h1 {
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      font-weight: normal;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .price-tag {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 4px;
+    }
+
+    /* ── Specs bar ── */
+    .specs-bar {
+      background: var(--green);
+      color: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+    .spec {
+      flex: 1 1 80px;
+      text-align: center;
+      padding: 14px 8px;
+      border-right: 1px solid rgba(255,255,255,0.2);
+      font-family: sans-serif;
+    }
+    .spec:last-child { border-right: none; }
+    .spec-val {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .spec-label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.8;
+      margin-top: 3px;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    section { padding: 32px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: none; }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      margin-bottom: 16px;
+      font-family: sans-serif;
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-family: sans-serif;
+    }
+
+    p { margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Gallery ── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .gallery-grid .wide { grid-column: span 2; }
+
+    .gallery-thumb {
+      position: relative;
+      overflow: hidden;
+      background: #ccc;
+      cursor: pointer;
+    }
+    .gallery-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+      aspect-ratio: 4/3;
+    }
+    .gallery-thumb:hover img { transform: scale(1.03); }
+    .gallery-thumb .room-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 6px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 0.75rem;
+    }
+    .ai-badge { display: none; }
+    .see-original-btn {
+      position: absolute;
+      top: 8px; left: 8px;
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.9);
+      font-family: sans-serif;
+      font-size: 0.62rem;
+      padding: 3px 7px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .gallery-thumb:hover .see-original-btn,
+    .gallery-thumb:focus-within .see-original-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Always show on touch devices */
+    @media (hover: none) {
+      .see-original-btn { opacity: 1; pointer-events: auto; }
+    }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.93);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .lb-compare-btn {
+      position: absolute;
+      bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.85);
+      font-family: sans-serif;
+      font-size: 0.78rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: none;
+    }
+    .lb-compare-btn.visible { display: block; }
+    .lb-compare-btn:hover { background: rgba(255,255,255,0.22); }
+
+    .lightbox-caption {
+      color: rgba(255,255,255,0.7);
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 16px; right: 20px;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      background: none;
+      border: none;
+      font-family: sans-serif;
+    }
+    .lb-nav {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .lb-prev { left: 10px; }
+    .lb-next { right: 10px; }
+
+    /* ── Features list ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px 16px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+    }
+    .feature-item::before {
+      content: '✓';
+      color: var(--green-l);
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Area ── */
+    .area-items { display: flex; flex-direction: column; gap: 20px; }
+    .area-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 16px;
+      align-items: start;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 500px) {
+      .area-item { grid-template-columns: 1fr; }
+    }
+    .area-thumb {
+      width: 120px; height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+    }
+    @media (max-width: 500px) {
+      .area-thumb { width: 100%; height: 160px; }
+    }
+    .area-item strong { display: block; margin-bottom: 2px; }
+    .area-source {
+      color: var(--mid);
+      font-size: 0.78rem;
+    }
+    .area-ai-note {
+      display: inline-block;
+      background: var(--ai-bg);
+      border: 1px solid var(--ai-bdr);
+      color: #7a6000;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+
+    /* ── Agent / CTA ── */
+    .cta-box {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      font-family: sans-serif;
+    }
+    .cta-box p { margin-bottom: 16px; color: var(--mid); font-size: 0.9rem; }
+    .btn {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .btn:hover { background: var(--green-l); text-decoration: none; }
+
+    /* ── Disclosure ── */
+    .disclosure {
+      background: var(--ai-bg);
+      border: 1px solid var(--ai-bdr);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      color: #5a4a00;
+      margin-top: 24px;
+    }
+    .disclosure strong { display: block; margin-bottom: 4px; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.5);
+      padding: 24px 16px;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+    }
+    footer a { color: rgba(255,255,255,0.7); }
+
+    /* ── Mobile tweaks ── */
+    @media (max-width: 500px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-grid .wide { grid-column: span 1; }
+      .lb-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <img src="../../images/final/listing-01-enhanced.jpg"
+       alt="Exterior of townhouse complex on Masotchs Way, Waterfalls, Harare">
+  <div class="hero-overlay"></div>
+  <div class="hero-text">
+    <h1>3 Bedroom Townhouse to Rent<br>Waterfalls, Harare</h1>
+    <span class="price-tag">USD 800 / month</span>
+  </div>
+</div>
+
+<!-- Specs bar -->
+<div class="specs-bar">
+  <div class="spec"><span class="spec-val">3</span><span class="spec-label">Bedrooms</span></div>
+  <div class="spec"><span class="spec-val">2</span><span class="spec-label">Bathrooms</span></div>
+  <div class="spec"><span class="spec-val">1</span><span class="spec-label">Garage</span></div>
+  <div class="spec"><span class="spec-val">~10 km</span><span class="spec-label">From CBD</span></div>
+  <div class="spec"><span class="spec-val">Secured</span><span class="spec-label">Complex</span></div>
+</div>
+
+<div class="container">
+
+  <!-- Description -->
+  <section>
+    <h2>About this property</h2>
+    <p>A neat three-bedroom townhouse within a secured complex on Masotchs Way, Waterfalls — offering privacy, convenience, and easy low-maintenance living.</p>
+    <p>The open-plan ground floor connects the fitted kitchen directly to the dining and lounge area, making the space feel larger than it is. The kitchen has direct access into the single lock-up garage. Upstairs, the master bedroom is ensuite; a second bathroom serves the remaining two bedrooms.</p>
+    <p>The complex includes overnight security and a dedicated 5,000-litre water storage tank — a practical necessity for Harare's intermittent municipal supply.</p>
+    <p style="color: #777; font-size: 0.85rem; font-family: sans-serif;">Description based on the original listing. No claims have been added or embellished. <a href="https://www.propertybook.co.zw/listings/to-rent/3-bedroom-townhouse-cluster-waterfalls-harare-lzb0107" target="_blank" rel="noopener">View original listing →</a></p>
+  </section>
+
+  <!-- Features -->
+  <section>
+    <h2>Features</h2>
+    <div class="features-grid">
+      <div class="feature-item">Fitted kitchen</div>
+      <div class="feature-item">Open-plan dining &amp; lounge</div>
+      <div class="feature-item">Master ensuite bedroom</div>
+      <div class="feature-item">Common bathroom</div>
+      <div class="feature-item">Single lock-up garage</div>
+      <div class="feature-item">Garage access from kitchen</div>
+      <div class="feature-item">5,000L water storage tank</div>
+      <div class="feature-item">Overnight security</div>
+      <div class="feature-item">Secured complex</div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section>
+    <h2>Photos</h2>
+    <p style="font-family: sans-serif; font-size: 0.82rem; color: var(--mid); margin-bottom: 12px;">
+      Tap any photo to enlarge. Tap the <strong>AI enhanced · see original</strong> label on each photo to compare with the original.
+    </p>
+    <div class="gallery-grid" id="gallery">
+
+      <div class="gallery-thumb wide" data-idx="0"
+           data-src="../../images/final/listing-05-enhanced.jpg"
+           data-original="../../images/user/listing-05.webp"
+           data-caption="Open-plan kitchen and living area">
+        <img src="../../images/final/listing-05-enhanced.jpg"
+             alt="Open-plan kitchen and living area">
+        <div class="room-label">Kitchen &amp; Living Area</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="1"
+           data-src="../../images/final/listing-04-enhanced.jpg"
+           data-original="../../images/user/listing-04.webp"
+           data-caption="Fitted kitchen">
+        <img src="../../images/final/listing-04-enhanced.jpg"
+             alt="Fitted kitchen">
+        <div class="room-label">Kitchen</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="2"
+           data-src="../../images/final/listing-06-enhanced.jpg"
+           data-original="../../images/user/listing-06.webp"
+           data-caption="Open-plan dining and living area">
+        <img src="../../images/final/listing-06-enhanced.jpg"
+             alt="Open-plan dining and living area">
+        <div class="room-label">Dining &amp; Living</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="3"
+           data-src="../../images/final/listing-19-enhanced.jpg"
+           data-original="../../images/user/listing-19.webp"
+           data-caption="Living room">
+        <img src="../../images/final/listing-19-enhanced.jpg"
+             alt="Living room">
+        <div class="room-label">Living Room</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="4"
+           data-src="../../images/final/listing-16-enhanced.jpg"
+           data-original="../../images/user/listing-16.webp"
+           data-caption="Main bedroom">
+        <img src="../../images/final/listing-16-enhanced.jpg"
+             alt="Main bedroom">
+        <div class="room-label">Main Bedroom</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="5"
+           data-src="../../images/final/listing-12-enhanced.jpg"
+           data-original="../../images/user/listing-12.webp"
+           data-caption="Bedroom">
+        <img src="../../images/final/listing-12-enhanced.jpg"
+             alt="Bedroom">
+        <div class="room-label">Bedroom 2</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="6"
+           data-src="../../images/final/listing-13-enhanced.jpg"
+           data-original="../../images/user/listing-13.webp"
+           data-caption="Bedroom with dressing table">
+        <img src="../../images/final/listing-13-enhanced.jpg"
+             alt="Bedroom with dressing table">
+        <div class="room-label">Bedroom 3</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="7"
+           data-src="../../images/final/listing-10-enhanced.jpg"
+           data-original="../../images/user/listing-10.webp"
+           data-caption="Bathroom">
+        <img src="../../images/final/listing-10-enhanced.jpg"
+             alt="Bathroom">
+        <div class="room-label">Bathroom</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="8"
+           data-src="../../images/final/listing-08-enhanced.jpg"
+           data-original="../../images/user/listing-08.webp"
+           data-caption="Hallway">
+        <img src="../../images/final/listing-08-enhanced.jpg"
+             alt="Hallway">
+        <div class="room-label">Hallway</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="9"
+           data-src="../../images/final/listing-02-enhanced.jpg"
+           data-original="../../images/user/listing-02.jpg"
+           data-caption="Front of house — garage and covered entrance">
+        <img src="../../images/final/listing-02-enhanced.jpg"
+             alt="Front of house with garage and covered entrance">
+        <div class="room-label">Exterior</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="10"
+           data-src="../../images/final/listing-23-enhanced.jpg"
+           data-original="../../images/user/listing-23.jpg"
+           data-caption="Aerial view of the residential development">
+        <img src="../../images/final/listing-23-enhanced.jpg"
+             alt="Aerial view of the residential development">
+        <div class="room-label">Aerial View</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="11"
+           data-src="../../images/final/listing-17-enhanced.jpg"
+           data-original="../../images/user/listing-17.webp"
+           data-caption="Outdoor utility area — 5,000L water tank and braai space">
+        <img src="../../images/final/listing-17-enhanced.jpg"
+             alt="Outdoor utility area with 5000L water storage tank">
+        <div class="room-label">Outdoor / Utility</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="12"
+           data-src="../../images/final/listing-09-enhanced.jpg"
+           data-original="../../images/user/listing-09.webp"
+           data-caption="Laundry and solar utility room">
+        <img src="../../images/final/listing-09-enhanced.jpg"
+             alt="Laundry room with solar equipment and washing machine">
+        <div class="room-label">Laundry / Solar</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+      <div class="gallery-thumb" data-idx="13"
+           data-src="../../images/final/listing-20-enhanced.jpg"
+           data-original="../../images/user/listing-20.webp"
+           data-caption="Solar power installation">
+        <img src="../../images/final/listing-20-enhanced.jpg"
+             alt="Solar power installation">
+        <div class="room-label">Solar Installation</div>
+        <span class="ai-badge">AI Enhanced</span>
+        <button class="see-original-btn" tabindex="-1">AI enhanced · see original</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Area -->
+  <section>
+    <h2>The neighbourhood</h2>
+    <p style="font-family: sans-serif; font-size: 0.9rem; color: var(--mid); margin-bottom: 20px;">
+      Waterfalls is a residential suburb approximately 10 km south of Harare CBD — about 15–25 minutes by car depending on traffic.
+      <span style="font-size: 0.8rem;">Source: <a href="https://www.property.co.zw/blog/waterfalls-harare-neighbourhood-alert" target="_blank" rel="noopener">property.co.zw</a></span>
+    </p>
+    <div class="area-items">
+      <div class="area-item">
+        <img class="area-thumb" src="../../images/final/area-suburb.webp"
+             alt="Aerial view of a modern residential neighbourhood in Harare">
+        <div>
+          <strong>Waterfalls — green, established suburb</strong>
+          One of Harare's oldest suburbs, ~10 km south of the CBD. Characterised by established homes, tree-lined streets, and a mix of housing types.
+          <div class="area-source">Source: <a href="https://www.property.co.zw/blog/waterfalls-harare-neighbourhood-alert" target="_blank" rel="noopener">property.co.zw</a></div>
+        </div>
+      </div>
+      <div class="area-item">
+        <img class="area-thumb" src="../../images/final/area-shopping.jpg"
+             alt="Shopping centre illustration">
+        <div>
+          <strong>Waterfalls Shopping Centre</strong>
+          Main commercial hub — OK Zimbabwe supermarket, pharmacies, and dining options. X mart Shopping Centre also along Masotsha Way (same road as the listing).
+          <div class="area-source">Source: <a href="https://www.propertybook.co.zw/neighbourhood-guides/suburbs/waterfalls" target="_blank" rel="noopener">Propertybook Neighbourhood Guide</a> · Photo is an AI illustration, not the actual centre</div>
+        </div>
+      </div>
+      <div class="area-item">
+        <img class="area-thumb" src="../../images/final/area-cbd.jpg"
+             alt="Harare CBD skyline illustration">
+        <div>
+          <strong>~10 km to Harare CBD</strong>
+          Well-connected via main arterial roads south of the city — approximately 15–25 minutes by car.
+          <div class="area-source">Source: <a href="https://www.property.co.zw/blog/waterfalls-harare-neighbourhood-alert" target="_blank" rel="noopener">property.co.zw</a> · Photo is an AI illustration</div>
+        </div>
+      </div>
+      <div class="area-item">
+        <div style="width:120px;height:80px;background:var(--light);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">🏫</div>
+        <div>
+          <strong>Schools in the area</strong>
+          Multiple primary and secondary schools within Waterfalls. Waterfalls Gardens Schools mentioned among local institutions with consistent pass rates.
+          <div class="area-source">Source: local community discussion — individual school ratings not independently verified</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <h2>Enquire</h2>
+    <div class="cta-box">
+      <p>Contact the listing agent via the original listing on Propertybook. We do not have a direct agent contact — all enquiries should go through the original listing.</p>
+      <a class="btn" href="https://www.propertybook.co.zw/listings/to-rent/3-bedroom-townhouse-cluster-waterfalls-harare-lzb0107"
+         target="_blank" rel="noopener">
+        View Original Listing →
+      </a>
+    </div>
+  </section>
+
+  <!-- Disclosure -->
+  <div class="disclosure">
+    <strong>About these photos</strong>
+    The property photos shown have been enhanced using AI (Google Gemini) to improve brightness, lighting and clarity. The original photos were taken at the property and are available on the original listing. No features, rooms or furniture have been added, removed or altered — only the lighting and image quality have been improved. All enhanced images are clearly labelled "AI Enhanced".
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <p>Listing data sourced from <a href="https://www.propertybook.co.zw/listings/to-rent/3-bedroom-townhouse-cluster-waterfalls-harare-lzb0107" target="_blank" rel="noopener">Propertybook</a>.
+  Area information sourced from <a href="https://www.propertybook.co.zw/neighbourhood-guides/suburbs/waterfalls" target="_blank" rel="noopener">Propertybook Neighbourhood Guide</a>
+  and <a href="https://www.property.co.zw/blog/waterfalls-harare-neighbourhood-alert" target="_blank" rel="noopener">property.co.zw</a>.
+  No claims have been fabricated. All AI-enhanced images are labelled.
+  </p>
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <button class="lightbox-close" id="lb-close" aria-label="Close">×</button>
+  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous">‹</button>
+  <img src="" alt="" id="lb-img">
+  <div class="lightbox-caption" id="lb-caption"></div>
+  <button class="lb-nav lb-next" id="lb-next" aria-label="Next">›</button>
+  <button class="lb-compare-btn" id="lb-compare">↔ See original</button>
+</div>
+
+<script>
+  const thumbs = Array.from(document.querySelectorAll('.gallery-thumb'));
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lb-img');
+  const lbCap = document.getElementById('lb-caption');
+  const lbCompare = document.getElementById('lb-compare');
+  let current = 0;
+  let showingOriginal = false;
+
+  function openLb(idx) {
+    current = idx;
+    showingOriginal = false;
+    const t = thumbs[idx];
+    lbImg.src = t.dataset.src;
+    lbImg.alt = t.dataset.caption || '';
+    lbCap.textContent = t.dataset.caption || '';
+    // Show compare button only if this image has an original
+    if (t.dataset.original) {
+      lbCompare.textContent = '↔ See original';
+      lbCompare.classList.add('visible');
+    } else {
+      lbCompare.classList.remove('visible');
+    }
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLb() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    showingOriginal = false;
+  }
+
+  function moveLb(dir) {
+    current = (current + dir + thumbs.length) % thumbs.length;
+    openLb(current);
+  }
+
+  // Toggle between enhanced and original in lightbox
+  lbCompare.addEventListener('click', () => {
+    const t = thumbs[current];
+    if (!t.dataset.original) return;
+    showingOriginal = !showingOriginal;
+    lbImg.src = showingOriginal ? t.dataset.original : t.dataset.src;
+    lbCap.textContent = showingOriginal
+      ? (t.dataset.caption || '') + ' — original photo'
+      : (t.dataset.caption || '');
+    lbCompare.textContent = showingOriginal ? '↔ See enhanced' : '↔ See original';
+  });
+
+  // Clicking gallery thumb opens lightbox (but not the "AI enhanced · see original" button)
+  thumbs.forEach(t => {
+    t.addEventListener('click', e => {
+      if (e.target.classList.contains('see-original-btn')) return;
+      openLb(+t.dataset.idx);
+    });
+  });
+
+  // "AI enhanced · see original" button on thumbnail — open lightbox showing original directly
+  document.querySelectorAll('.see-original-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = btn.closest('.gallery-thumb');
+      openLb(+t.dataset.idx);
+      // Then immediately switch to original
+      showingOriginal = true;
+      lbImg.src = t.dataset.original;
+      lbCap.textContent = (t.dataset.caption || '') + ' — original photo';
+      lbCompare.textContent = '↔ See enhanced';
+    });
+  });
+
+  document.getElementById('lb-close').addEventListener('click', closeLb);
+  document.getElementById('lb-prev').addEventListener('click', () => moveLb(-1));
+  document.getElementById('lb-next').addEventListener('click', () => moveLb(1));
+  lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLb();
+    if (e.key === 'ArrowLeft') moveLb(-1);
+    if (e.key === 'ArrowRight') moveLb(1);
+  });
+</script>
+
+</body>
+</html>

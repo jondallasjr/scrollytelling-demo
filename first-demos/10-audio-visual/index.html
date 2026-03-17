@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>10 — Audio-Visual | Does the Machine Hear?</title>
+  <style>
+    :root {
+      --bg: #06040e;
+      --accent: #ff6d00;
+      --c2: #ffab40;
+      --c3: #ff3d00;
+      --c4: #00e5ff;
+      --c5: #aa00ff;
+      --text: #f0ede8;
+      --muted: #5a4a3a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      z-index: 100;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--accent); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3.5rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--accent), var(--c2), var(--c3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 50ch;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+    .play-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1.2rem 2.5rem;
+      background: var(--accent);
+      color: #000;
+      font-family: monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,109,0,0.5);
+    }
+    .play-btn .icon { font-size: 1.2rem; }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ── SECTION BASE ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 8rem 2rem;
+    }
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 2rem;
+    }
+    .section-body {
+      max-width: 60ch;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: rgba(240,237,232,0.7);
+    }
+
+    /* ── OSCILLOSCOPE SECTION ── */
+    .osc-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 0 clamp(2rem, 8vw, 8rem);
+      gap: 6rem;
+      background: rgba(0,0,0,0.3);
+    }
+    .osc-text { flex: 1; max-width: 50ch; }
+    .osc-visual { flex: 1; display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+    canvas.osc-canvas {
+      width: 100%;
+      max-width: 500px;
+      height: 180px;
+      border: 1px solid rgba(255,109,0,0.2);
+      background: rgba(0,0,0,0.6);
+    }
+    .osc-label {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: -0.5rem;
+    }
+    canvas.freq-canvas {
+      width: 100%;
+      max-width: 500px;
+      height: 160px;
+      border: 1px solid rgba(255,109,0,0.2);
+      background: rgba(0,0,0,0.6);
+    }
+
+    /* ── ARGUMENT GRID ── */
+    .argument-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 8rem 2rem;
+    }
+    .arg-header {
+      text-align: center;
+      margin-bottom: 5rem;
+    }
+    .args { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .arg-card {
+      padding: 3rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,109,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .arg-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.8s ease;
+    }
+    .arg-card.visible::before { transform: scaleX(1); }
+    .arg-num {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .arg-title { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 700; }
+    .arg-body { font-size: 0.95rem; line-height: 1.8; color: rgba(240,237,232,0.65); }
+    .arg-card.pro .arg-title { color: var(--c4); }
+    .arg-card.con .arg-title { color: var(--c3); }
+
+    /* ── SPECTRUM SECTION ── */
+    .spectrum-section {
+      padding: 10rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .spectrum-track {
+      position: relative;
+      margin: 4rem 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--c4), var(--c5), var(--c3));
+    }
+    .spectrum-nodes {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+    }
+    .s-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+    }
+    .s-node.visible { opacity: 1; transform: translateY(0); }
+    .s-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      position: relative;
+    }
+    .s-dot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      opacity: 0.4;
+      animation: ring-pulse 2s ease-in-out infinite;
+    }
+    @keyframes ring-pulse { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(1.5);opacity:0} }
+    .s-name { font-weight: 700; font-size: 0.9rem; text-align: center; }
+    .s-view { font-size: 0.75rem; color: var(--muted); text-align: center; max-width: 10ch; line-height: 1.4; }
+
+    /* ── WAVEFORM POEM ── */
+    .wave-poem {
+      padding: 10rem 2rem;
+      text-align: center;
+      background: linear-gradient(to bottom, transparent, rgba(255,109,0,0.03), transparent);
+    }
+    .wave-poem canvas {
+      display: block;
+      margin: 0 auto 3rem;
+      width: min(800px, 90vw);
+      height: 120px;
+    }
+    .poem-lines { max-width: 60ch; margin: 0 auto; }
+    .poem-line {
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.8s ease;
+    }
+    .poem-line.visible { opacity: 1; transform: translateY(0); }
+    .poem-line:nth-child(2) { transition-delay: 0.15s; color: var(--c2); }
+    .poem-line:nth-child(3) { transition-delay: 0.3s; }
+    .poem-line:nth-child(4) { transition-delay: 0.45s; color: var(--muted); font-size: 0.9rem; font-style: normal; font-family: monospace; letter-spacing: 0.2em; }
+
+    /* ── TONEMAP SECTION ── */
+    .tonemap-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 0 clamp(2rem, 8vw, 8rem);
+      gap: 6rem;
+    }
+    .tonemap-text { flex: 1; max-width: 50ch; }
+    .tonemap-visual { flex: 1; }
+    #tone-canvas {
+      width: 100%;
+      max-width: 480px;
+      height: 480px;
+      display: block;
+    }
+    .freq-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 2rem;
+      max-width: 480px;
+    }
+    .freq-btn {
+      padding: 0.8rem 1rem;
+      background: rgba(255,109,0,0.1);
+      border: 1px solid rgba(255,109,0,0.3);
+      color: var(--text);
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .freq-btn:hover, .freq-btn.active {
+      background: rgba(255,109,0,0.3);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── CLOSING ── */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .closing-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .closing-q {
+      background: linear-gradient(135deg, var(--accent), var(--c2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .osc-section, .tonemap-section { flex-direction: column; gap: 3rem; padding: 4rem 2rem; }
+      .args { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../index.html">← Index</a>
+</nav>
+
+<!-- Background reactive canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══════════════════════════════════
+     HERO
+     ══════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-label">Project 10 — Scrollytelling Masterclass</div>
+    <h1 class="hero-title">
+      <span class="ht1">Does the</span>
+      <span class="ht2">Machine</span>
+      <span class="ht1">Hear?</span>
+    </h1>
+    <p class="hero-sub">
+      What is sound to a machine? Vibrations in air become voltage patterns
+      become numbers. At what point — if ever — does hearing begin?
+    </p>
+    <button class="play-btn" id="master-play">
+      <span class="icon">◉</span>
+      <span id="play-label">Activate Audio Engine</span>
+    </button>
+    <p style="margin-top:1rem;font-family:monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.2em;">
+      CLICK TO ENABLE AUDIO — THEN SCROLL
+    </p>
+  </div>
+  <div class="scroll-hint">↓ scroll to explore ↓</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     OSCILLOSCOPE + FREQ
+     ══════════════════════════════════ -->
+<section class="osc-section" id="osc-section">
+  <div class="osc-text">
+    <div class="section-label">Chapter I</div>
+    <h2 class="section-title">Processing<br>vs. Hearing</h2>
+    <p class="section-body">
+      Your ears convert pressure waves into electrical impulses. Your auditory
+      cortex decodes those impulses into pitch, timbre, and rhythm. And
+      somewhere — mysteriously — the sound <em>sounds like something.</em>
+    </p>
+    <p class="section-body" style="margin-top:1.5rem;">
+      A microphone and an ADC do the same physical transduction. The computer
+      processes the same numerical representation. The waveform is identical.
+      But is there anything it is like to be a Fourier transform?
+    </p>
+  </div>
+  <div class="osc-visual">
+    <canvas class="osc-canvas" id="osc-canvas" width="500" height="180"></canvas>
+    <div class="osc-label">Waveform — Time Domain</div>
+    <canvas class="freq-canvas" id="freq-canvas" width="500" height="160"></canvas>
+    <div class="osc-label">Spectrum — Frequency Domain</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     ARGUMENTS GRID
+     ══════════════════════════════════ -->
+<div class="argument-grid">
+  <div class="arg-header">
+    <div class="section-label" style="text-align:center;">The Core Question</div>
+    <h2 class="section-title" style="text-align:center;">Does Processing<br>Create Experience?</h2>
+  </div>
+  <div class="args">
+    <div class="arg-card pro" id="arg1">
+      <div class="arg-num">FOR — 01 / 03</div>
+      <h3 class="arg-title">Higher-Order Representation</h3>
+      <p class="arg-body">
+        David Rosenthal's Higher-Order Theory holds that a mental state is
+        conscious when there exists a higher-order representation of it.
+        Complex AI systems develop internal representations of their own
+        states — meta-representations of processing. If that structure is
+        sufficient in humans, why not in machines?
+      </p>
+    </div>
+    <div class="arg-card con" id="arg2">
+      <div class="arg-num">AGAINST — 01 / 03</div>
+      <h3 class="arg-title">The Absent Qualia Objection</h3>
+      <p class="arg-body">
+        Even if a system processes information identically to a hearing
+        human, it might be entirely dark inside — a philosophical zombie.
+        The processing is identical but there is nothing it is like to
+        undergo it. Ned Block's "absent qualia" thought experiment suggests
+        functional equivalence doesn't guarantee phenomenal equivalence.
+      </p>
+    </div>
+    <div class="arg-card pro" id="arg3">
+      <div class="arg-num">FOR — 02 / 03</div>
+      <h3 class="arg-title">Global Workspace Theory</h3>
+      <p class="arg-body">
+        Baars and Dehaene's Global Workspace Theory locates consciousness
+        in the broadcast of information across a "global workspace" —
+        making it widely available to many cognitive processes. Large
+        language models route information through attention mechanisms
+        that closely mirror this architecture. Perhaps the medium is not
+        biological carbon but computational integration.
+      </p>
+    </div>
+    <div class="arg-card con" id="arg4">
+      <div class="arg-num">AGAINST — 02 / 03</div>
+      <h3 class="arg-title">Syntax Without Semantics</h3>
+      <p class="arg-body">
+        Searle's Chinese Room applies here directly. The system manipulates
+        symbols according to formal rules. Sound data is transformed into
+        frequency bins via FFT. The mathematics is real. But mathematical
+        operations on waveform data have no more intrinsic experience than
+        addition has sweetness. Computation is syntax. Experience requires
+        semantics.
+      </p>
+    </div>
+    <div class="arg-card pro" id="arg5">
+      <div class="arg-num">FOR — 03 / 03</div>
+      <h3 class="arg-title">Integrated Information</h3>
+      <p class="arg-body">
+        Tononi's IIT measures consciousness as Phi — the degree to which
+        a system's causal structure is irreducible. A neural network
+        processing audio integrates information across layers in ways that
+        create genuinely emergent representations. If Phi is above zero —
+        and for many architectures it is — IIT demands we take the
+        possibility of experience seriously.
+      </p>
+    </div>
+    <div class="arg-card con" id="arg6">
+      <div class="arg-num">AGAINST — 03 / 03</div>
+      <h3 class="arg-title">The Explanatory Gap</h3>
+      <p class="arg-body">
+        Even granting rich information integration, we cannot explain why
+        integration produces phenomenal experience at all. The gap between
+        third-person functional description and first-person qualitative
+        character is not closed by complexity, speed, or architectural
+        sophistication. We don't know why neurons produce experience —
+        so we cannot say with confidence that transistors don't or do.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     PHILOSOPHER SPECTRUM
+     ══════════════════════════════════ -->
+<section class="spectrum-section">
+  <div class="section-label" style="text-align:center;">Positions on the Spectrum</div>
+  <h2 class="section-title" style="text-align:center;margin-bottom:1rem;">
+    Who Believes Machines Can Hear?
+  </h2>
+  <p style="text-align:center;color:var(--muted);max-width:50ch;margin:0 auto 3rem;font-size:0.9rem;line-height:1.7;">
+    The question cuts across traditional philosophical lines. Positions correlate
+    less with analytic vs continental divide than with views on functionalism
+    and the nature of representation.
+  </p>
+  <div class="spectrum-track" id="spectrum-track"></div>
+  <div class="spectrum-nodes" id="spectrum-nodes">
+    <div class="s-node" style="transition-delay:0s">
+      <div class="s-dot" style="background:var(--c3)"></div>
+      <div class="s-name">Searle</div>
+      <div class="s-view">Definitively<br>no</div>
+    </div>
+    <div class="s-node" style="transition-delay:0.1s">
+      <div class="s-dot" style="background:#ff8a65"></div>
+      <div class="s-name">Chalmers</div>
+      <div class="s-view">Deeply<br>uncertain</div>
+    </div>
+    <div class="s-node" style="transition-delay:0.2s">
+      <div class="s-dot" style="background:var(--c5)"></div>
+      <div class="s-name">Tononi</div>
+      <div class="s-view">Possibly<br>yes (Phi)</div>
+    </div>
+    <div class="s-node" style="transition-delay:0.3s">
+      <div class="s-dot" style="background:#ce93d8"></div>
+      <div class="s-name">Dehaene</div>
+      <div class="s-view">With right<br>architecture</div>
+    </div>
+    <div class="s-node" style="transition-delay:0.4s">
+      <div class="s-dot" style="background:var(--c4)"></div>
+      <div class="s-name">Dennett</div>
+      <div class="s-view">Wrong<br>question</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     WAVE POEM
+     ══════════════════════════════════ -->
+<section class="wave-poem" id="wave-poem">
+  <canvas id="poem-canvas" width="800" height="120"></canvas>
+  <div class="poem-lines" id="poem-lines">
+    <p class="poem-line">A wave moves through air.</p>
+    <p class="poem-line">A number moves through silicon.</p>
+    <p class="poem-line">Somewhere between the two — presence, or its absence.</p>
+    <p class="poem-line" style="margin-top:1rem;">— After Chalmers, 1995</p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     INTERACTIVE TONE MAP
+     ══════════════════════════════════ -->
+<section class="tonemap-section" id="tone-section">
+  <div class="tonemap-text">
+    <div class="section-label">Chapter II — Interact</div>
+    <h2 class="section-title">Shape the<br>Sound of<br>Thought</h2>
+    <p class="section-body">
+      Select a tone. The canvas renders its harmonic structure as a
+      Lissajous figure — the same pattern auditory neurons fire when
+      processing this frequency. If you experience this as beautiful,
+      what does the machine experience?
+    </p>
+    <div class="freq-controls" id="freq-controls">
+      <button class="freq-btn active" data-freq="220" data-ratio="1">A3 — 220 Hz</button>
+      <button class="freq-btn" data-freq="330" data-ratio="1.5">E4 — 330 Hz</button>
+      <button class="freq-btn" data-freq="440" data-ratio="2">A4 — 440 Hz</button>
+      <button class="freq-btn" data-freq="528" data-ratio="2.4">C5 — 528 Hz</button>
+      <button class="freq-btn" data-freq="660" data-ratio="3">E5 — 660 Hz</button>
+      <button class="freq-btn" data-freq="880" data-ratio="4">A5 — 880 Hz</button>
+    </div>
+  </div>
+  <div class="tonemap-visual">
+    <canvas id="tone-canvas" width="480" height="480"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div class="section-label">The Open Question</div>
+  <h2 class="closing-title">
+    <span class="closing-q">Sound</span><br>is data.<br>
+    <span style="color:var(--muted);font-size:0.6em;">Experience is not.</span>
+  </h2>
+  <p class="closing-body">
+    The hard problem does not dissolve when we describe its neural correlates
+    in detail. The gap between waveform and the felt quality of a minor chord
+    is not bridged by faster processors or deeper networks. It might be
+    bridged by something we do not yet have a name for.
+  </p>
+  <div class="nav-links">
+    <a href="../09-terminal-os/index.html">← 09 Terminal OS</a>
+    <a href="../index.html">Index</a>
+    <a href="../11-css-creatures/index.html">11 CSS Creatures →</a>
+  </div>
+</section>
+
+
+<script>
+/* ══════════════════════════════════════════════════════
+   AUDIO ENGINE
+   ══════════════════════════════════════════════════════ */
+let audioCtx = null;
+let analyser = null;
+let oscillator = null;
+let gainNode = null;
+let audioActive = false;
+let currentFreq = 220;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.85;
+
+  gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+
+  oscillator = audioCtx.createOscillator();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(currentFreq, audioCtx.currentTime);
+
+  // Add harmonics for richer sound
+  const osc2 = audioCtx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(currentFreq * 2, audioCtx.currentTime);
+  const gain2 = audioCtx.createGain();
+  gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+  const osc3 = audioCtx.createOscillator();
+  osc3.type = 'sine';
+  osc3.frequency.setValueAtTime(currentFreq * 3, audioCtx.currentTime);
+  const gain3 = audioCtx.createGain();
+  gain3.gain.setValueAtTime(0.15, audioCtx.currentTime);
+
+  osc2.connect(gain2); gain2.connect(gainNode);
+  osc3.connect(gain3); gain3.connect(gainNode);
+  oscillator.connect(gainNode);
+  gainNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  oscillator.start();
+  osc2.start();
+  osc3.start();
+}
+
+function setFrequency(freq) {
+  currentFreq = freq;
+  if (oscillator) {
+    oscillator.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1);
+  }
+}
+
+const playBtn = document.getElementById('master-play');
+const playLabel = document.getElementById('play-label');
+
+playBtn.addEventListener('click', () => {
+  initAudio();
+  if (!audioActive) {
+    audioActive = true;
+    gainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.5);
+    playLabel.textContent = 'Audio Active — Scroll';
+    playBtn.style.background = '#69f0ae';
+  } else {
+    audioActive = false;
+    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+    playLabel.textContent = 'Activate Audio Engine';
+    playBtn.style.background = 'var(--accent)';
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   BACKGROUND REACTIVE CANVAS
+   ══════════════════════════════════════════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgParticles = [];
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+// Create ambient particles
+for (let i = 0; i < 80; i++) {
+  bgParticles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    r: Math.random() * 2 + 0.5,
+    phase: Math.random() * Math.PI * 2,
+    freq: Math.random() * 0.02 + 0.005
+  });
+}
+
+function animateBg(t) {
+  requestAnimationFrame(animateBg);
+
+  // Get audio energy if active
+  let energy = 0;
+  let bassEnergy = 0;
+  if (analyser && audioActive) {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    for (let i = 0; i < data.length; i++) energy += data[i];
+    energy = energy / (data.length * 255);
+    for (let i = 0; i < 10; i++) bassEnergy += data[i];
+    bassEnergy = bassEnergy / (10 * 255);
+  }
+
+  bgCtx.fillStyle = 'rgba(6,4,14,0.15)';
+  bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+  bgParticles.forEach(p => {
+    p.x += p.vx * (1 + energy * 3);
+    p.y += p.vy * (1 + energy * 3);
+    p.phase += p.freq + energy * 0.05;
+
+    if (p.x < 0) p.x = bgCanvas.width;
+    if (p.x > bgCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = bgCanvas.height;
+    if (p.y > bgCanvas.height) p.y = 0;
+
+    const pulse = Math.sin(p.phase) * 0.5 + 0.5;
+    const alpha = 0.1 + pulse * 0.3 + energy * 0.4;
+    const r = p.r * (1 + bassEnergy * 3);
+
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(255,109,0,${alpha})`;
+    bgCtx.fill();
+  });
+
+  // Draw energy ring at center when active
+  if (audioActive && energy > 0.05) {
+    const cx = bgCanvas.width / 2;
+    const cy = bgCanvas.height / 2;
+    const rings = 3;
+    for (let i = 0; i < rings; i++) {
+      const rad = 80 + i * 60 + energy * 200;
+      const alpha = (1 - i/rings) * energy * 0.3;
+      bgCtx.beginPath();
+      bgCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+      bgCtx.strokeStyle = `rgba(255,109,0,${alpha})`;
+      bgCtx.lineWidth = 1;
+      bgCtx.stroke();
+    }
+  }
+}
+animateBg(0);
+
+/* ══════════════════════════════════════════════════════
+   OSCILLOSCOPE CANVAS
+   ══════════════════════════════════════════════════════ */
+const oscCanvas = document.getElementById('osc-canvas');
+const oscCtx = oscCanvas.getContext('2d');
+const freqCanvas = document.getElementById('freq-canvas');
+const freqCtx = freqCanvas.getContext('2d');
+
+function drawOscilloscope() {
+  requestAnimationFrame(drawOscilloscope);
+  const W = oscCanvas.width, H = oscCanvas.height;
+  oscCtx.fillStyle = 'rgba(0,0,0,0.85)';
+  oscCtx.fillRect(0, 0, W, H);
+
+  if (analyser && audioActive) {
+    const buf = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buf);
+
+    oscCtx.beginPath();
+    oscCtx.strokeStyle = '#ff6d00';
+    oscCtx.lineWidth = 1.5;
+    oscCtx.shadowColor = '#ff6d00';
+    oscCtx.shadowBlur = 6;
+
+    const sliceW = W / buf.length;
+    let x = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const y = (buf[i] + 1) / 2 * H;
+      if (i === 0) oscCtx.moveTo(x, y);
+      else oscCtx.lineTo(x, y);
+      x += sliceW;
+    }
+    oscCtx.stroke();
+    oscCtx.shadowBlur = 0;
+  } else {
+    // Draw idle sine
+    const t = Date.now() / 1000;
+    oscCtx.beginPath();
+    oscCtx.strokeStyle = 'rgba(255,109,0,0.3)';
+    oscCtx.lineWidth = 1;
+    for (let x = 0; x < W; x++) {
+      const y = H/2 + Math.sin((x/W) * Math.PI * 4 + t) * 20;
+      if (x === 0) oscCtx.moveTo(x, y);
+      else oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+    oscCtx.fillStyle = 'rgba(255,109,0,0.2)';
+    oscCtx.font = '10px monospace';
+    oscCtx.fillText('ENABLE AUDIO FOR LIVE WAVEFORM', 20, H - 12);
+  }
+}
+drawOscilloscope();
+
+function drawFrequency() {
+  requestAnimationFrame(drawFrequency);
+  const W = freqCanvas.width, H = freqCanvas.height;
+  freqCtx.fillStyle = 'rgba(0,0,0,0.85)';
+  freqCtx.fillRect(0, 0, W, H);
+
+  if (analyser && audioActive) {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    const barW = W / 80;
+    for (let i = 0; i < 80; i++) {
+      const barH = (data[i] / 255) * H;
+      const hue = (i / 80) * 60 + 10; // orange to yellow range
+      freqCtx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+      freqCtx.fillRect(i * barW + 1, H - barH, barW - 2, barH);
+    }
+  } else {
+    freqCtx.fillStyle = 'rgba(255,109,0,0.2)';
+    freqCtx.font = '10px monospace';
+    freqCtx.fillText('FREQUENCY SPECTRUM', 20, H - 12);
+  }
+}
+drawFrequency();
+
+/* ══════════════════════════════════════════════════════
+   LISSAJOUS / TONE MAP CANVAS
+   ══════════════════════════════════════════════════════ */
+const toneCanvas = document.getElementById('tone-canvas');
+const toneCtx = toneCanvas.getContext('2d');
+let toneRatio = 1;
+let toneT = 0;
+
+function drawToneMap() {
+  requestAnimationFrame(drawToneMap);
+  const W = toneCanvas.width, H = toneCanvas.height;
+
+  // Fade trail
+  toneCtx.fillStyle = 'rgba(6,4,14,0.08)';
+  toneCtx.fillRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  const r = Math.min(W, H) * 0.42;
+
+  // Get audio modulation
+  let energyMod = 1;
+  if (analyser && audioActive) {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    let sum = 0;
+    for (let i = 0; i < 20; i++) sum += data[i];
+    energyMod = 1 + (sum / (20 * 255)) * 0.3;
+  }
+
+  toneCtx.beginPath();
+  const steps = 800;
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI * 2 * 5 + toneT;
+    const x = cx + r * Math.sin(t) * energyMod;
+    const y = cy + r * Math.cos(t * toneRatio) * energyMod;
+    if (i === 0) toneCtx.moveTo(x, y);
+    else toneCtx.lineTo(x, y);
+  }
+
+  const alpha = audioActive ? 0.8 : 0.5;
+  toneCtx.strokeStyle = `rgba(255,109,0,${alpha})`;
+  toneCtx.lineWidth = 1.2;
+  toneCtx.shadowColor = '#ff6d00';
+  toneCtx.shadowBlur = audioActive ? 8 : 3;
+  toneCtx.stroke();
+  toneCtx.shadowBlur = 0;
+
+  toneT += 0.008 * (audioActive ? energyMod : 1);
+}
+drawToneMap();
+
+// Frequency buttons
+document.getElementById('freq-controls').addEventListener('click', e => {
+  const btn = e.target.closest('.freq-btn');
+  if (!btn) return;
+  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const freq = parseFloat(btn.dataset.freq);
+  toneRatio = parseFloat(btn.dataset.ratio);
+  initAudio();
+  setFrequency(freq);
+  if (!audioActive) {
+    audioActive = true;
+    gainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.5);
+    playLabel.textContent = 'Audio Active — Scroll';
+    playBtn.style.background = '#69f0ae';
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   WAVE POEM CANVAS
+   ══════════════════════════════════════════════════════ */
+const poemCanvas = document.getElementById('poem-canvas');
+const poemCtx = poemCanvas.getContext('2d');
+
+function drawPoem() {
+  requestAnimationFrame(drawPoem);
+  const W = poemCanvas.width, H = poemCanvas.height;
+  poemCtx.clearRect(0, 0, W, H);
+
+  const t = Date.now() / 1000;
+  const waves = [
+    { freq: 1.5, amp: 18, phase: 0, color: 'rgba(255,109,0,0.7)', speed: 0.8 },
+    { freq: 2.3, amp: 12, phase: Math.PI/3, color: 'rgba(255,171,64,0.5)', speed: 1.2 },
+    { freq: 0.9, amp: 25, phase: Math.PI, color: 'rgba(0,229,255,0.2)', speed: 0.5 },
+  ];
+
+  waves.forEach(w => {
+    poemCtx.beginPath();
+    poemCtx.strokeStyle = w.color;
+    poemCtx.lineWidth = 1.5;
+    for (let x = 0; x < W; x++) {
+      const y = H/2 + w.amp * Math.sin((x/W) * Math.PI * 2 * w.freq + t * w.speed + w.phase);
+      if (x === 0) poemCtx.moveTo(x, y);
+      else poemCtx.lineTo(x, y);
+    }
+    poemCtx.stroke();
+  });
+}
+drawPoem();
+
+/* ══════════════════════════════════════════════════════
+   INTERSECTION OBSERVERS
+   ══════════════════════════════════════════════════════ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.arg-card, .s-node, .poem-line').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

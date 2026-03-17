@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplaDocs Brand Guidelines</title>
+  <meta name="description" content="The complete SimplaDocs brand system — logo, colors, typography, design elements, and voice.">
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+  <style>
+    /* =============================================
+       DESIGN TOKENS
+       ============================================= */
+    :root {
+      --navy:        #0d2d52;
+      --navy-deep:   #071829;
+      --royal:       #2e57ca;
+      --cyan:        #3de3ff;
+      --sky:         #199bde;
+      --lavender:    #889beb;
+      --medium:      #2d84ef;
+      --ice:         #e4f0fb;
+      --bg:          #f1f3f6;
+      --white:       #ffffff;
+      --muted:       rgba(13,45,82,0.55);
+      --border:      rgba(13,45,82,0.09);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Rethink Sans', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; display: block; }
+
+    /* =============================================
+       BRAND GRID PATTERN
+       ============================================= */
+    .brand-grid {
+      background-color: var(--bg);
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='none' stroke='rgba(13,45,82,0.055)' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='80' y2='80' stroke='rgba(13,45,82,0.04)' stroke-width='0.5'/%3E%3Cline x1='80' y1='0' x2='0' y2='80' stroke='rgba(13,45,82,0.04)' stroke-width='0.5'/%3E%3Cline x1='40' y1='0' x2='40' y2='80' stroke='rgba(13,45,82,0.03)' stroke-width='0.5'/%3E%3Cline x1='0' y1='40' x2='80' y2='40' stroke='rgba(13,45,82,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+    }
+    .brand-grid-dark {
+      background-color: var(--navy);
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='80' y2='80' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3Cline x1='80' y1='0' x2='0' y2='80' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+    }
+
+    /* =============================================
+       NAV
+       ============================================= */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(241,243,246,0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(13,45,82,0.08);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .nav-logo img { height: 30px; width: auto; }
+    .nav-pills {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--white); border-radius: 100px;
+      padding: 5px; box-shadow: 0 2px 8px rgba(13,45,82,0.06);
+    }
+    .nav-pills a {
+      padding: 8px 20px; border-radius: 100px;
+      color: rgba(13,45,82,0.55); text-decoration: none;
+      font-size: 14px; font-weight: 500; transition: all 0.2s; white-space: nowrap;
+    }
+    .nav-pills a:hover { color: var(--navy); background: rgba(13,45,82,0.04); }
+    .nav-pills a.active { background: var(--navy); color: var(--white); }
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 24px; border-radius: 100px;
+      background: linear-gradient(90deg, #2e57ca, #3de3ff);
+      color: white; font-weight: 600; font-size: 14px;
+      text-decoration: none; transition: all 0.3s; white-space: nowrap;
+    }
+    .nav-cta:hover { background: linear-gradient(90deg, #003566, #2e7cf7); transform: translateY(-1px); }
+    .nav-cta .arrow { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+    /* =============================================
+       HERO — Brand Guidelines
+       ============================================= */
+    .brand-hero {
+      padding: 100px 24px 80px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .brand-hero-deco {
+      position: absolute; pointer-events: none;
+    }
+    .bh-deco-1 { right: -80px; top: 50%; transform: translateY(-50%); width: 420px; opacity: 0.045; }
+    .bh-deco-2 { left: -100px; top: 50%; transform: translateY(-50%); width: 350px; opacity: 0.03; }
+    .brand-hero-kicker {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(46,87,202,0.1); border: 1px solid rgba(46,87,202,0.2);
+      border-radius: 100px; padding: 8px 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--royal);
+      margin-bottom: 32px;
+    }
+    .brand-hero h1 {
+      font-size: clamp(48px, 8vw, 100px);
+      font-weight: 500; line-height: 1.0;
+      letter-spacing: -0.025em; margin-bottom: 24px;
+    }
+    .brand-hero h1 em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-weight: 400;
+    }
+    .brand-hero-sub {
+      font-size: 18px; color: var(--muted);
+      max-width: 580px; margin: 0 auto; line-height: 1.65;
+    }
+
+    /* TOC pills */
+    .toc {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 10px; padding: 40px 24px 0;
+    }
+    .toc a {
+      padding: 10px 20px; border-radius: 100px;
+      background: var(--white); border: 1px solid var(--border);
+      color: var(--navy); font-size: 14px; font-weight: 500;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .toc a:hover { background: var(--navy); color: white; border-color: var(--navy); }
+
+    /* =============================================
+       SECTION WRAPPER
+       ============================================= */
+    .brand-section {
+      padding: 100px 24px;
+    }
+    .brand-section + .brand-section { border-top: 1px solid var(--border); }
+    .section-header { margin-bottom: 56px; }
+    .section-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--royal);
+      margin-bottom: 10px; display: block;
+    }
+    .section-title {
+      font-size: clamp(34px, 4vw, 52px);
+      font-weight: 600; line-height: 1.08; letter-spacing: -0.02em;
+    }
+    .section-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .section-sub { font-size: 17px; color: var(--muted); max-width: 560px; margin-top: 14px; line-height: 1.65; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* =============================================
+       LOGO SECTION
+       ============================================= */
+    .logo-construction {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 60px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .logo-escher-note {
+      background: rgba(46,87,202,0.07);
+      border-left: 3px solid var(--royal);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      font-size: 14px; color: var(--navy);
+      margin-bottom: 48px; line-height: 1.6;
+    }
+    .logo-escher-note strong { font-weight: 700; }
+
+    .logo-variants-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .logo-variant {
+      border-radius: 20px;
+      padding: 48px 40px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 180px; position: relative;
+    }
+    .logo-variant img { max-height: 56px; width: auto; }
+    .logo-variant.light-bg { background: var(--bg); border: 1px solid var(--border); }
+    .logo-variant.dark-bg { background: var(--navy); }
+    .logo-variant.royal-bg { background: linear-gradient(135deg, #2e57ca, #1a3f8a); }
+    .logo-variant.cyan-bg  { background: linear-gradient(135deg, #3de3ff, #199bde); }
+    .logo-variant-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-top: 20px;
+    }
+    .logo-variant.light-bg .logo-variant-label { color: var(--muted); }
+    .logo-variant.dark-bg .logo-variant-label,
+    .logo-variant.royal-bg .logo-variant-label,
+    .logo-variant.cyan-bg .logo-variant-label { color: rgba(255,255,255,0.5); }
+
+    /* Logo don'ts */
+    .logo-rules {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+      margin-top: 32px;
+    }
+    .logo-rule {
+      background: var(--bg); border-radius: 16px; padding: 28px 24px;
+    }
+    .logo-rule-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px; font-size: 16px;
+    }
+    .logo-rule-icon.do { background: rgba(25,155,100,0.12); }
+    .logo-rule-icon.dont { background: rgba(220,53,69,0.12); }
+    .logo-rule h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .logo-rule p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* =============================================
+       COLOR SECTION
+       ============================================= */
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .color-swatch {
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 4px 16px rgba(13,45,82,0.1);
+    }
+    .swatch-color { height: 120px; }
+    .swatch-info {
+      background: var(--white); padding: 16px;
+      border: 1px solid var(--border); border-top: none;
+      border-radius: 0 0 16px 16px;
+    }
+    .swatch-name { font-size: 13px; font-weight: 700; }
+    .swatch-hex { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: monospace; letter-spacing: 0.02em; }
+    .swatch-role { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .color-secondaries {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .color-sec {
+      background: var(--white); border-radius: 16px; border: 1px solid var(--border);
+      padding: 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .color-sec-dot { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+    .color-sec-name { font-size: 14px; font-weight: 700; }
+    .color-sec-hex { font-size: 12px; color: var(--muted); margin-top: 3px; font-family: monospace; }
+    .color-sec-use { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* Gradient showcase */
+    .gradient-showcase {
+      background: linear-gradient(90deg, #2e57ca, #3de3ff);
+      border-radius: 20px; padding: 48px 48px;
+      margin-top: 24px; position: relative; overflow: hidden;
+    }
+    .grad-text { font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px; }
+    .grad-code { font-size: 13px; color: rgba(255,255,255,0.6); font-family: monospace; }
+    .grad-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 28px 14px 20px; border-radius: 100px;
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+      color: white; font-weight: 600; font-size: 15px;
+      text-decoration: none; margin-top: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    /* =============================================
+       TYPOGRAPHY
+       ============================================= */
+    .type-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .type-card {
+      background: var(--white); border-radius: 20px;
+      border: 1px solid var(--border); padding: 48px 40px;
+    }
+    .type-specimen {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 700; line-height: 1.0;
+      letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .type-specimen.serif {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-weight: 400;
+      font-size: clamp(48px, 6vw, 80px);
+    }
+    .type-name { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--royal); }
+    .type-desc { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    .type-scale {
+      background: var(--white); border-radius: 20px;
+      border: 1px solid var(--border); padding: 48px 40px;
+      margin-bottom: 24px;
+    }
+    .scale-row {
+      display: flex; align-items: baseline; gap: 24px;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
+    }
+    .scale-row:last-child { border-bottom: none; }
+    .scale-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); width: 80px; flex-shrink: 0; }
+    .scale-sample { flex: 1; }
+    .scale-size { font-size: 12px; color: var(--muted); font-family: monospace; white-space: nowrap; }
+
+    .type-weights {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    }
+    .weight-card {
+      background: var(--bg); border-radius: 16px; padding: 24px;
+    }
+    .weight-sample { font-size: 28px; line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 8px; }
+    .weight-label { font-size: 12px; color: var(--muted); }
+
+    /* =============================================
+       DESIGN ELEMENTS
+       ============================================= */
+    .elements-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .element-card {
+      background: var(--white); border-radius: 20px;
+      border: 1px solid var(--border); padding: 40px;
+    }
+    .element-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--royal); margin-bottom: 24px; display: block; }
+    .element-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .element-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* Grid demo */
+    .grid-demo {
+      width: 100%; height: 140px; border-radius: 12px; overflow: hidden;
+      margin-bottom: 20px;
+      background-color: #f1f3f6;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none' stroke='rgba(13,45,82,0.15)' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='40' y2='40' stroke='rgba(13,45,82,0.1)' stroke-width='0.5'/%3E%3Cline x1='40' y1='0' x2='0' y2='40' stroke='rgba(13,45,82,0.1)' stroke-width='0.5'/%3E%3Cline x1='20' y1='0' x2='20' y2='40' stroke='rgba(13,45,82,0.07)' stroke-width='0.5'/%3E%3Cline x1='0' y1='20' x2='40' y2='20' stroke='rgba(13,45,82,0.07)' stroke-width='0.5'/%3E%3C/svg%3E");
+    }
+
+    /* Symbol demo */
+    .symbol-demo {
+      height: 140px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #071829, #1a3f70);
+      border-radius: 12px; margin-bottom: 20px; overflow: hidden; position: relative;
+    }
+    .symbol-demo img { height: 90px; width: auto; filter: brightness(0) invert(1); opacity: 0.7; }
+
+    /* Diagonal demo */
+    .diagonal-demo {
+      height: 140px; border-radius: 12px; overflow: hidden;
+      margin-bottom: 20px; position: relative;
+    }
+    .diag-navy {
+      position: absolute; inset: 0;
+      background: var(--navy);
+      clip-path: polygon(0 0, 55% 0, 45% 100%, 0 100%);
+    }
+    .diag-light {
+      position: absolute; inset: 0;
+      background: var(--bg);
+      clip-path: polygon(55% 0, 100% 0, 100% 100%, 45% 100%);
+    }
+
+    /* Pill demo */
+    .pill-demo {
+      height: 140px; background: var(--bg); border-radius: 12px;
+      display: flex; flex-direction: column; align-items: flex-start;
+      justify-content: center; padding: 20px; gap: 10px; margin-bottom: 20px;
+    }
+    .pill-ex {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 18px; border-radius: 100px;
+      font-size: 13px; font-weight: 600;
+    }
+    .pill-navy { background: var(--navy); color: white; }
+    .pill-royal { background: rgba(46,87,202,0.12); color: var(--royal); border: 1px solid rgba(46,87,202,0.2); }
+    .pill-outline { background: white; color: var(--navy); border: 1px solid rgba(13,45,82,0.15); }
+
+    /* =============================================
+       VOICE & TONE
+       ============================================= */
+    .voice-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      margin-bottom: 48px;
+    }
+    .voice-card {
+      background: var(--white); border-radius: 20px;
+      border: 1px solid var(--border); padding: 40px;
+    }
+    .voice-trait {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
+    }
+    .voice-trait:last-child { border-bottom: none; }
+    .voice-icon { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .voice-trait-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .voice-trait-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+    .do-dont {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .do-card { background: rgba(25,155,82,0.06); border: 1px solid rgba(25,155,82,0.2); border-radius: 16px; padding: 24px; }
+    .dont-card { background: rgba(220,53,69,0.05); border: 1px solid rgba(220,53,69,0.18); border-radius: 16px; padding: 24px; }
+    .dd-header { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+    .do-card .dd-header { color: #198754; }
+    .dont-card .dd-header { color: #dc3545; }
+    .dd-item { font-size: 14px; line-height: 1.55; color: var(--navy); margin-bottom: 10px; padding-left: 20px; position: relative; }
+    .dd-item::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; }
+    .do-card .dd-item::before { background: #198754; }
+    .dont-card .dd-item::before { background: #dc3545; }
+
+    /* =============================================
+       USAGE EXAMPLES — Live demos
+       ============================================= */
+    .usage-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .usage-card {
+      border-radius: 20px; overflow: hidden; border: 1px solid var(--border);
+    }
+    .usage-preview {
+      height: 200px; display: flex; align-items: center; justify-content: center; padding: 32px;
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .brand-footer {
+      background: var(--navy-deep); padding: 48px 24px 36px;
+      color: rgba(255,255,255,0.45); text-align: center;
+    }
+    .brand-footer img { height: 24px; width: auto; filter: brightness(0) invert(1); opacity: 0.6; margin: 0 auto 16px; }
+    .brand-footer p { font-size: 14px; line-height: 1.6; }
+    .brand-footer a { color: rgba(255,255,255,0.45); text-decoration: none; }
+    .brand-footer a:hover { color: white; }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 900px) {
+      .nav-pills { display: none; }
+      .logo-variants-grid { grid-template-columns: 1fr; }
+      .color-palette { grid-template-columns: repeat(3, 1fr); }
+      .type-showcase { grid-template-columns: 1fr; }
+      .elements-grid { grid-template-columns: 1fr; }
+      .voice-grid { grid-template-columns: 1fr; }
+      .usage-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .color-palette { grid-template-columns: repeat(2, 1fr); }
+      .color-secondaries { grid-template-columns: 1fr; }
+      .logo-rules { grid-template-columns: 1fr; }
+      .type-weights { grid-template-columns: repeat(2, 1fr); }
+      .do-dont { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="brand-grid">
+
+  <!-- ==================== NAV ==================== -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html">
+        <img src="../../documents/distribution/svg/logo-prioritary_positive.svg" alt="SimplaDocs" style="height:30px;width:auto;">
+      </a>
+      <div class="nav-pills">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#team">Team</a>
+        <a href="brand.html" class="active">Brand</a>
+      </div>
+      <a href="https://simpladocs.com/contact" class="nav-cta">
+        Let's Talk
+        <span class="arrow">
+          <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><path d="M3.333 8h9.334M8.667 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO ==================== -->
+  <section class="brand-hero brand-grid">
+    <img src="../../documents/distribution/svg/logo-symbol_positive.svg" alt="" aria-hidden="true" class="brand-hero-deco bh-deco-1">
+    <img src="../../documents/distribution/svg/logo-symbol_positive.svg" alt="" aria-hidden="true" class="brand-hero-deco bh-deco-2">
+    <div class="brand-hero-kicker">Brand Guidelines</div>
+    <h1>Built to connect.<br><em>Designed to move.</em></h1>
+    <p class="brand-hero-sub">The SimplaDocs brand system — logo, colors, typography, design elements, and voice. Everything you need to communicate who we are.</p>
+  </section>
+
+  <!-- Table of contents -->
+  <div class="toc">
+    <a href="#logo">01 — Logo</a>
+    <a href="#colors">02 — Colors</a>
+    <a href="#typography">03 — Typography</a>
+    <a href="#elements">04 — Design Elements</a>
+    <a href="#voice">05 — Voice &amp; Tone</a>
+    <a href="#examples">06 — Usage Examples</a>
+  </div>
+
+  <!-- ==================== 01 LOGO ==================== -->
+  <section class="brand-section" id="logo">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">01 — Logo</span>
+        <h2 class="section-title">The <em>impossible</em> connection.</h2>
+        <p class="section-sub">Inspired by M.C. Escher's impossible buildings — two diagonal shapes that start on one plane and end in another, bridged by a horizontal element. Dynamic, yet balanced. Just like the connections we build.</p>
+      </div>
+
+      <div class="logo-construction">
+        <div class="logo-escher-note">
+          <strong>Design story:</strong> The logo starts on an open grid — the same construction grid you see throughout this brand. Two diagonal shapes are drawn, inspired by Escher's impossible geometry. Those shapes are bridged by a horizontal element. The result is a geometric "S" that represents impossible connections made real. The symbol is then a geometrical representation of those connections — dynamic, yet balanced.
+        </div>
+
+        <!-- Primary logo centered -->
+        <div style="text-align:center; padding: 40px 0 56px; border-bottom: 1px solid var(--border); margin-bottom: 56px;">
+          <img src="../../documents/distribution/svg/logo-prioritary_positive.svg" alt="SimplaDocs primary logo" style="max-height:80px;width:auto;margin:0 auto;">
+          <p style="font-size:12px;color:var(--muted);margin-top:20px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase">Primary Logo — Use on light backgrounds</p>
+        </div>
+
+        <!-- Logo variants -->
+        <h3 style="font-size:20px;font-weight:700;margin-bottom:24px">All Variants</h3>
+        <div class="logo-variants-grid">
+          <div class="logo-variant light-bg">
+            <img src="../../documents/distribution/svg/logo-prioritary_positive.svg" alt="SimplaDocs horizontal logo positive">
+            <span class="logo-variant-label">Horizontal — Light Background</span>
+          </div>
+          <div class="logo-variant dark-bg">
+            <img src="../../documents/distribution/svg/logo-compact_negative.svg" alt="SimplaDocs compact logo negative">
+            <span class="logo-variant-label">Compact — Dark Background</span>
+          </div>
+          <div class="logo-variant light-bg">
+            <img src="../../documents/distribution/svg/logo-vertical_positive.svg" alt="SimplaDocs vertical logo positive" style="max-height:80px;">
+            <span class="logo-variant-label">Vertical — Light Background</span>
+          </div>
+          <div class="logo-variant dark-bg">
+            <img src="../../documents/distribution/svg/logo-vertical_negative.svg" alt="SimplaDocs vertical logo negative" style="max-height:80px;">
+            <span class="logo-variant-label">Vertical — Dark Background</span>
+          </div>
+        </div>
+
+        <!-- Symbol alone -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px">
+          <div class="logo-variant light-bg" style="min-height:140px;">
+            <img src="../../documents/distribution/svg/logo-symbol_positive.svg" alt="SimplaDocs symbol mark positive" style="max-height:56px;">
+            <span class="logo-variant-label">Symbol — Light</span>
+          </div>
+          <div class="logo-variant dark-bg" style="min-height:140px;">
+            <img src="../../documents/distribution/svg/logo-symbol_negative.svg" alt="SimplaDocs symbol mark negative" style="max-height:56px;">
+            <span class="logo-variant-label">Symbol — Dark</span>
+          </div>
+          <div class="logo-variant royal-bg" style="min-height:140px;">
+            <img src="../../documents/distribution/svg/logo-symbol_negative.svg" alt="SimplaDocs symbol mark on blue" style="max-height:56px;">
+            <span class="logo-variant-label">Symbol — Royal</span>
+          </div>
+          <div class="logo-variant cyan-bg" style="min-height:140px;">
+            <img src="../../documents/distribution/svg/logo-symbol_negative.svg" alt="SimplaDocs symbol mark on cyan" style="max-height:56px;filter:brightness(0);">
+            <span class="logo-variant-label" style="color:rgba(13,45,82,0.5)">Symbol — Cyan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:20px">Usage Rules</h3>
+      <div class="logo-rules">
+        <div class="logo-rule">
+          <div class="logo-rule-icon do">✓</div>
+          <h4>Use on high-contrast backgrounds</h4>
+          <p>Logo must always read clearly. Place positive (navy) version on light backgrounds; negative (white) version on dark or colorful backgrounds.</p>
+        </div>
+        <div class="logo-rule">
+          <div class="logo-rule-icon do">✓</div>
+          <h4>Maintain clear space</h4>
+          <p>Keep a minimum clear space equal to the height of the "S" symbol on all sides. Never crowd the logo with text or other elements.</p>
+        </div>
+        <div class="logo-rule">
+          <div class="logo-rule-icon dont">✗</div>
+          <h4>Never stretch, skew, or recolor</h4>
+          <p>Don't alter proportions, apply drop shadows, or use colors outside the brand palette. The logo comes in positive and negative — that's it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 02 COLORS ==================== -->
+  <section class="brand-section" id="colors" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">02 — Colors</span>
+        <h2 class="section-title">Bright, vivid <em>blues.</em></h2>
+        <p class="section-sub">Although our logo uses a single color, the environment where it lives is colorful and bright. We want to have light — so we can express our intensity and joy. The palette runs from deep navy to electric cyan.</p>
+      </div>
+
+      <!-- Primary palette -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;letter-spacing:0.06em;text-transform:uppercase;font-size:12px;color:var(--muted)">PRIMARY PALETTE</h3>
+      <div class="color-palette">
+        <div class="color-swatch">
+          <div class="swatch-color" style="background:#071829"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Abyss</div>
+            <div class="swatch-hex">#071829</div>
+            <div class="swatch-role">Footer, deepest dark</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch-color" style="background:#0d2d52"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Navy</div>
+            <div class="swatch-hex">#0d2d52</div>
+            <div class="swatch-role">Primary text, sections</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch-color" style="background:#2e57ca"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Royal</div>
+            <div class="swatch-hex">#2e57ca</div>
+            <div class="swatch-role">CTAs, links, accents</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch-color" style="background:#2d84ef"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Sky</div>
+            <div class="swatch-hex">#2d84ef</div>
+            <div class="swatch-role">Body text on dark</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch-color" style="background:#3de3ff"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cyan</div>
+            <div class="swatch-hex">#3de3ff</div>
+            <div class="swatch-role">Gradient end, highlights</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary palette -->
+      <h3 style="font-size:12px;font-weight:700;margin-bottom:20px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">SECONDARY &amp; FUNCTIONAL</h3>
+      <div class="color-secondaries">
+        <div class="color-sec">
+          <div class="color-sec-dot" style="background:#889beb"></div>
+          <div>
+            <div class="color-sec-name">Lavender</div>
+            <div class="color-sec-hex">#889beb</div>
+            <div class="color-sec-use">Category tags, secondary accent</div>
+          </div>
+        </div>
+        <div class="color-sec">
+          <div class="color-sec-dot" style="background:#199bde"></div>
+          <div>
+            <div class="color-sec-name">Ocean</div>
+            <div class="color-sec-hex">#199bde</div>
+            <div class="color-sec-use">Alternative accent, pills</div>
+          </div>
+        </div>
+        <div class="color-sec">
+          <div class="color-sec-dot" style="background:#f1f3f6;border:1px solid #ddd"></div>
+          <div>
+            <div class="color-sec-name">Frost</div>
+            <div class="color-sec-hex">#f1f3f6</div>
+            <div class="color-sec-use">Page background, cards</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gradient -->
+      <div class="gradient-showcase">
+        <div class="grad-text">The Signature Gradient</div>
+        <div class="grad-code">background: linear-gradient(90deg, #2e57ca, #3de3ff)</div>
+        <div class="grad-code" style="margin-top:4px">Hover: linear-gradient(90deg, #003566, #2e7cf7)</div>
+        <a href="#" class="grad-btn" onclick="return false;">
+          Let's Talk
+          <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M3.333 8h9.334M8.667 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:16px">Used exclusively for primary CTAs. Never use on body text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 03 TYPOGRAPHY ==================== -->
+  <section class="brand-section" id="typography">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">03 — Typography</span>
+        <h2 class="section-title">Two fonts.<br><em>One personality.</em></h2>
+        <p class="section-sub">Rethink Sans brings clean, modern authority. Instrument Serif italic adds warmth, humanity, and just enough personality to keep things from feeling corporate.</p>
+      </div>
+
+      <!-- Typeface showcases -->
+      <div class="type-showcase">
+        <div class="type-card">
+          <div class="type-specimen">Rethink Sans</div>
+          <div class="type-name">Rethink Sans</div>
+          <div class="type-desc">Primary typeface. Used for headings, body copy, UI elements, navigation, and CTAs. Weights: 400, 500, 600, 700, 800.</div>
+          <div style="margin-top:24px;font-size:14px;color:var(--muted)">
+            <code style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px">Google Fonts: Rethink Sans</code>
+          </div>
+        </div>
+        <div class="type-card">
+          <div class="type-specimen serif">Instrument Serif</div>
+          <div class="type-name">Instrument Serif</div>
+          <div class="type-desc">Accent typeface, italic only. Used for hero headlines, section titles, pull quotes, and any moment that needs warmth or poetry. Never use upright.</div>
+          <div style="margin-top:24px;font-size:14px;color:var(--muted)">
+            <code style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px">Google Fonts: Instrument Serif</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type scale -->
+      <div class="type-scale">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:24px">Type Scale</h3>
+        <div class="scale-row">
+          <div class="scale-label">Display</div>
+          <div class="scale-sample" style="font-size:clamp(56px,8vw,96px);font-weight:500;line-height:1;letter-spacing:-0.025em">Operations</div>
+          <div class="scale-size">96–112px · weight 500</div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-label">H1</div>
+          <div class="scale-sample" style="font-size:clamp(40px,5vw,64px);font-weight:600;line-height:1.05;letter-spacing:-0.02em">Built to Scale</div>
+          <div class="scale-size">56–64px · weight 600</div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-label">H2</div>
+          <div class="scale-sample" style="font-size:clamp(28px,4vw,44px);font-weight:600;letter-spacing:-0.015em">Why SimplaDocs</div>
+          <div class="scale-size">36–44px · weight 600</div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-label">H3</div>
+          <div class="scale-sample" style="font-size:20px;font-weight:700">Custom Coda Solutions</div>
+          <div class="scale-size">20–22px · weight 700</div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-label">Body</div>
+          <div class="scale-sample" style="font-size:17px;color:var(--muted)">Custom solutions that eliminate manual work, replace scattered spreadsheets, and scale with your business.</div>
+          <div class="scale-size">16–18px · weight 400</div>
+        </div>
+        <div class="scale-row">
+          <div class="scale-label">Label</div>
+          <div class="scale-sample" style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--royal)">Our Services</div>
+          <div class="scale-size">11–12px · weight 700 · uppercase</div>
+        </div>
+      </div>
+
+      <!-- Serif in action -->
+      <div style="background:var(--navy);border-radius:20px;padding:56px;margin-bottom:24px">
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:20px">Instrument Serif in Action</p>
+        <p style="font-family:'Instrument Serif',serif;font-style:italic;font-size:clamp(36px,5vw,64px);font-weight:400;color:white;line-height:1.1;letter-spacing:-0.01em">Operations<br><em style="opacity:0.6">built to scale.</em></p>
+        <p style="font-size:14px;color:rgba(255,255,255,0.4);margin-top:20px">The italic serif creates warmth and contrast alongside Rethink Sans headers. Reserve it for moments that deserve emphasis — not every headline.</p>
+      </div>
+
+      <!-- Weights -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Rethink Sans Weights</h3>
+      <div class="type-weights">
+        <div class="weight-card"><div class="weight-sample" style="font-weight:400">Regular</div><div class="weight-label">400 — Body text, descriptions</div></div>
+        <div class="weight-card"><div class="weight-sample" style="font-weight:500">Medium</div><div class="weight-label">500 — UI, nav, labels</div></div>
+        <div class="weight-card"><div class="weight-sample" style="font-weight:600">Semibold</div><div class="weight-label">600 — H1, H2, buttons</div></div>
+        <div class="weight-card"><div class="weight-sample" style="font-weight:700">Bold</div><div class="weight-label">700 — H3, callouts, emphasis</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 04 DESIGN ELEMENTS ==================== -->
+  <section class="brand-section" id="elements" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">04 — Design Elements</span>
+        <h2 class="section-title">The building <em>blocks.</em></h2>
+        <p class="section-sub">Five recurring visual elements define the SimplaDocs brand environment. Used together, they create a system that's immediately recognizable — even without the logo.</p>
+      </div>
+
+      <div class="elements-grid">
+        <!-- The Grid -->
+        <div class="element-card">
+          <div class="grid-demo"></div>
+          <span class="element-label">The Construction Grid</span>
+          <h3 class="element-title">The foundation of everything</h3>
+          <p class="element-desc">The subtle cross-hatch grid is the same grid the logo was built on. It appears as a light background texture across all deliverables — the visual DNA of the brand.</p>
+        </div>
+
+        <!-- The Symbol -->
+        <div class="element-card">
+          <div class="symbol-demo">
+            <img src="../../documents/distribution/svg/logo-symbol_positive.svg" alt="SimplaDocs S symbol used as decorative element">
+          </div>
+          <span class="element-label">The S Symbol</span>
+          <h3 class="element-title">Decorative anchor</h3>
+          <p class="element-desc">The logo symbol appears large and ghosted as a decorative background element — in dark sections, on CTAs, in presentations. It fills space with brand identity without overpowering content.</p>
+        </div>
+
+        <!-- Diagonal splits -->
+        <div class="element-card">
+          <div class="diagonal-demo">
+            <div class="diag-navy"></div>
+            <div class="diag-light"></div>
+          </div>
+          <span class="element-label">Diagonal Splits</span>
+          <h3 class="element-title">Dark/light rhythm</h3>
+          <p class="element-desc">Sections alternate between navy and light backgrounds, often meeting with a diagonal edge rather than a horizontal line. This creates energy and references the logo's impossible geometry.</p>
+        </div>
+
+        <!-- Pill shapes -->
+        <div class="element-card">
+          <div class="pill-demo">
+            <span class="pill-ex pill-navy">
+              <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M3.333 8h9.334M8.667 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Let's Talk
+            </span>
+            <span class="pill-ex pill-royal">#1 Implementation Partner</span>
+            <span class="pill-ex pill-outline">Automation</span>
+          </div>
+          <span class="element-label">Pills &amp; Capsules</span>
+          <h3 class="element-title">Rounded everything</h3>
+          <p class="element-desc">Navigation, tags, badges, and buttons all use fully rounded pill shapes (border-radius: 100px). Sharp corners don't exist in the SimplaDocs UI vocabulary.</p>
+        </div>
+
+        <!-- Large numbers -->
+        <div class="element-card">
+          <div style="height:140px;display:flex;align-items:center;padding:0 8px;margin-bottom:20px;gap:24px">
+            <div>
+              <div style="font-size:72px;font-weight:500;line-height:0.9;letter-spacing:-0.04em;color:var(--navy)"><sup style="font-size:0.45em;position:relative;top:-0.3em">+</sup>215</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">Projects</div>
+            </div>
+            <div>
+              <div style="font-size:72px;font-weight:500;line-height:0.9;letter-spacing:-0.04em;color:var(--navy)"><sup style="font-size:0.45em;position:relative;top:-0.3em">+</sup>83k</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">Hours saved</div>
+            </div>
+          </div>
+          <span class="element-label">Display Numbers</span>
+          <h3 class="element-title">Proof, not promises</h3>
+          <p class="element-desc">Stats are displayed at giant scale using Rethink Sans weight 500 — not bold. The super-compressed line-height (0.88) and negative letter-spacing create maximum impact.</p>
+        </div>
+
+        <!-- Cards -->
+        <div class="element-card">
+          <div style="height:140px;display:flex;flex-direction:column;justify-content:center;gap:10px;margin-bottom:20px">
+            <div style="background:var(--bg);border-radius:14px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:12px">
+              <div style="width:36px;height:36px;background:var(--navy);border-radius:10px;flex-shrink:0"></div>
+              <div>
+                <div style="font-size:14px;font-weight:700">Custom Coda Solutions</div>
+                <div style="font-size:12px;color:var(--muted)">From simple workflows to complete operations</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;background:rgba(46,87,202,0.1);color:var(--royal)">Automation</span>
+              <span style="padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;background:rgba(13,45,82,0.07);color:var(--navy)">Coda</span>
+            </div>
+          </div>
+          <span class="element-label">Card System</span>
+          <h3 class="element-title">Everything in cards</h3>
+          <p class="element-desc">Services, case studies, team members, testimonials — all live in cards. White background on a frost surface. Rounded corners (border-radius: 20px). 1px border at 9% navy opacity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 05 VOICE & TONE ==================== -->
+  <section class="brand-section" id="voice">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">05 — Voice &amp; Tone</span>
+        <h2 class="section-title">Confident.<br><em>Not corporate.</em></h2>
+        <p class="section-sub">SimplaDocs sounds like a trusted advisor, not a vendor. The voice is direct, specific, and results-first — with enough warmth to remind you there are actual humans building this.</p>
+      </div>
+
+      <div class="voice-grid">
+        <div class="voice-card">
+          <h3 style="font-size:17px;font-weight:700;margin-bottom:24px">Brand Voice Traits</h3>
+          <div class="voice-trait">
+            <div class="voice-icon">🎯</div>
+            <div>
+              <div class="voice-trait-title">Results-first</div>
+              <div class="voice-trait-desc">Lead with outcomes. "11x faster workflows, 250+ hours saved" — not "we built an automation system." Real numbers, real impact.</div>
+            </div>
+          </div>
+          <div class="voice-trait">
+            <div class="voice-icon">📐</div>
+            <div>
+              <div class="voice-trait-title">Direct &amp; specific</div>
+              <div class="voice-trait-desc">No hedging, no fluff. Say the specific thing. "From 5-person startups to 500-person organizations" beats "companies of all sizes."</div>
+            </div>
+          </div>
+          <div class="voice-trait">
+            <div class="voice-icon">🤝</div>
+            <div>
+              <div class="voice-trait-title">Warm expertise</div>
+              <div class="voice-trait-desc">"We spend the time to understand how you work" — not "we leverage our proprietary methodology." Expert but never arrogant.</div>
+            </div>
+          </div>
+          <div class="voice-trait">
+            <div class="voice-icon">🪟</div>
+            <div>
+              <div class="voice-trait-title">Low-ego, transparent</div>
+              <div class="voice-trait-desc">"No black boxes, no technical dependencies, no over-engineered solutions." Let client quotes make the case for us.</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="do-dont">
+            <div class="do-card">
+              <div class="dd-header">✓ DO say</div>
+              <div class="dd-item">"Operations built to scale"</div>
+              <div class="dd-item">"Custom solutions" (not "software")</div>
+              <div class="dd-item">"Eliminate manual work"</div>
+              <div class="dd-item">"Replace scattered spreadsheets"</div>
+              <div class="dd-item">"Real-time visibility"</div>
+              <div class="dd-item">"From simple workflows to complete operations"</div>
+              <div class="dd-item">"Let's Talk" (primary CTA)</div>
+            </div>
+            <div class="dont-card">
+              <div class="dd-header">✗ NEVER say</div>
+              <div class="dd-item">"Software" — it's "solutions"</div>
+              <div class="dd-item">"Synergy", "paradigm", "leverage"</div>
+              <div class="dd-item">"Revolutionary" or "game-changing"</div>
+              <div class="dd-item">"Optimize" (overused)</div>
+              <div class="dd-item">"Best-in-class" without proof</div>
+              <div class="dd-item">Corporate buzzword soup</div>
+              <div class="dd-item">Self-praise without client proof</div>
+            </div>
+          </div>
+
+          <!-- Copy example -->
+          <div style="background:var(--white);border-radius:20px;border:1px solid var(--border);padding:32px;margin-top:20px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Example — Headline</div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="padding:16px 20px;background:rgba(25,155,82,0.06);border:1px solid rgba(25,155,82,0.2);border-radius:12px">
+                <div style="font-size:11px;font-weight:700;color:#198754;margin-bottom:6px;letter-spacing:0.06em">✓ SIMPLADOCS VOICE</div>
+                <div style="font-size:17px;font-weight:600">"No backfill needed after our PM retired. The system just ran."</div>
+              </div>
+              <div style="padding:16px 20px;background:rgba(220,53,69,0.05);border:1px solid rgba(220,53,69,0.18);border-radius:12px">
+                <div style="font-size:11px;font-weight:700;color:#dc3545;margin-bottom:6px;letter-spacing:0.06em">✗ NOT OUR VOICE</div>
+                <div style="font-size:17px;font-weight:600;color:var(--muted)">"Our revolutionary, best-in-class platform paradigm synergizes your workflow leverage."</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 06 USAGE EXAMPLES ==================== -->
+  <section class="brand-section" id="examples" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">06 — Usage Examples</span>
+        <h2 class="section-title">The brand <em>in the wild.</em></h2>
+        <p class="section-sub">Real applications of the SimplaDocs brand system. From hero sections to stat bars to testimonial cards — everything working together.</p>
+      </div>
+
+      <!-- Example: Hero CTA button -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Primary CTA Button</h3>
+      <div style="background:var(--bg);border-radius:20px;padding:48px;display:flex;justify-content:center;align-items:center;margin-bottom:32px">
+        <a href="#" onclick="return false;" style="display:inline-flex;align-items:center;gap:12px;padding:18px 20px 18px 36px;border-radius:100px;background:linear-gradient(90deg,#2e57ca,#3de3ff);color:white;font-weight:600;font-size:16px;text-decoration:none;box-shadow:0 8px 32px rgba(46,87,202,0.28);">
+          Let's Talk
+          <span style="width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><path d="M3.333 8h9.334M8.667 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </a>
+      </div>
+
+      <!-- Example: Stat bar -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Stats Bar (Dark)</h3>
+      <div style="background:var(--navy);border-radius:20px;padding:48px;display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:32px;overflow:hidden">
+        <div style="text-align:center;padding:0 24px;border-right:1px solid rgba(255,255,255,0.1)">
+          <div style="font-size:80px;font-weight:500;line-height:0.88;color:white;letter-spacing:-0.03em"><sup style="font-size:0.45em;position:relative;top:-0.3em">+</sup>215</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);font-style:italic;margin-top:12px">Projects Completed</div>
+        </div>
+        <div style="text-align:center;padding:0 24px;border-right:1px solid rgba(255,255,255,0.1)">
+          <div style="font-size:80px;font-weight:500;line-height:0.88;color:white;letter-spacing:-0.03em"><sup style="font-size:0.45em;position:relative;top:-0.3em">+</sup>15</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);font-style:italic;margin-top:12px">Years of Experience</div>
+        </div>
+        <div style="text-align:center;padding:0 24px">
+          <div style="font-size:80px;font-weight:500;line-height:0.88;color:white;letter-spacing:-0.03em"><sup style="font-size:0.45em;position:relative;top:-0.3em">+</sup>83k</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);font-style:italic;margin-top:12px">Hours of Work Saved</div>
+        </div>
+      </div>
+
+      <!-- Example: Testimonial card -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Testimonial Card (on Dark)</h3>
+      <div style="background:var(--navy);border-radius:20px;padding:48px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:32px">
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px">
+          <p style="font-size:16px;color:rgba(255,255,255,0.83);line-height:1.7;font-style:italic;margin-bottom:24px">"As a CIO, I've worked with many many vendors, and SimplaDocs was the best ROI I've ever made."</p>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2e57ca,#3de3ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px">NM</div>
+            <div>
+              <div style="font-weight:700;color:white;font-size:14px">CIO</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.4)">New Mexico Environment Department</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px">
+          <p style="font-size:16px;color:rgba(255,255,255,0.83);line-height:1.7;font-style:italic;margin-bottom:24px">"Their platform expertise, solutions-focused thinking, and flexibility were instrumental in building tools that unlocked scalable efficiency."</p>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#889beb,#2d84ef);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px">Q</div>
+            <div>
+              <div style="font-weight:700;color:white;font-size:14px">Operations Team</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.4)">Qualtrics Research Services</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation pill -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px">Navigation Pill</h3>
+      <div style="background:var(--bg);border-radius:20px;padding:32px 48px;display:flex;justify-content:center;margin-bottom:32px">
+        <div style="display:inline-flex;align-items:center;gap:4px;background:white;border-radius:100px;padding:6px;box-shadow:0 2px 8px rgba(13,45,82,0.08)">
+          <span style="padding:10px 22px;border-radius:100px;background:var(--navy);color:white;font-size:14px;font-weight:500">Home</span>
+          <span style="padding:10px 22px;border-radius:100px;color:rgba(13,45,82,0.5);font-size:14px;font-weight:500">About</span>
+          <span style="padding:10px 22px;border-radius:100px;color:rgba(13,45,82,0.5);font-size:14px;font-weight:500">Services</span>
+          <span style="padding:10px 22px;border-radius:100px;color:rgba(13,45,82,0.5);font-size:14px;font-weight:500">Work</span>
+          <span style="padding:10px 22px;border-radius:100px;color:rgba(13,45,82,0.5);font-size:14px;font-weight:500">Team</span>
+        </div>
+      </div>
+
+      <!-- Back to site -->
+      <div style="text-align:center;padding:40px 0 0">
+        <a href="index.html" style="display:inline-flex;align-items:center;gap:10px;padding:16px 32px 16px 24px;border-radius:100px;border:1px solid rgba(13,45,82,0.15);color:var(--navy);font-weight:600;font-size:15px;text-decoration:none;transition:all 0.2s;">
+          ← Back to SimplaDocs
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="brand-footer brand-grid-dark">
+    <img src="../../documents/distribution/svg/logo-prioritary_positive.svg" alt="SimplaDocs" style="height:24px;width:auto;filter:brightness(0) invert(1);opacity:0.6;margin:0 auto 16px;">
+    <p>SimplaDocs Brand Guidelines — <a href="https://simpladocs.com">simpladocs.com</a></p>
+    <p style="margin-top:8px;font-size:12px">© 2026 SimplaDocs. Questions? <a href="mailto:info@simpladocs.com">info@simpladocs.com</a></p>
+    <div style="display:flex;justify-content:center;gap:24px;margin-top:24px">
+      <a href="index.html" style="font-size:14px;color:rgba(255,255,255,0.4)">Home</a>
+      <a href="#logo" style="font-size:14px;color:rgba(255,255,255,0.4)">Logo</a>
+      <a href="#colors" style="font-size:14px;color:rgba(255,255,255,0.4)">Colors</a>
+      <a href="#typography" style="font-size:14px;color:rgba(255,255,255,0.4)">Typography</a>
+      <a href="#elements" style="font-size:14px;color:rgba(255,255,255,0.4)">Elements</a>
+      <a href="#voice" style="font-size:14px;color:rgba(255,255,255,0.4)">Voice</a>
+    </div>
+  </footer>
+
+</body>
+</html>

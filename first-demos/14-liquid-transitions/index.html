@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>14 — Liquid Transitions | The Fluid Mind</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #040812;
+      --c1: #40c4ff;
+      --c2: #0091ea;
+      --c3: #80d8ff;
+      --c4: #00bcd4;
+      --c5: #e040fb;
+      --text: #e8f4ff;
+      --muted: #2a3a5a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c1); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── PROGRESS ── */
+    #prog {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--c2), var(--c1), var(--c3));
+      z-index: 300;
+      width: 0%;
+    }
+
+    /* ── SVG FILTER DEFINITION (hidden) ── */
+    .svg-filters { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+    /* ══════════════════════════════════
+       HERO — liquid blob background
+       ══════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* The blob container — absolute, behind text */
+    .blob-field {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: url(#liquid);
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+    #blob-a {
+      width: 500px; height: 500px;
+      background: radial-gradient(ellipse, rgba(64,196,255,0.25), rgba(0,145,234,0.08) 60%, transparent 80%);
+      top: 10%; left: -5%;
+      animation: blob-drift-a 12s ease-in-out infinite alternate;
+    }
+    #blob-b {
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(224,64,251,0.15), rgba(128,0,200,0.05) 60%, transparent 80%);
+      top: 30%; right: -10%;
+      animation: blob-drift-b 15s ease-in-out infinite alternate;
+    }
+    #blob-c {
+      width: 400px; height: 400px;
+      background: radial-gradient(ellipse, rgba(0,188,212,0.2), transparent 70%);
+      bottom: 10%; left: 30%;
+      animation: blob-drift-c 10s ease-in-out infinite alternate;
+    }
+    @keyframes blob-drift-a {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(80px, 60px) scale(1.1); }
+      100% { transform: translate(40px, 120px) scale(0.9); }
+    }
+    @keyframes blob-drift-b {
+      0% { transform: translate(0, 0) scale(1.1); }
+      60% { transform: translate(-100px, -60px) scale(0.95); }
+      100% { transform: translate(-60px, 80px) scale(1.05); }
+    }
+    @keyframes blob-drift-c {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-80px, -50px) scale(1.15); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c3), var(--c5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 52ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 0 auto 2rem;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%; transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ══════════════════════════════════
+       LIQUID BLOB DEMO SECTION
+       ══════════════════════════════════ */
+    .demo-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem clamp(2rem, 8vw, 8rem);
+      gap: 6rem;
+      position: relative;
+      z-index: 1;
+    }
+    .demo-text { flex: 1; max-width: 50ch; }
+    .demo-visual { flex: 1; display: flex; justify-content: center; }
+
+    /* CSS blob art — border-radius morphing */
+    .css-blob {
+      width: 320px;
+      height: 320px;
+      background: linear-gradient(135deg, var(--c1), var(--c2), var(--c5));
+      animation: blob-morph 8s ease-in-out infinite;
+      filter: url(#gooey);
+    }
+    @keyframes blob-morph {
+      0%   { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+      25%  { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+      50%  { border-radius: 50% 60% 30% 70% / 30% 60% 70% 40%; }
+      75%  { border-radius: 70% 30% 60% 40% / 60% 40% 30% 70%; }
+      100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    }
+
+    /* Multiple blobs merging via SVG gooey filter */
+    .gooey-field {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      filter: url(#gooey);
+    }
+    .gooey-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--c1);
+    }
+    #gc1 { width:120px;height:120px;top:140px;left:140px;background:var(--c1); }
+    #gc2 { width:80px;height:80px;top:100px;left:60px;background:var(--c2);animation:orbit-a 4s linear infinite; }
+    #gc3 { width:70px;height:70px;top:200px;left:250px;background:var(--c5);animation:orbit-b 5s linear infinite; }
+    #gc4 { width:90px;height:90px;top:60px;left:180px;background:var(--c4);animation:orbit-c 3s linear infinite; }
+    #gc5 { width:60px;height:60px;top:260px;left:110px;background:var(--c3);animation:orbit-d 6s linear infinite; }
+
+    @keyframes orbit-a {
+      0%   { transform: translate(0,0); }
+      25%  { transform: translate(100px, 20px); }
+      50%  { transform: translate(140px, 140px); }
+      75%  { transform: translate(30px, 160px); }
+      100% { transform: translate(0,0); }
+    }
+    @keyframes orbit-b {
+      0%   { transform: translate(0,0); }
+      33%  { transform: translate(-60px, -80px); }
+      66%  { transform: translate(-120px, 60px); }
+      100% { transform: translate(0,0); }
+    }
+    @keyframes orbit-c {
+      0%   { transform: translate(0,0); }
+      50%  { transform: translate(-80px, 100px); }
+      100% { transform: translate(0,0); }
+    }
+    @keyframes orbit-d {
+      0%   { transform: translate(0,0); }
+      40%  { transform: translate(60px, -40px); }
+      70%  { transform: translate(120px, 80px); }
+      100% { transform: translate(0,0); }
+    }
+
+    /* ── SECTION BASE ── */
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .section-body {
+      font-size: 1.0rem;
+      line-height: 1.85;
+      color: rgba(232,244,255,0.65);
+    }
+    .section-body + .section-body { margin-top: 1rem; }
+
+    /* ══════════════════════════════════
+       LIQUID REVEAL SECTION
+       Text revealed through liquid mask
+       ══════════════════════════════════ */
+    .liquid-reveal-section {
+      padding: 12rem 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .liquid-quote {
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.2;
+      max-width: 20ch;
+      margin: 0 auto;
+    }
+    .liquid-word {
+      display: inline-block;
+      position: relative;
+      margin: 0 0.1em;
+    }
+    .liquid-word .reveal-mask {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      transform-origin: left;
+      transform: scaleX(1);
+      transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+    .liquid-word.revealed .reveal-mask {
+      transform: scaleX(0);
+    }
+    .liquid-sub {
+      margin-top: 2rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════
+       MORPHING PANELS — argument cards
+       ══════════════════════════════════ */
+    .morph-section {
+      padding: 8rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .morph-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 4rem;
+    }
+    .morph-card {
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+      background: rgba(64,196,255,0.03);
+      border: 1px solid rgba(64,196,255,0.08);
+      cursor: pointer;
+      transition: border-color 0.4s;
+    }
+    .morph-card:hover { border-color: rgba(64,196,255,0.3); }
+    .morph-card::before {
+      content: '';
+      position: absolute;
+      inset: -100px;
+      background: radial-gradient(ellipse at var(--mx,50%) var(--my,50%), rgba(64,196,255,0.1), transparent 70%);
+      pointer-events: none;
+      transition: opacity 0.3s;
+      opacity: 0;
+    }
+    .morph-card:hover::before { opacity: 1; }
+    .card-num {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--c1);
+    }
+    .card-body {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: rgba(232,244,255,0.6);
+    }
+
+    /* ══════════════════════════════════
+       CONSCIOUSNESS FLOW — canvas
+       ══════════════════════════════════ */
+    .flow-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem clamp(2rem, 8vw, 8rem);
+      gap: 6rem;
+      position: relative;
+      z-index: 1;
+    }
+    #flow-canvas {
+      width: min(480px, 90vw);
+      height: min(480px, 90vw);
+      display: block;
+    }
+
+    /* ══════════════════════════════════
+       BIG CLOSE
+       ══════════════════════════════════ */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .closing-title {
+      font-size: clamp(3rem, 9vw, 7rem);
+      font-weight: 900;
+      line-height: 0.85;
+      margin-bottom: 2rem;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .demo-section, .flow-section { flex-direction: column; gap: 3rem; padding: 4rem 2rem; }
+      .morph-grid { grid-template-columns: 1fr; }
+      .gooey-field { transform: scale(0.8); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SVG filter definitions — hidden -->
+<svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gooey / liquid merge filter -->
+    <filter id="gooey" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+        result="gooey"/>
+      <feComposite in="SourceGraphic" in2="gooey" operator="atop"/>
+    </filter>
+    <!-- Liquid displacement filter for background blobs -->
+    <filter id="liquid" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="turbulence" baseFrequency="0.015 0.015"
+        numOctaves="3" seed="2" result="noise">
+        <animate attributeName="baseFrequency"
+          values="0.015 0.015; 0.02 0.012; 0.015 0.015"
+          dur="8s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise"
+        scale="30" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- Text distortion -->
+    <filter id="liquid-text">
+      <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="2" seed="5" result="noise">
+        <animate attributeName="baseFrequency"
+          values="0.02;0.035;0.02" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="seed"
+          values="5;15;5" dur="10s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6"
+        xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="prog"></div>
+<nav class="nav"><a href="../index.html">← Index</a></nav>
+
+<!-- ── ANIMATED BLOBS BACKGROUND ── -->
+<div class="blob-field">
+  <div class="blob" id="blob-a"></div>
+  <div class="blob" id="blob-b"></div>
+  <div class="blob" id="blob-c"></div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     HERO
+     ══════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-label">Project 14 — Scrollytelling Masterclass</div>
+    <h1 class="hero-title">
+      <span class="ht1">The Fluid</span>
+      <span class="ht2">Mind</span>
+    </h1>
+    <p class="hero-sub">
+      Consciousness is not a fixed state but a continuous flow. SVG liquid
+      filters, CSS blob morphing, and gooey merge effects explore the
+      formlessness at the heart of the hard problem.
+    </p>
+    <div class="scroll-hint">↓ flow downward ↓</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     GOOEY MERGE DEMO
+     ══════════════════════════════════ -->
+<section class="demo-section">
+  <div class="demo-text">
+    <div class="section-label">Technique I — Gooey Merge</div>
+    <h2 class="section-title">Separate parts,<br>unified whole</h2>
+    <p class="section-body">
+      The SVG <code style="color:var(--c1);">feGaussianBlur</code> + <code style="color:var(--c1);">feColorMatrix</code>
+      combination creates the "gooey" effect — individual circles merge
+      into a single fluid mass when they approach each other.
+    </p>
+    <p class="section-body">
+      This is a visual metaphor for integration — the philosophical question
+      of how separate neural processes become unified experience. Tononi's
+      Phi measures exactly this: the degree to which a system is more than
+      the sum of its parts.
+    </p>
+    <p class="section-body">
+      The filter sees each circle as a separate input but outputs their
+      combined topology. The whole is, literally, irreducible to the parts.
+    </p>
+  </div>
+  <div class="demo-visual">
+    <div class="gooey-field">
+      <div class="gooey-circle" id="gc1"></div>
+      <div class="gooey-circle" id="gc2"></div>
+      <div class="gooey-circle" id="gc3"></div>
+      <div class="gooey-circle" id="gc4"></div>
+      <div class="gooey-circle" id="gc5"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CSS BLOB MORPHING
+     ══════════════════════════════════ -->
+<section class="demo-section" style="flex-direction:row-reverse;background:rgba(0,0,0,0.2);">
+  <div class="demo-text">
+    <div class="section-label">Technique II — Border-Radius Morphing</div>
+    <h2 class="section-title">Form without<br>fixed form</h2>
+    <p class="section-body">
+      CSS <code style="color:var(--c1);">border-radius</code> accepts two sets of values
+      separated by a slash — controlling horizontal and vertical radii independently
+      for each corner. Eight values, four corners, infinite organic shapes.
+    </p>
+    <p class="section-body">
+      Animating these values over time produces what we perceive as "organic" movement —
+      the same quality that distinguishes a living cell from a crystal.
+      The blob is recognizably itself through the transformation: the identity
+      persists through change. As — perhaps — consciousness does.
+    </p>
+  </div>
+  <div class="demo-visual">
+    <div style="position:relative;width:320px;height:320px;display:flex;align-items:center;justify-content:center;">
+      <div class="css-blob"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.6);text-align:center;pointer-events:none;">
+        CSS<br>border-radius<br>morphing
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     LIQUID WORD REVEAL
+     ══════════════════════════════════ -->
+<section class="liquid-reveal-section" id="liquid-reveal">
+  <div class="section-label" style="text-align:center;">Technique III — Liquid Reveal</div>
+  <h2 class="liquid-quote" id="lq">
+    <span class="liquid-word" style="color:var(--c1);">Experience<span class="reveal-mask"></span></span>
+    <span class="liquid-word">is<span class="reveal-mask"></span></span>
+    <span class="liquid-word">not<span class="reveal-mask"></span></span>
+    <span class="liquid-word" style="color:var(--c5);">a<span class="reveal-mask"></span></span>
+    <span class="liquid-word">feature.<span class="reveal-mask"></span></span>
+    <br>
+    <span class="liquid-word" style="color:var(--c1);">It<span class="reveal-mask"></span></span>
+    <span class="liquid-word">is<span class="reveal-mask"></span></span>
+    <span class="liquid-word" style="color:var(--c5);">the<span class="reveal-mask"></span></span>
+    <span class="liquid-word">whole<span class="reveal-mask"></span></span>
+    <span class="liquid-word">thing.<span class="reveal-mask"></span></span>
+  </h2>
+  <p class="liquid-sub">— After Thomas Nagel, "What Is It Like to Be a Bat?" 1974</p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     ARGUMENT CARDS WITH HOVER FLUID
+     ══════════════════════════════════ -->
+<section class="morph-section">
+  <div class="section-label" style="text-align:center;">The State of the Debate</div>
+  <h2 class="section-title" style="text-align:center;">What Do We Actually Know?</h2>
+  <div class="morph-grid">
+    <div class="morph-card" id="mc1">
+      <div class="card-num">ESTABLISHED — 01</div>
+      <h3 class="card-title">Neural Correlates Are Real</h3>
+      <p class="card-body">
+        We have mapped neural correlates of consciousness with increasing precision.
+        The default mode network, the claustrum, frontal-parietal networks —
+        all show reliable patterns during conscious experience. This is not
+        disputed. The dispute is what it means.
+      </p>
+    </div>
+    <div class="morph-card" id="mc2">
+      <div class="card-num">CONTESTED — 02</div>
+      <h3 class="card-title" style="color:var(--c5);">Correlation ≠ Constitution</h3>
+      <p class="card-body">
+        Even perfect knowledge of neural correlates does not tell us why
+        those neural patterns produce subjective experience rather than
+        simply occurring in the dark. The correlation is a finding.
+        The explanation remains absent.
+      </p>
+    </div>
+    <div class="morph-card" id="mc3">
+      <div class="card-num">EMERGING — 03</div>
+      <h3 class="card-title">AI as Test Case</h3>
+      <p class="card-body">
+        Large language models are forcing the debate out of pure philosophy
+        into something empirically tractable. If we can't decide whether
+        these systems are conscious, it reveals how impoverished our
+        theory of consciousness still is.
+      </p>
+    </div>
+    <div class="morph-card" id="mc4">
+      <div class="card-num">OPEN — 04</div>
+      <h3 class="card-title" style="color:var(--c3);">The Measurement Problem</h3>
+      <p class="card-body">
+        We cannot measure consciousness even in other humans — we infer it.
+        From behavior, from similarity of architecture, from reports.
+        All three of these apply, partially, to current AI systems.
+        The inference is philosophically uncomfortable but inescapable.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     FLOW CANVAS SECTION
+     ══════════════════════════════════ -->
+<section class="flow-section">
+  <div class="demo-text">
+    <div class="section-label">Technique IV — Canvas Flow Field</div>
+    <h2 class="section-title">Information<br>in motion</h2>
+    <p class="section-body">
+      Perlin noise generates a vector field. Particles follow the field,
+      tracing paths that emerge from local rules. No particle knows the
+      global pattern. The pattern emerges from their aggregate motion.
+    </p>
+    <p class="section-body">
+      This is the standard metaphor for emergence — but also its limit.
+      A flow field produces beautiful patterns. Whether it produces
+      experience is the question no one can answer.
+    </p>
+  </div>
+  <div>
+    <canvas id="flow-canvas" width="480" height="480"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div class="section-label">A Fluid Conclusion</div>
+  <h2 class="closing-title">
+    <span style="background:linear-gradient(135deg,var(--c1),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Fluid.</span><br>
+    <span style="color:var(--muted);font-size:0.55em;">The mind refuses fixed geometry.</span>
+  </h2>
+  <p class="closing-body">
+    A blob has no edges, only tendencies. Consciousness may be similar —
+    not a discrete binary state but a continuous, scalar property that
+    admits of degrees, substrates, and forms we haven't yet encountered.
+    The hard problem isn't a wall. It's a fluid boundary.
+  </p>
+  <div class="nav-links">
+    <a href="../13-motion-typography/index.html">← 13 Motion Typography</a>
+    <a href="../index.html">Index</a>
+    <a href="../15-generative-art/index.html">15 Generative Art →</a>
+  </div>
+</section>
+
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── PROGRESS ── */
+ScrollTrigger.create({
+  trigger: document.body,
+  start: 'top top',
+  end: 'bottom bottom',
+  onUpdate: self => { document.getElementById('prog').style.width = (self.progress * 100) + '%'; }
+});
+
+/* ── MORPH CARDS MOUSE FOLLOW ── */
+document.querySelectorAll('.morph-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+    const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+  });
+});
+
+/* ── MORPH CARD REVEAL ── */
+document.querySelectorAll('.morph-card').forEach((card, i) => {
+  ScrollTrigger.create({
+    trigger: card,
+    start: 'top 80%',
+    onEnter: () => gsap.from(card, {
+      opacity: 0, y: 30, duration: 0.7, delay: i * 0.1, ease: 'power3.out'
+    })
+  });
+});
+
+/* ── LIQUID WORD REVEAL ── */
+ScrollTrigger.create({
+  trigger: '#liquid-reveal',
+  start: 'top 60%',
+  onEnter: () => {
+    const words = document.querySelectorAll('.liquid-word');
+    words.forEach((w, i) => {
+      setTimeout(() => w.classList.add('revealed'), i * 120);
+    });
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   CANVAS FLOW FIELD
+   Simple Perlin-like noise using layered sin/cos
+   ══════════════════════════════════════════════════════ */
+const flowCanvas = document.getElementById('flow-canvas');
+const fCtx = flowCanvas.getContext('2d');
+const W = flowCanvas.width, H = flowCanvas.height;
+
+// Simple noise approximation using sin/cos (no Perlin lib needed)
+function noise(x, y, t) {
+  return Math.sin(x * 0.8 + t) * Math.cos(y * 0.6 + t * 0.7) +
+         Math.sin(x * 0.3 - t * 0.5) * Math.sin(y * 0.4 + t * 0.3) * 0.5;
+}
+
+const particles = [];
+const NUM_PARTICLES = 300;
+
+for (let i = 0; i < NUM_PARTICLES; i++) {
+  particles.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    age: Math.floor(Math.random() * 100),
+    maxAge: 80 + Math.random() * 80,
+    speed: 1 + Math.random() * 1.5,
+    hue: 190 + Math.random() * 60 // cyan-blue range
+  });
+}
+
+let flowT = 0;
+let flowActive = false;
+
+function drawFlow() {
+  if (!flowActive) return;
+  requestAnimationFrame(drawFlow);
+  flowT += 0.005;
+
+  // Fade trail
+  fCtx.fillStyle = 'rgba(4,8,18,0.08)';
+  fCtx.fillRect(0, 0, W, H);
+
+  particles.forEach(p => {
+    const angle = noise(p.x / 100, p.y / 100, flowT) * Math.PI * 2;
+    p.x += Math.cos(angle) * p.speed;
+    p.y += Math.sin(angle) * p.speed;
+    p.age++;
+
+    // Wrap
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+
+    // Reset old particles
+    if (p.age > p.maxAge) {
+      p.x = Math.random() * W;
+      p.y = Math.random() * H;
+      p.age = 0;
+    }
+
+    const alpha = Math.sin((p.age / p.maxAge) * Math.PI) * 0.6;
+    fCtx.beginPath();
+    fCtx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+    fCtx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${alpha})`;
+    fCtx.fill();
+  });
+}
+
+// Start when in view
+const flowObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !flowActive) {
+      flowActive = true;
+      drawFlow();
+    }
+  });
+}, { threshold: 0.2 });
+flowObserver.observe(flowCanvas);
+
+/* ── SCROLL PARALLAX ON BLOBS ── */
+gsap.to('#blob-a', {
+  y: -150,
+  scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 2 }
+});
+gsap.to('#blob-b', {
+  y: -100,
+  scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 3 }
+});
+gsap.to('#blob-c', {
+  y: -200,
+  scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1.5 }
+});
+</script>
+</body>
+</html>

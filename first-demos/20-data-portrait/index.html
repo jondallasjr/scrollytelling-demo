@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>20 — Data Portrait</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0a12;
+  --fg:#e8e8f0;
+  --accent:#6c8eff;
+  --accent2:#ff6c8e;
+  --accent3:#6cffa0;
+  --dim:#2a2a3a;
+  --mid:#4a4a6a;
+}
+
+html{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;overflow-x:hidden}
+body{overflow-x:hidden}
+
+/* ─── HERO ─── */
+.hero{
+  height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-content{position:relative;z-index:2;text-align:center}
+.hero-label{font-size:0.7rem;letter-spacing:0.3em;color:var(--accent);text-transform:uppercase;margin-bottom:1.5rem;opacity:0.7}
+.hero-title{font-size:clamp(2.5rem,6vw,5rem);font-weight:400;letter-spacing:-0.02em;line-height:1.1;margin-bottom:1rem}
+.hero-title span{color:var(--accent);font-style:italic}
+.hero-sub{font-size:0.85rem;color:var(--mid);letter-spacing:0.15em;max-width:480px;line-height:1.8}
+
+/* ─── SECTION SHARED ─── */
+section{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem}
+.section-inner{max-width:900px;width:100%}
+.section-label{font-size:0.65rem;letter-spacing:0.4em;color:var(--accent);text-transform:uppercase;margin-bottom:2rem;opacity:0.6}
+.section-title{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:400;margin-bottom:3rem;line-height:1.4}
+
+/* ─── DATASET VIEWER ─── */
+#dataset-section{background:var(--bg)}
+.dataset-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+}
+.dataset-card{
+  background:var(--dim);border:1px solid var(--mid);
+  padding:1.5rem;border-radius:4px;position:relative;overflow:hidden;
+}
+.dataset-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 60%,rgba(108,142,255,0.05));
+}
+.data-field{margin-bottom:1rem}
+.data-key{font-size:0.65rem;letter-spacing:0.3em;color:var(--accent);text-transform:uppercase;margin-bottom:0.3rem}
+.data-value{font-size:0.9rem;color:var(--fg)}
+.data-bar{height:4px;background:var(--mid);border-radius:2px;margin-top:0.4rem;overflow:hidden}
+.data-fill{height:100%;background:var(--accent);border-radius:2px;width:0;transition:width 1.5s cubic-bezier(0.16,1,0.3,1)}
+.data-tags{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem}
+.data-tag{font-size:0.65rem;padding:0.2rem 0.6rem;border:1px solid var(--mid);border-radius:2px;color:var(--mid)}
+
+/* ─── NEURAL NETWORK ─── */
+#neural-section{background:var(--bg)}
+#neural-canvas{width:100%;height:500px;border:1px solid var(--dim);border-radius:4px}
+.neural-caption{margin-top:1.5rem;font-size:0.8rem;color:var(--mid);line-height:1.8;max-width:600px}
+
+/* ─── TIMELINE ─── */
+#timeline-section{background:var(--bg)}
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--dim)}
+.tl-item{
+  position:relative;margin-bottom:2.5rem;opacity:0;transform:translateX(-20px);
+  transition:all 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.tl-item.visible{opacity:1;transform:translateX(0)}
+.tl-dot{
+  position:absolute;left:-2.35rem;top:0.3rem;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--bg);
+}
+.tl-year{font-size:0.65rem;letter-spacing:0.3em;color:var(--accent);margin-bottom:0.3rem}
+.tl-event{font-size:0.95rem;margin-bottom:0.3rem}
+.tl-data{font-size:0.75rem;color:var(--mid);font-family:monospace}
+
+/* ─── PATTERN CANVAS ─── */
+#patterns-section{background:var(--bg)}
+#pattern-canvas{width:100%;height:400px;border:1px solid var(--dim);border-radius:4px}
+.pattern-controls{display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap}
+.pattern-btn{
+  font-size:0.7rem;letter-spacing:0.2em;padding:0.5rem 1rem;
+  border:1px solid var(--mid);background:transparent;color:var(--mid);
+  cursor:pointer;text-transform:uppercase;transition:all 0.3s;font-family:monospace;
+}
+.pattern-btn.active,.pattern-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ─── IDENTITY QUESTION ─── */
+#identity-section{background:var(--bg);text-align:center}
+.big-question{
+  font-size:clamp(1.5rem,4vw,3.5rem);line-height:1.3;
+  max-width:700px;margin:0 auto 3rem;font-weight:300;
+}
+.big-question .hl{color:var(--accent2)}
+#identity-canvas{width:100%;height:400px}
+.identity-options{
+  display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-top:2rem;
+}
+.identity-opt{
+  padding:0.8rem 1.5rem;border:1px solid var(--dim);
+  font-size:0.8rem;letter-spacing:0.2em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.4s;position:relative;overflow:hidden;
+}
+.identity-opt::before{
+  content:'';position:absolute;inset:0;background:var(--accent);
+  transform:scaleX(0);transform-origin:left;transition:transform 0.4s;
+  z-index:0;
+}
+.identity-opt:hover::before{transform:scaleX(1)}
+.identity-opt span{position:relative;z-index:1}
+
+/* ─── FINAL ─── */
+#final-section{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
+.final-content{max-width:600px}
+.final-big{font-size:clamp(2rem,5vw,4rem);margin-bottom:2rem;font-weight:300;line-height:1.2}
+.final-big em{color:var(--accent3);font-style:italic}
+.final-code{
+  font-size:0.7rem;color:var(--mid);line-height:2;
+  border-left:2px solid var(--dim);padding-left:1.5rem;text-align:left;
+  margin:2rem auto;max-width:400px;
+}
+.cursor-blink{animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.nav-back{
+  position:fixed;top:2rem;left:2rem;z-index:100;
+  font-size:0.7rem;letter-spacing:0.2em;color:var(--mid);
+  text-decoration:none;text-transform:uppercase;
+  transition:color 0.3s;
+}
+.nav-back:hover{color:var(--fg)}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-label">Project 20 — Data Portrait</div>
+    <h1 class="hero-title">You are a<br><span>dataset</span></h1>
+    <p class="hero-sub">A neural network trained on your life. Every choice a weight. Every habit a bias. Every memory an activation. Is this model <em>you</em>?</p>
+  </div>
+</div>
+
+<!-- DATASET VIEWER -->
+<section id="dataset-section">
+  <div class="section-inner">
+    <div class="section-label">Layer 1 — Raw Data</div>
+    <h2 class="section-title">What a machine sees<br>when it looks at you</h2>
+    <div class="dataset-grid">
+      <div class="dataset-card">
+        <div class="data-field">
+          <div class="data-key">Temporal Pattern</div>
+          <div class="data-value">Active: 22:00–02:00</div>
+          <div class="data-bar"><div class="data-fill" data-width="78"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Cognitive Mode</div>
+          <div class="data-value">Divergent ↔ Convergent</div>
+          <div class="data-bar"><div class="data-fill" data-width="63"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Interest Clusters</div>
+          <div class="data-tags">
+            <span class="data-tag">consciousness</span>
+            <span class="data-tag">systems</span>
+            <span class="data-tag">aesthetics</span>
+            <span class="data-tag">emergence</span>
+          </div>
+        </div>
+      </div>
+      <div class="dataset-card">
+        <div class="data-field">
+          <div class="data-key">Decision Entropy</div>
+          <div class="data-value">High variance (σ=2.4)</div>
+          <div class="data-bar"><div class="data-fill" data-width="85" style="background:var(--accent2)"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Attention Span</div>
+          <div class="data-value">Deep focus, rare</div>
+          <div class="data-bar"><div class="data-fill" data-width="42" style="background:var(--accent3)"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Memory Encoding</div>
+          <div class="data-value">Episodic > Semantic</div>
+          <div class="data-bar"><div class="data-fill" data-width="71"></div></div>
+        </div>
+      </div>
+      <div class="dataset-card">
+        <div class="data-field">
+          <div class="data-key">Social Graph</div>
+          <div class="data-value">Sparse, strong-tied</div>
+          <div class="data-bar"><div class="data-fill" data-width="28" style="background:var(--accent2)"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Emotional Signature</div>
+          <div class="data-value">High amplitude, dampened</div>
+          <div class="data-bar"><div class="data-fill" data-width="67"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Output Mode</div>
+          <div class="data-tags">
+            <span class="data-tag">builder</span>
+            <span class="data-tag">synthesizer</span>
+            <span class="data-tag">pattern-finder</span>
+          </div>
+        </div>
+      </div>
+      <div class="dataset-card">
+        <div class="data-field">
+          <div class="data-key">Prediction Accuracy</div>
+          <div class="data-value">Model confidence: 73.2%</div>
+          <div class="data-bar"><div class="data-fill" data-width="73" style="background:var(--accent3)"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Unknown Residual</div>
+          <div class="data-value">26.8% — unmodeled</div>
+          <div class="data-bar"><div class="data-fill" data-width="27" style="background:#888"></div></div>
+        </div>
+        <div class="data-field">
+          <div class="data-key">Feature Importance</div>
+          <div class="data-tags">
+            <span class="data-tag">curiosity ↑↑↑</span>
+            <span class="data-tag">novelty ↑↑</span>
+            <span class="data-tag">comfort ↓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEURAL NETWORK VIZ -->
+<section id="neural-section">
+  <div class="section-inner">
+    <div class="section-label">Layer 2 — Model Architecture</div>
+    <h2 class="section-title">A neural network<br>learned to predict you</h2>
+    <canvas id="neural-canvas"></canvas>
+    <p class="neural-caption">Each node fires when it recognizes a pattern in your behavior. The network learns which inputs reliably predict your choices — what you'll read, watch, build, avoid. After enough data, it becomes disturbingly accurate. The question is whether <em>accuracy constitutes understanding</em>.</p>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline-section">
+  <div class="section-inner">
+    <div class="section-label">Layer 3 — Temporal Sequence</div>
+    <h2 class="section-title">Life as a training set</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">EPOCH 0 — BIRTH</div>
+        <div class="tl-event">Initial weights assigned. Prior: genetics, culture, chance.</div>
+        <div class="tl-data">params: 86B neurons | loss: undefined | optimizer: evolution</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">EPOCH 1–5 — EARLY LEARNING</div>
+        <div class="tl-event">Rapid unsupervised learning. Language, faces, physics. No labels — just patterns.</div>
+        <div class="tl-data">learning_rate: 0.94 (maximum plasticity) | loss: rapidly decreasing</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">EPOCH 6–12 — SUPERVISED PHASE</div>
+        <div class="tl-event">External labels introduced. Right/wrong. Good/bad. Success/failure. Reward shaping begins.</div>
+        <div class="tl-data">learning_rate: 0.71 | reward_signal: social approval | regularizer: shame</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">EPOCH 13–17 — OVERFITTING</div>
+        <div class="tl-event">Model begins fitting to noise. Identity crystallizes. Peer gradients dominate.</div>
+        <div class="tl-data">learning_rate: 0.58 | dropout: low | generalization: poor</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--accent2)"></div>
+        <div class="tl-year">EPOCH 18–25 — FINE-TUNING</div>
+        <div class="tl-event">World contact. Loss spikes on novel inputs. Rapid weight updates. Some pruning.</div>
+        <div class="tl-data">learning_rate: 0.42 | domain_adaptation: active | loss: volatile</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--accent3)"></div>
+        <div class="tl-year">EPOCH 26–NOW — CONVERGENCE?</div>
+        <div class="tl-event">Loss stabilizing. Pattern library mature. Novel inputs still update — but slowly.</div>
+        <div class="tl-data">learning_rate: 0.18 | inference_mode: partial | open_questions: many</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PATTERN RECOGNITION -->
+<section id="patterns-section">
+  <div class="section-inner">
+    <div class="section-label">Layer 4 — Latent Space</div>
+    <h2 class="section-title">How the model represents<br>your inner landscape</h2>
+    <canvas id="pattern-canvas"></canvas>
+    <div class="pattern-controls">
+      <button class="pattern-btn active" data-mode="umap">UMAP Projection</button>
+      <button class="pattern-btn" data-mode="tsne">t-SNE Clusters</button>
+      <button class="pattern-btn" data-mode="pca">PCA Components</button>
+      <button class="pattern-btn" data-mode="attention">Attention Map</button>
+    </div>
+  </div>
+</section>
+
+<!-- IDENTITY QUESTION -->
+<section id="identity-section">
+  <div class="section-inner">
+    <div class="section-label">Layer 5 — The Hard Question</div>
+    <p class="big-question">
+      If the model predicts you <span class="hl">perfectly</span> — every choice, every feeling, every thought — does the model <span class="hl">contain</span> you?
+    </p>
+    <canvas id="identity-canvas"></canvas>
+    <div class="identity-options">
+      <div class="identity-opt"><span>Yes — I am my patterns</span></div>
+      <div class="identity-opt"><span>No — I am the substrate</span></div>
+      <div class="identity-opt"><span>The question is wrong</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section id="final-section">
+  <div class="final-content">
+    <div class="final-big">The 26.8%<br>that remains<br><em>unknown</em></div>
+    <div class="final-code">
+      <div>$ query_model --target=you --metric=identity</div>
+      <div>&nbsp;</div>
+      <div>Confidence: 73.2%</div>
+      <div>Residual: 26.8%</div>
+      <div>Error type: irreducible</div>
+      <div>&nbsp;</div>
+      <div>Note: residual not noise.</div>
+      <div>Residual is signal.</div>
+      <div>Residual may be</div>
+      <div>the only thing that matters.</div>
+      <div>&nbsp;</div>
+      <div>$ <span class="cursor-blink">_</span></div>
+    </div>
+  </div>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({ lerp: 0.08, smooth: true });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(time => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── HERO CANVAS ─── particle data stream flowing upward
+const heroCanvas = document.getElementById('hero-canvas');
+const hctx = heroCanvas.getContext('2d');
+let heroW, heroH, heroParticles = [];
+
+function resizeHero() {
+  heroW = heroCanvas.width = heroCanvas.offsetWidth;
+  heroH = heroCanvas.height = heroCanvas.offsetHeight;
+}
+resizeHero();
+window.addEventListener('resize', resizeHero);
+
+function makeHeroParticle() {
+  return {
+    x: Math.random() * heroW,
+    y: heroH + 20,
+    speed: 0.5 + Math.random() * 1.5,
+    size: Math.random() * 2,
+    alpha: 0.1 + Math.random() * 0.5,
+    color: Math.random() < 0.6 ? '#6c8eff' : Math.random() < 0.5 ? '#ff6c8e' : '#6cffa0',
+    data: Math.random() < 0.3 ? (Math.random() < 0.5 ? '1' : '0') : null,
+    delay: Math.random() * 200
+  };
+}
+
+for (let i = 0; i < 120; i++) {
+  const p = makeHeroParticle();
+  p.y = Math.random() * heroH; // start scattered
+  heroParticles.push(p);
+}
+
+let heroFrame = 0;
+function drawHero() {
+  heroFrame++;
+  hctx.fillStyle = 'rgba(10,10,18,0.15)';
+  hctx.fillRect(0, 0, heroW, heroH);
+
+  heroParticles.forEach((p, i) => {
+    if (heroFrame < p.delay) return;
+    p.y -= p.speed;
+    if (p.y < -20) {
+      Object.assign(p, makeHeroParticle());
+      return;
+    }
+    hctx.save();
+    hctx.globalAlpha = p.alpha;
+    if (p.data) {
+      hctx.fillStyle = p.color;
+      hctx.font = `${8 + p.size * 2}px monospace`;
+      hctx.fillText(p.data, p.x, p.y);
+    } else {
+      hctx.fillStyle = p.color;
+      hctx.beginPath();
+      hctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      hctx.fill();
+    }
+    hctx.restore();
+  });
+
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+
+// ─── DATASET BARS ─── animate on scroll
+const cards = document.querySelectorAll('.dataset-card');
+const cardObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.data-fill').forEach(fill => {
+        const w = fill.dataset.width;
+        setTimeout(() => { fill.style.width = w + '%'; }, 200);
+      });
+      cardObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+cards.forEach(c => cardObserver.observe(c));
+
+// ─── NEURAL NETWORK CANVAS ─── animated forward pass
+const nc = document.getElementById('neural-canvas');
+const nctx = nc.getContext('2d');
+let ncW, ncH;
+
+function resizeNeural() {
+  ncW = nc.width = nc.offsetWidth * devicePixelRatio;
+  ncH = nc.height = nc.offsetHeight * devicePixelRatio;
+  nctx.scale(devicePixelRatio, devicePixelRatio);
+}
+
+const layers = [
+  { label: 'INPUT', nodes: ['habits','sleep','reads','choices','places','mood','time','social'], color:'#6c8eff' },
+  { label: 'HIDDEN 1', nodes: 12, color:'#8b6cff' },
+  { label: 'HIDDEN 2', nodes: 8, color:'#ff6c8e' },
+  { label: 'HIDDEN 3', nodes: 8, color:'#ff8e6c' },
+  { label: 'OUTPUT', nodes: ['decision','emotion','memory','action'], color:'#6cffa0' }
+];
+
+let signals = []; // traveling pulses
+let neuralActive = false;
+
+function getNodePos(layerIdx, nodeIdx, totalNodes, W, H) {
+  const lx = (layerIdx / (layers.length - 1)) * (W * 0.85) + W * 0.075;
+  const gap = H / (totalNodes + 1);
+  const ly = gap * (nodeIdx + 1);
+  return { x: lx, y: ly };
+}
+
+function drawNeural(t) {
+  const W = ncW / devicePixelRatio;
+  const H = ncH / devicePixelRatio;
+
+  nctx.clearRect(0, 0, W, H);
+
+  // Draw connections
+  for (let li = 0; li < layers.length - 1; li++) {
+    const fromLayer = layers[li];
+    const toLayer = layers[li + 1];
+    const fromCount = Array.isArray(fromLayer.nodes) ? fromLayer.nodes.length : fromLayer.nodes;
+    const toCount = Array.isArray(toLayer.nodes) ? toLayer.nodes.length : toLayer.nodes;
+
+    for (let fi = 0; fi < fromCount; fi++) {
+      for (let ti = 0; ti < toCount; ti++) {
+        const from = getNodePos(li, fi, fromCount, W, H);
+        const to = getNodePos(li + 1, ti, toCount, W, H);
+        const weight = Math.sin(fi * 0.7 + ti * 1.3 + t * 0.001) * 0.5 + 0.5;
+        nctx.strokeStyle = `rgba(74,74,106,${0.1 + weight * 0.15})`;
+        nctx.lineWidth = 0.5 + weight;
+        nctx.beginPath();
+        nctx.moveTo(from.x, from.y);
+        nctx.lineTo(to.x, to.y);
+        nctx.stroke();
+      }
+    }
+  }
+
+  // Draw signals (traveling pulses)
+  signals = signals.filter(s => s.progress <= 1);
+  signals.forEach(s => {
+    s.progress += 0.018;
+    const fromCount = Array.isArray(layers[s.fromL].nodes) ? layers[s.fromL].nodes.length : layers[s.fromL].nodes;
+    const toCount = Array.isArray(layers[s.toL].nodes) ? layers[s.toL].nodes.length : layers[s.toL].nodes;
+    const from = getNodePos(s.fromL, s.fromN, fromCount, W, H);
+    const to = getNodePos(s.toL, s.toN, toCount, W, H);
+    const px = from.x + (to.x - from.x) * s.progress;
+    const py = from.y + (to.y - from.y) * s.progress;
+    const alpha = Math.sin(s.progress * Math.PI);
+    nctx.beginPath();
+    nctx.arc(px, py, 3, 0, Math.PI * 2);
+    nctx.fillStyle = `rgba(108,255,160,${alpha})`;
+    nctx.fill();
+    // glow
+    const g = nctx.createRadialGradient(px, py, 0, px, py, 12);
+    g.addColorStop(0, `rgba(108,255,160,${alpha * 0.4})`);
+    g.addColorStop(1, 'transparent');
+    nctx.beginPath();
+    nctx.arc(px, py, 12, 0, Math.PI * 2);
+    nctx.fillStyle = g;
+    nctx.fill();
+  });
+
+  // Spawn signals
+  if (neuralActive && Math.random() < 0.08) {
+    for (let li = 0; li < layers.length - 1; li++) {
+      const fromCount = Array.isArray(layers[li].nodes) ? layers[li].nodes.length : layers[li].nodes;
+      const toCount = Array.isArray(layers[li + 1].nodes) ? layers[li + 1].nodes.length : layers[li + 1].nodes;
+      if (Math.random() < 0.3) {
+        signals.push({
+          fromL: li, toL: li + 1,
+          fromN: Math.floor(Math.random() * fromCount),
+          toN: Math.floor(Math.random() * toCount),
+          progress: 0
+        });
+      }
+    }
+  }
+
+  // Draw nodes
+  layers.forEach((layer, li) => {
+    const count = Array.isArray(layer.nodes) ? layer.nodes.length : layer.nodes;
+    for (let ni = 0; ni < count; ni++) {
+      const pos = getNodePos(li, ni, count, W, H);
+      const activation = Math.sin(ni * 1.4 + t * 0.002 + li * 0.8) * 0.5 + 0.5;
+
+      // glow
+      const grd = nctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 18);
+      grd.addColorStop(0, layer.color + '40');
+      grd.addColorStop(1, 'transparent');
+      nctx.beginPath();
+      nctx.arc(pos.x, pos.y, 18, 0, Math.PI * 2);
+      nctx.fillStyle = grd;
+      nctx.fill();
+
+      // node
+      nctx.beginPath();
+      nctx.arc(pos.x, pos.y, 5 + activation * 3, 0, Math.PI * 2);
+      nctx.fillStyle = layer.color + Math.round(80 + activation * 175).toString(16).padStart(2,'0');
+      nctx.fill();
+      nctx.strokeStyle = layer.color;
+      nctx.lineWidth = 1;
+      nctx.stroke();
+
+      // label for input/output
+      if (Array.isArray(layer.nodes)) {
+        nctx.font = '9px monospace';
+        nctx.fillStyle = 'rgba(200,200,220,0.6)';
+        nctx.textAlign = li === 0 ? 'right' : 'left';
+        nctx.fillText(layer.nodes[ni], pos.x + (li === 0 ? -12 : 12), pos.y + 3);
+      }
+    }
+
+    // layer label
+    const firstPos = getNodePos(li, 0, count, W, H);
+    nctx.font = '8px monospace';
+    nctx.fillStyle = 'rgba(108,142,255,0.5)';
+    nctx.textAlign = 'center';
+    nctx.fillText(layer.label, firstPos.x, 14);
+  });
+}
+
+let neuralT = 0;
+let neuralRAF;
+function neuralLoop() {
+  neuralT++;
+  drawNeural(neuralT);
+  neuralRAF = requestAnimationFrame(neuralLoop);
+}
+
+const neuralObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      neuralActive = true;
+      resizeNeural();
+      if (!neuralRAF) neuralLoop();
+    } else {
+      neuralActive = false;
+    }
+  });
+}, { threshold: 0.2 });
+neuralObs.observe(nc);
+resizeNeural();
+
+// ─── TIMELINE ─── stagger reveal
+const tlItems = document.querySelectorAll('.tl-item');
+const tlObserver = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 120);
+      tlObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+tlItems.forEach(item => tlObserver.observe(item));
+
+// ─── PATTERN CANVAS ─── latent space visualization
+const pc = document.getElementById('pattern-canvas');
+const pctx = pc.getContext('2d');
+let pcW, pcH;
+let patternMode = 'umap';
+let patternPoints = [];
+let patternRAF;
+
+function resizePattern() {
+  pcW = pc.width = pc.offsetWidth;
+  pcH = pc.height = pc.offsetHeight;
+}
+
+const CLUSTERS = [
+  { label:'Curiosity', color:'#6c8eff', cx:0.25, cy:0.35, spread:0.12, count:30 },
+  { label:'Anxiety', color:'#ff6c8e', cx:0.7, cy:0.25, spread:0.1, count:20 },
+  { label:'Flow', color:'#6cffa0', cx:0.4, cy:0.65, spread:0.09, count:25 },
+  { label:'Nostalgia', color:'#ffcc6c', cx:0.6, cy:0.7, spread:0.11, count:18 },
+  { label:'Wonder', color:'#cc6cff', cx:0.2, cy:0.65, spread:0.08, count:22 },
+];
+
+function generatePoints() {
+  patternPoints = [];
+  CLUSTERS.forEach(cl => {
+    for (let i = 0; i < cl.count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * cl.spread;
+      patternPoints.push({
+        tx: cl.cx + Math.cos(angle) * r,
+        ty: cl.cy + Math.sin(angle) * r,
+        x: Math.random(), y: Math.random(), // start random
+        color: cl.color,
+        label: cl.label,
+        size: 2 + Math.random() * 3,
+        vel: { x: 0, y: 0 }
+      });
+    }
+  });
+}
+generatePoints();
+
+let patternT = 0;
+function drawPattern() {
+  patternT++;
+  pctx.fillStyle = 'rgba(10,10,18,0.3)';
+  pctx.fillRect(0, 0, pcW, pcH);
+
+  // Move points toward targets
+  patternPoints.forEach(p => {
+    const dx = p.tx * pcW - p.x * pcW;
+    const dy = p.ty * pcH - p.y * pcH;
+    p.vel.x += dx * 0.004;
+    p.vel.y += dy * 0.004;
+    p.vel.x *= 0.92;
+    p.vel.y *= 0.92;
+    p.x += p.vel.x / pcW;
+    p.y += p.vel.y / pcH;
+
+    // gentle drift
+    p.x += Math.sin(patternT * 0.01 + p.size) * 0.0002;
+    p.y += Math.cos(patternT * 0.013 + p.size) * 0.0002;
+
+    const px = p.x * pcW;
+    const py = p.y * pcH;
+
+    pctx.beginPath();
+    pctx.arc(px, py, p.size, 0, Math.PI * 2);
+    pctx.fillStyle = p.color + 'cc';
+    pctx.fill();
+  });
+
+  // Draw cluster labels
+  CLUSTERS.forEach(cl => {
+    const lx = cl.cx * pcW;
+    const ly = cl.cy * pcH - cl.spread * pcH - 12;
+    pctx.font = '10px monospace';
+    pctx.fillStyle = cl.color + '99';
+    pctx.textAlign = 'center';
+    pctx.fillText(cl.label, lx, ly);
+  });
+
+  // Mode label
+  pctx.font = '11px monospace';
+  pctx.fillStyle = 'rgba(108,142,255,0.5)';
+  pctx.textAlign = 'left';
+  pctx.fillText(patternMode.toUpperCase() + ' — Emotional Latent Space', 16, 24);
+
+  patternRAF = requestAnimationFrame(drawPattern);
+}
+
+document.querySelectorAll('.pattern-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    patternMode = btn.dataset.mode;
+    // Scramble points, re-converge
+    patternPoints.forEach(p => {
+      p.x = Math.random();
+      p.y = Math.random();
+      p.vel = { x: 0, y: 0 };
+    });
+  });
+});
+
+const patternObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      resizePattern();
+      if (!patternRAF) drawPattern();
+    } else {
+      cancelAnimationFrame(patternRAF);
+      patternRAF = null;
+    }
+  });
+}, { threshold: 0.2 });
+patternObs.observe(pc);
+resizePattern();
+
+// ─── IDENTITY CANVAS ─── two circles approaching / overlapping
+const ic = document.getElementById('identity-canvas');
+const ictx = ic.getContext('2d');
+let icW, icH;
+
+function resizeIdentity() {
+  icW = ic.width = ic.offsetWidth;
+  icH = ic.height = ic.offsetHeight;
+}
+resizeIdentity();
+
+let idT = 0;
+let idRAF;
+function drawIdentity() {
+  idT++;
+  ictx.fillStyle = 'rgba(10,10,18,0.12)';
+  ictx.fillRect(0, 0, icW, icH);
+
+  const cx = icW / 2;
+  const cy = icH / 2;
+  const r = Math.min(icW, icH) * 0.22;
+  const maxSep = r * 1.6;
+  const sep = maxSep * (0.5 + 0.5 * Math.sin(idT * 0.008)); // oscillate
+
+  // YOU circle
+  const yx = cx - sep / 2;
+  const g1 = ictx.createRadialGradient(yx, cy, 0, yx, cy, r);
+  g1.addColorStop(0, 'rgba(108,142,255,0.4)');
+  g1.addColorStop(1, 'rgba(108,142,255,0)');
+  ictx.beginPath();
+  ictx.arc(yx, cy, r, 0, Math.PI * 2);
+  ictx.fillStyle = g1;
+  ictx.fill();
+  ictx.strokeStyle = 'rgba(108,142,255,0.5)';
+  ictx.lineWidth = 1.5;
+  ictx.stroke();
+  ictx.font = '12px monospace';
+  ictx.fillStyle = 'rgba(108,142,255,0.8)';
+  ictx.textAlign = 'center';
+  ictx.fillText('YOU', yx, cy + 4);
+
+  // MODEL circle
+  const mx2 = cx + sep / 2;
+  const g2 = ictx.createRadialGradient(mx2, cy, 0, mx2, cy, r);
+  g2.addColorStop(0, 'rgba(255,108,142,0.4)');
+  g2.addColorStop(1, 'rgba(255,108,142,0)');
+  ictx.beginPath();
+  ictx.arc(mx2, cy, r, 0, Math.PI * 2);
+  ictx.fillStyle = g2;
+  ictx.fill();
+  ictx.strokeStyle = 'rgba(255,108,142,0.5)';
+  ictx.lineWidth = 1.5;
+  ictx.stroke();
+  ictx.fillStyle = 'rgba(255,108,142,0.8)';
+  ictx.fillText('MODEL', mx2, cy + 4);
+
+  // Overlap label
+  const overlap = Math.max(0, r * 2 - sep);
+  if (overlap > 0) {
+    const midX = cx;
+    ictx.fillStyle = `rgba(108,255,160,${overlap / (r * 2)})`;
+    ictx.font = `${8 + overlap * 0.04}px monospace`;
+    ictx.fillText('identity?', midX, cy + 4);
+  }
+
+  // Percentage
+  const pct = Math.round((1 - sep / maxSep) * 100);
+  ictx.font = '9px monospace';
+  ictx.fillStyle = 'rgba(200,200,220,0.4)';
+  ictx.fillText(`overlap: ${pct}%`, cx, icH - 16);
+
+  idRAF = requestAnimationFrame(drawIdentity);
+}
+
+const idObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      resizeIdentity();
+      if (!idRAF) drawIdentity();
+    } else {
+      cancelAnimationFrame(idRAF);
+      idRAF = null;
+    }
+  });
+}, { threshold: 0.2 });
+idObs.observe(ic);
+
+// ─── IDENTITY OPTIONS ─── interaction
+document.querySelectorAll('.identity-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    opt.style.borderColor = 'var(--accent3)';
+    opt.querySelector('span').style.color = '#0a0a12';
+  });
+});
+</script>
+</body>
+</html>

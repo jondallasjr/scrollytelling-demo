@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The M-Pesa Leapfrog — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #06100c;
+  --teal: #00D4AA;
+  --teal2: #00ffcc;
+  --amber: #F5A623;
+  --white: #FFFFFF;
+  --gray: #6d8a7b;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--teal); z-index: 200; width: 0%;
+}
+.back {
+  position: fixed; top: 1.5rem; left: 1.5rem;
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); text-decoration: none; z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--teal); }
+
+/* ── INTRO ── */
+.intro {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 6rem 2rem;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 60%, rgba(0,212,170,0.06) 0%, transparent 65%);
+}
+
+.intro-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--teal); border: 1px solid rgba(0,212,170,0.3);
+  padding: 0.3rem 1rem; border-radius: 3px; margin-bottom: 2.5rem;
+  display: inline-block;
+}
+
+.intro-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: 1.08; max-width: 800px;
+}
+
+.intro-headline em { font-style: normal; color: var(--teal); }
+.intro-headline .amp { color: var(--amber); }
+
+.intro-sub {
+  margin-top: 2rem; font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--gray); max-width: 560px; line-height: 1.7;
+}
+
+.mpesa-logo {
+  margin-top: 2.5rem; display: flex; align-items: center; gap: 0.8rem;
+}
+
+.mpesa-pill {
+  background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3);
+  border-radius: 100px; padding: 0.5rem 1.2rem;
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 1.1rem; color: var(--teal); letter-spacing: 0.05em;
+}
+
+.scroll-cue {
+  margin-top: 4rem; color: rgba(255,255,255,0.15);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  animation: q 2s ease-in-out infinite;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+}
+@keyframes q { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* ── KENYA STORY — STICKY ── */
+.kenya-section {
+  min-height: 400vh;
+  position: relative;
+}
+
+.kenya-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+
+.dual-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  width: min(95vw, 980px);
+  min-height: 55vh;
+  position: relative;
+}
+
+@media (max-width: 680px) {
+  .dual-panels { grid-template-columns: 1fr; }
+}
+
+.panel {
+  padding: 3rem 2.5rem;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel--kenya {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-right: none;
+}
+
+.panel--zimbabwe {
+  background: rgba(0,212,170,0.04);
+  border: 1px solid rgba(0,212,170,0.2);
+}
+
+/* Panel connective arrows */
+.panel-connector {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid rgba(0,212,170,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.2rem; color: var(--teal); z-index: 2;
+}
+
+@media (max-width: 680px) { .panel-connector { display: none; } }
+
+.panel-year {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(3rem, 8vw, 6rem); line-height: 1;
+  color: rgba(255,255,255,0.06); position: absolute;
+  right: 1rem; bottom: 0.5rem;
+  pointer-events: none; user-select: none;
+}
+
+.panel--zimbabwe .panel-year { color: rgba(0,212,170,0.06); }
+
+.p-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.panel--kenya .p-eyebrow { color: var(--gray); }
+.panel--zimbabwe .p-eyebrow { color: var(--teal); }
+
+.p-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.3rem, 3vw, 2rem); line-height: 1.2; margin-bottom: 1.5rem;
+}
+
+.panel--zimbabwe .p-title em { font-style: normal; color: var(--teal); }
+
+.p-facts {
+  list-style: none; display: flex; flex-direction: column; gap: 0.6rem;
+}
+
+.p-fact {
+  font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+  color: rgba(255,255,255,0.55);
+  padding-left: 1.2rem;
+  position: relative;
+  opacity: 0; transform: translateX(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease, color 0.3s;
+}
+
+.p-fact.shown { opacity: 1; transform: translateX(0); }
+
+.p-fact::before {
+  content: '→';
+  position: absolute; left: 0;
+  font-size: 0.7em;
+}
+
+.panel--kenya .p-fact::before { color: var(--gray); }
+.panel--zimbabwe .p-fact::before { color: var(--teal); }
+
+.p-fact strong { color: var(--white); }
+
+/* ── OUTCOME BANNER ── */
+.outcome {
+  padding: 8rem 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,212,170,0.04) 50%, transparent 100%);
+}
+
+.outcome-inner { max-width: 820px; margin: 0 auto; }
+
+.outcome-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--teal); background: rgba(0,212,170,0.08);
+  border: 1px solid rgba(0,212,170,0.25);
+  display: inline-block; padding: 0.3rem 1rem; border-radius: 3px;
+  margin-bottom: 2.5rem;
+}
+
+.outcome-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2rem, 5.5vw, 4rem); line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.outcome-headline em { font-style: normal; color: var(--teal); }
+
+.outcome-sub {
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem); color: var(--gray);
+  line-height: 1.7; max-width: 620px; margin: 0 auto;
+}
+
+.outcome-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.2rem; margin: 3.5rem 0;
+}
+
+.outcome-card {
+  padding: 1.5rem;
+  background: rgba(0,212,170,0.05);
+  border: 1px solid rgba(0,212,170,0.15);
+  border-radius: 10px; text-align: center;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.outcome-card.visible { opacity: 1; transform: translateY(0); }
+.outcome-card:nth-child(2) { transition-delay: 0.12s; }
+.outcome-card:nth-child(3) { transition-delay: 0.24s; }
+.outcome-card:nth-child(4) { transition-delay: 0.36s; }
+
+.oc-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.6rem, 4vw, 2.5rem); color: var(--teal); line-height: 1;
+}
+.oc-label { font-size: 0.8rem; color: var(--gray); margin-top: 0.4rem; line-height: 1.4; }
+
+/* ── CALLOUT ── */
+.callout-section {
+  padding: 6rem 2rem 10rem;
+  text-align: center;
+}
+
+.callout-box {
+  max-width: 740px; margin: 0 auto;
+  padding: 3rem;
+  background: rgba(0,212,170,0.06);
+  border: 1px solid rgba(0,212,170,0.25);
+  border-radius: 16px;
+}
+
+.callout-text {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(1.4rem, 3.5vw, 2.4rem); line-height: 1.3;
+  font-style: italic;
+}
+
+.callout-text em { font-style: normal; color: var(--amber); }
+
+.callout-attribution {
+  margin-top: 1.5rem; font-size: 0.85rem; color: var(--gray);
+}
+
+.reveal-up {
+  opacity: 0; transform: translateY(25px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-up.visible { opacity: 1; transform: translateY(0); }
+
+.source {
+  text-align: center; padding: 2rem;
+  font-size: 0.7rem; color: rgba(255,255,255,0.08); letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- INTRO -->
+<section class="intro">
+  <span class="intro-label">RETS 2026 &bull; The Leapfrog Lesson</span>
+  <h1 class="intro-headline">
+    Kenya skipped <em>banks.</em><br>
+    <span class="amp">What will Zimbabwe skip?</span>
+  </h1>
+  <p class="intro-sub">
+    In 2007, Kenya had almost no banking infrastructure. Instead of building it, they skipped straight to mobile money. The result changed an entire continent.
+  </p>
+  <div class="mpesa-logo">
+    <div class="mpesa-pill">M-PESA</div>
+    <span style="color:var(--gray);font-size:0.85rem;">Safaricom, Kenya, 2007</span>
+  </div>
+  <div class="scroll-cue"><span>↓</span><span>scroll for the parallel</span></div>
+</section>
+
+<!-- KENYA vs ZIMBABWE PANELS -->
+<section class="kenya-section" id="kenyaSection">
+  <div class="kenya-sticky">
+    <div class="dual-panels">
+
+      <!-- KENYA -->
+      <div class="panel panel--kenya">
+        <div class="panel-year">2007</div>
+        <div class="p-eyebrow">Kenya — 2007</div>
+        <h2 class="p-title">No banks. No problem.<br>Just a phone.</h2>
+        <ul class="p-facts" id="kenyaFacts">
+          <li class="p-fact" data-i="0"><strong>5</strong> bank branches per 100,000 people</li>
+          <li class="p-fact" data-i="1"><strong>73%</strong> mobile penetration — same as Zimbabwe today</li>
+          <li class="p-fact" data-i="2">Traditional banking was too <strong>slow, costly, distant</strong></li>
+          <li class="p-fact" data-i="3">M-Pesa launched: <strong>send money via SMS</strong></li>
+          <li class="p-fact" data-i="4">Banks called it a <strong>curiosity</strong>. It became a revolution.</li>
+        </ul>
+      </div>
+
+      <div class="panel-connector">→</div>
+
+      <!-- ZIMBABWE -->
+      <div class="panel panel--zimbabwe">
+        <div class="panel-year">2026</div>
+        <div class="p-eyebrow">Zimbabwe — 2026</div>
+        <h2 class="p-title">No legacy PropTech.<br><em>Pure opportunity.</em></h2>
+        <ul class="p-facts" id="zimFacts">
+          <li class="p-fact" data-i="0"><strong>91.6%</strong> mobile penetration — higher than Kenya in 2007</li>
+          <li class="p-fact" data-i="1"><strong>$119B</strong> real estate market, mostly undigitized</li>
+          <li class="p-fact" data-i="2">Traditional agents: <strong>slow listings, paper processes</strong></li>
+          <li class="p-fact" data-i="3">AI tools launching: <strong>listings in seconds, leads answered at 2am</strong></li>
+          <li class="p-fact" data-i="4">The West built on top of legacy. <strong>Zimbabwe builds on AI from day one.</strong></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- OUTCOME -->
+<section class="outcome">
+  <div class="outcome-inner">
+    <span class="outcome-eyebrow reveal-up" data-reveal>What Kenya's Leapfrog Achieved</span>
+    <h2 class="outcome-headline reveal-up" data-reveal style="transition-delay:0.1s;">
+      18 years later,<br>M-Pesa became<br><em>Kenya's economy.</em>
+    </h2>
+
+    <div class="outcome-grid">
+      <div class="outcome-card" data-reveal-card>
+        <div class="oc-num">31.8M</div>
+        <div class="oc-label">active M-Pesa users today</div>
+      </div>
+      <div class="outcome-card" data-reveal-card>
+        <div class="oc-num">25%</div>
+        <div class="oc-label">of Kenya's entire GDP flows through M-Pesa</div>
+      </div>
+      <div class="outcome-card" data-reveal-card>
+        <div class="oc-num">200K</div>
+        <div class="oc-label">households lifted out of poverty</div>
+      </div>
+      <div class="outcome-card" data-reveal-card>
+        <div class="oc-num">0</div>
+        <div class="oc-label">bank branches built to make it happen</div>
+      </div>
+    </div>
+
+    <p class="outcome-sub reveal-up" data-reveal>
+      They didn't improve the old system. They made it irrelevant.
+      The same conditions that existed in Kenya in 2007 exist in Zimbabwe's property market today.
+      Same mobile penetration. Same underserved market. Different industry.
+    </p>
+  </div>
+</section>
+
+<!-- CALLOUT -->
+<section class="callout-section">
+  <div class="callout-box reveal-up" data-reveal>
+    <p class="callout-text">
+      "Same conditions.<br>Same opportunity.<br>
+      <em>Different industry.</em>"
+    </p>
+    <p class="callout-attribution">Jon Dallas · RETS 2026 · Zimbabwe Real Estate AI Summit</p>
+  </div>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 05</div>
+
+<script>
+(function() {
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    pb.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  });
+
+  const section = document.getElementById('kenyaSection');
+  const kenyaFacts = document.querySelectorAll('#kenyaFacts .p-fact');
+  const zimFacts = document.querySelectorAll('#zimFacts .p-fact');
+
+  let shown = { k: -1, z: -1 };
+
+  function onScroll() {
+    const rect = section.getBoundingClientRect();
+    const sectionH = section.offsetHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+
+    // Reveal kenya facts 0→5 during 0→0.5 of scroll
+    const kTarget = Math.floor(progress / 0.1);
+    if (kTarget > shown.k) {
+      for (let i = shown.k + 1; i <= Math.min(kTarget, kenyaFacts.length - 1); i++) {
+        kenyaFacts[i].classList.add('shown');
+      }
+      shown.k = kTarget;
+    }
+
+    // Reveal zimbabwe facts 0→5 during 0.1→0.6 of scroll
+    const zProgress = Math.max(0, progress - 0.1) / 0.5;
+    const zTarget = Math.floor(zProgress / 0.2);
+    if (zTarget > shown.z) {
+      for (let i = shown.z + 1; i <= Math.min(zTarget, zimFacts.length - 1); i++) {
+        zimFacts[i].classList.add('shown');
+      }
+      shown.z = zTarget;
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // IntersectionObserver for reveal-up elements
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+
+  // Outcome cards
+  const cardIO = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('[data-reveal-card]').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.12) + 's';
+    cardIO.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

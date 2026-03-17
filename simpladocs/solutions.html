@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimplaDocs — The Impossible Connection</title>
+<meta name="description" content="How SimplaDocs builds custom Coda solutions — the methodology, philosophy, and proof behind #1 Coda Implementation Partner.">
+<link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --abyss: #071829;
+  --navy: #0d2d52;
+  --royal: #2e57ca;
+  --sky: #2d84ef;
+  --cyan: #3de3ff;
+  --lavender: #889beb;
+  --ocean: #199bde;
+  --white: #ffffff;
+  --text: rgba(255,255,255,0.88);
+  --muted: rgba(255,255,255,0.38);
+  --dim: rgba(255,255,255,0.12);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Rethink Sans',sans-serif;
+  background:var(--abyss);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+  cursor:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='80' y2='80' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3Cline x1='80' y1='0' x2='0' y2='80' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3Cline x1='40' y1='0' x2='40' y2='80' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3Cline x1='0' y1='40' x2='80' y2='40' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
+}
+
+/* SCROLL PROGRESS */
+#scroll-progress{
+  position:fixed;top:0;left:0;height:2px;width:0%;
+  background:linear-gradient(90deg,var(--royal),var(--cyan));
+  z-index:1000;transition:width 0.1s linear;
+}
+
+/* CUSTOM CURSOR */
+#cursor-dot{
+  position:fixed;width:10px;height:10px;
+  background:var(--cyan);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:screen;
+  transition:transform 0.1s;
+}
+#cursor-ring{
+  position:fixed;width:38px;height:38px;
+  border:1.5px solid var(--cyan);border-radius:50%;
+  pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:screen;
+  transition:transform 0.15s ease-out, width 0.2s, height 0.2s;
+}
+
+/* NAV */
+#site-nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  background:rgba(7,24,41,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--dim);
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;
+  padding:14px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{
+  font-size:1.2rem;font-weight:700;
+  color:var(--white);text-decoration:none;letter-spacing:-0.02em;
+}
+.nav-logo span{color:var(--cyan);}
+.nav-links{display:flex;align-items:center;gap:4px;}
+.nav-links a{
+  padding:7px 18px;border-radius:100px;
+  color:var(--muted);text-decoration:none;
+  font-size:14px;font-weight:500;
+  transition:all 0.2s;
+}
+.nav-links a:hover{color:var(--text);background:var(--dim);}
+.nav-links a.active{color:var(--white);background:var(--royal);}
+.nav-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:8px 20px 8px 20px;border-radius:100px;
+  background:linear-gradient(90deg,var(--royal),var(--cyan));
+  color:var(--white);text-decoration:none;
+  font-size:14px;font-weight:600;
+  transition:opacity 0.2s;
+}
+.nav-cta:hover{opacity:0.85;}
+
+/* CHAPTER DOTS */
+#chapter-dots{
+  position:fixed;left:24px;top:50%;transform:translateY(-50%);
+  z-index:800;display:flex;flex-direction:column;gap:12px;
+}
+.ch-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--dim);border:1px solid var(--muted);
+  cursor:pointer;transition:all 0.3s;
+  position:relative;
+}
+.ch-dot.active{background:var(--cyan);border-color:var(--cyan);transform:scale(1.4);}
+.ch-dot:hover::after{
+  content:attr(data-label);
+  position:absolute;left:20px;top:50%;transform:translateY(-50%);
+  background:var(--navy);color:var(--text);
+  font-size:11px;padding:4px 10px;border-radius:6px;
+  white-space:nowrap;pointer-events:none;
+}
+
+/* BG CANVAS */
+#bg-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;opacity:0.4;
+}
+
+/* TYPOGRAPHY */
+.t-label{
+  font-size:11px;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--cyan);
+}
+.t-display{
+  font-size:clamp(3rem,8vw,7rem);font-weight:800;
+  line-height:0.95;letter-spacing:-0.04em;color:var(--white);
+}
+.t-h1{
+  font-size:clamp(2.2rem,5vw,4rem);font-weight:800;
+  line-height:1.0;letter-spacing:-0.03em;color:var(--white);
+}
+.t-h2{
+  font-size:clamp(1.6rem,3.5vw,2.8rem);font-weight:700;
+  line-height:1.1;letter-spacing:-0.025em;color:var(--white);
+}
+.t-h3{
+  font-size:clamp(1.2rem,2.5vw,1.8rem);font-weight:700;
+  line-height:1.2;letter-spacing:-0.02em;color:var(--white);
+}
+.t-body{font-size:1.05rem;line-height:1.7;color:var(--text);}
+.t-serif{font-family:'Instrument Serif',serif;font-style:italic;}
+.grad{
+  background:linear-gradient(90deg,var(--royal),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+@keyframes grad-cycle{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+.grad-cycle{
+  background:linear-gradient(90deg,var(--royal),var(--cyan),var(--lavender),var(--royal));
+  background-size:300% 300%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:grad-cycle 4s ease infinite;
+}
+
+/* SECTION WRAPPER */
+.section{position:relative;z-index:10;}
+
+/* CHAPTER BAR */
+.ch-bar{
+  position:relative;z-index:10;
+  display:flex;align-items:center;gap:20px;
+  padding:48px 64px 24px;max-width:1200px;margin:0 auto;
+}
+.ch-bar::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,var(--royal),var(--cyan),transparent);
+}
+.ch-bar-label{white-space:nowrap;}
+
+/* HERO */
+#hero{
+  position:relative;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:120px 64px 80px;overflow:hidden;
+}
+.hero-inner{
+  max-width:1200px;width:100%;
+  display:grid;grid-template-columns:1fr 420px;
+  gap:80px;align-items:center;
+}
+.hero-text{position:relative;z-index:2;}
+.hero-sub{
+  font-size:1.15rem;color:var(--text);max-width:480px;
+  margin-top:24px;line-height:1.7;
+}
+.hero-btns{display:flex;gap:16px;margin-top:40px;flex-wrap:wrap;}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:12px;
+  padding:14px 28px;border-radius:100px;
+  background:linear-gradient(90deg,var(--royal),var(--cyan));
+  color:var(--white);text-decoration:none;
+  font-size:15px;font-weight:600;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(61,227,255,0.25);}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:100px;
+  border:1px solid var(--dim);
+  color:var(--text);text-decoration:none;
+  font-size:15px;font-weight:500;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+#hero-canvas{
+  border-radius:20px;
+  background:rgba(13,45,82,0.3);
+  border:1px solid var(--dim);
+}
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;margin-top:80px;
+  border-top:1px solid var(--dim);
+  grid-column:1/-1;
+}
+.stat-item{
+  padding:32px 24px;border-right:1px solid var(--dim);
+}
+.stat-item:last-child{border-right:none;}
+.stat-num{
+  font-size:2.4rem;font-weight:800;
+  letter-spacing:-0.03em;
+}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* GAP SECTION */
+#gap{padding:80px 64px 120px;max-width:1200px;margin:0 auto;}
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;}
+.pain-list{margin-top:32px;display:flex;flex-direction:column;gap:16px;}
+.pain-item{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:16px 20px;border-radius:12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--dim);
+  overflow:hidden;
+}
+.pain-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(239,68,68,0.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+  font-size:14px;
+}
+.pain-text{font-size:14px;color:var(--text);}
+.chaos-wrap{
+  position:sticky;top:120px;
+}
+#chaos-canvas{
+  border-radius:20px;
+  background:rgba(13,45,82,0.2);
+  border:1px solid var(--dim);
+  width:100%;aspect-ratio:1;
+}
+
+/* CODA SECTION */
+#coda-section{
+  padding:80px 64px 120px;max-width:1200px;margin:0 auto;
+  text-align:center;
+}
+#coda-canvas{
+  margin:48px auto;border-radius:20px;
+  background:rgba(13,45,82,0.2);
+  border:1px solid var(--dim);
+  width:100%;max-width:700px;height:300px;
+}
+.feature-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;
+  margin-top:48px;
+}
+.feature-card{
+  padding:28px;border-radius:16px;
+  background:rgba(13,45,82,0.3);
+  border:1px solid var(--dim);
+  text-align:left;
+  position:relative;overflow:hidden;
+  transition:border-color 0.3s,transform 0.3s;
+}
+.feature-card:hover{border-color:var(--cyan);transform:translateY(-4px);}
+@keyframes glow-border{
+  0%,100%{box-shadow:0 0 0 0 rgba(61,227,255,0);}
+  50%{box-shadow:0 0 30px 2px rgba(61,227,255,0.15);}
+}
+.feature-card{animation:glow-border 3s ease-in-out infinite;}
+.feature-card:nth-child(2){animation-delay:1s;}
+.feature-card:nth-child(3){animation-delay:2s;}
+.feature-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--royal),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;font-size:20px;
+}
+.feature-title{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:8px;}
+.feature-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* SERVICES */
+#services{
+  padding:80px 64px 120px;max-width:1200px;margin:0 auto;
+}
+.services-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:48px;
+}
+.svc-card{
+  border-radius:20px;
+  background:rgba(13,45,82,0.25);
+  border:1px solid var(--dim);
+  overflow:hidden;
+  transition:border-color 0.3s,transform 0.3s;
+}
+.svc-card:hover{border-color:rgba(61,227,255,0.4);transform:translateY(-4px);}
+.svc-canvas-wrap{height:200px;position:relative;background:rgba(7,24,41,0.5);}
+.svc-canvas-wrap canvas{width:100%;height:100%;}
+.svc-body{padding:28px;}
+.svc-title{font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:8px;}
+.svc-desc{font-size:14px;color:var(--muted);line-height:1.6;}
+
+/* ESCHER */
+#escher{
+  position:relative;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#escher-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+}
+.escher-overlay{
+  position:relative;z-index:10;
+  text-align:center;
+  pointer-events:none;
+}
+.escher-badges{
+  display:flex;gap:20px;justify-content:center;margin-top:40px;
+}
+.escher-badge{
+  padding:10px 24px;border-radius:100px;
+  border:1px solid var(--cyan);
+  color:var(--cyan);font-size:13px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;
+  background:rgba(61,227,255,0.08);
+  text-shadow:0 0 20px rgba(61,227,255,0.5);
+  animation:pulse-badge 2s ease-in-out infinite;
+}
+.escher-badge:nth-child(2){animation-delay:0.7s;}
+.escher-badge:nth-child(3){animation-delay:1.4s;}
+@keyframes pulse-badge{
+  0%,100%{box-shadow:0 0 0 0 rgba(61,227,255,0.3);}
+  50%{box-shadow:0 0 20px 4px rgba(61,227,255,0.2);}
+}
+
+/* PROCESS */
+#process{position:relative;}
+.process-pin-wrap{height:500vh;}
+.process-pin-inner{
+  position:sticky;top:0;height:100vh;
+  display:grid;grid-template-columns:1fr 1fr;
+  overflow:hidden;
+}
+.process-left{
+  padding:80px 64px;
+  display:flex;flex-direction:column;justify-content:center;
+  position:relative;
+}
+.process-steps{margin-top:48px;}
+.process-step{
+  padding:20px 24px;border-radius:12px;
+  border:1px solid var(--dim);
+  margin-bottom:12px;
+  opacity:0.3;transition:opacity 0.4s,border-color 0.4s,background 0.4s;
+}
+.process-step.active{
+  opacity:1;
+  border-color:var(--cyan);
+  background:rgba(61,227,255,0.05);
+}
+.process-step-num{
+  font-size:11px;font-weight:700;letter-spacing:0.1em;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:4px;
+}
+.process-step-title{font-size:1rem;font-weight:700;color:var(--white);}
+.process-step-desc{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.process-right{
+  position:relative;background:rgba(7,24,41,0.5);
+  border-left:1px solid var(--dim);
+}
+.process-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+}
+
+/* FLOW / ARCH */
+#flow-section, #arch-section{
+  padding:80px 64px 120px;max-width:1400px;margin:0 auto;
+  text-align:center;
+}
+#flow-canvas, #arch-canvas{
+  margin:48px auto 0;border-radius:20px;
+  background:rgba(13,45,82,0.2);
+  border:1px solid var(--dim);
+  width:100%;
+}
+#flow-canvas{height:300px;}
+#arch-canvas{height:480px;}
+
+/* STATS */
+#stats{padding:80px 64px 80px;max-width:1200px;margin:0 auto;text-align:center;}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  margin-top:48px;
+  border:1px solid var(--dim);border-radius:20px;overflow:hidden;
+}
+.stat-block{
+  padding:48px 32px;
+  background:rgba(13,45,82,0.2);
+  border-right:1px solid var(--dim);
+  border-bottom:1px solid var(--dim);
+  position:relative;overflow:hidden;
+}
+.stat-block:nth-child(3n){border-right:none;}
+.stat-block:nth-child(n+4){border-bottom:none;}
+.stat-big{
+  font-size:clamp(2.5rem,5vw,4rem);font-weight:800;
+  letter-spacing:-0.04em;
+}
+.stat-ring-wrap{
+  width:80px;height:80px;margin:0 auto 16px;
+  position:relative;
+}
+.stat-ring-wrap svg{transform:rotate(-90deg);}
+.stat-ring-track{fill:none;stroke:var(--dim);stroke-width:4;}
+.stat-ring-fill{
+  fill:none;stroke:url(#ring-grad);stroke-width:4;
+  stroke-linecap:round;
+  stroke-dasharray:220;stroke-dashoffset:220;
+  transition:stroke-dashoffset 1.5s ease;
+}
+
+/* CASE STUDIES */
+#cases{padding:80px 0 120px;}
+.cases-inner{padding:0 64px;max-width:1200px;margin:0 auto;}
+.cases-reel-wrap{position:relative;height:400vh;}
+.cases-reel-pin{
+  position:sticky;top:0;height:100vh;
+  display:flex;align-items:center;overflow:hidden;
+}
+.cases-reel{
+  display:flex;gap:40px;
+  padding:0 80px;
+  will-change:transform;
+}
+.case-card{
+  min-width:600px;border-radius:24px;
+  background:rgba(13,45,82,0.3);
+  border:1px solid var(--dim);
+  padding:56px 48px;
+  flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.case-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(46,87,202,0.1),rgba(61,227,255,0.05));
+  pointer-events:none;
+}
+.case-stat{
+  font-size:clamp(4rem,10vw,8rem);font-weight:800;
+  letter-spacing:-0.05em;line-height:0.9;
+  margin:24px 0;
+}
+.case-company{font-size:13px;color:var(--muted);margin-top:24px;}
+.case-desc{font-size:15px;color:var(--text);margin-top:8px;line-height:1.6;}
+
+/* TEAM */
+#team{padding:80px 64px 120px;max-width:1200px;margin:0 auto;text-align:center;}
+.team-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:48px;
+}
+.team-card{
+  padding:32px 24px;border-radius:16px;
+  background:rgba(13,45,82,0.25);
+  border:1px solid var(--dim);
+  transition:transform 0.3s,border-color 0.3s;
+}
+.team-card:hover{transform:translateY(-4px);border-color:var(--cyan);}
+.team-avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,var(--royal),var(--cyan));
+  margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:var(--white);
+}
+.team-name{font-size:1rem;font-weight:700;color:var(--white);}
+.team-role{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* CTA */
+#cta{
+  padding:120px 64px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-rings{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.cta-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(61,227,255,0.15);
+  transform:translate(-50%,-50%);
+  animation:ring-pulse 3s ease-in-out infinite;
+}
+.cta-ring:nth-child(1){width:300px;height:300px;animation-delay:0s;}
+.cta-ring:nth-child(2){width:500px;height:500px;animation-delay:0.8s;}
+.cta-ring:nth-child(3){width:700px;height:700px;animation-delay:1.6s;}
+@keyframes ring-pulse{
+  0%,100%{opacity:0.3;transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:0.6;transform:translate(-50%,-50%) scale(1.03);}
+}
+.cta-card{
+  position:relative;z-index:10;
+  display:inline-block;
+  padding:64px 80px;border-radius:32px;
+  background:rgba(13,45,82,0.4);
+  backdrop-filter:blur(20px);
+  border:1px solid transparent;
+  background-clip:padding-box;
+}
+.cta-border{
+  position:absolute;inset:-1px;border-radius:32px;
+  background:linear-gradient(90deg,var(--royal),var(--cyan),var(--lavender),var(--royal));
+  background-size:300% 300%;
+  animation:grad-cycle 3s ease infinite;
+  z-index:-1;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  padding:1px;
+}
+.cta-glow{
+  position:absolute;inset:0;border-radius:32px;
+  background:radial-gradient(ellipse at center, rgba(61,227,255,0.1) 0%, transparent 70%);
+}
+
+/* FOOTER */
+footer{
+  padding:40px 64px;
+  border-top:1px solid var(--dim);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:10;
+  max-width:1200px;margin:0 auto;
+}
+.footer-logo{font-size:1.1rem;font-weight:700;color:var(--white);}
+.footer-logo span{color:var(--cyan);}
+.footer-links{display:flex;gap:24px;}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.footer-links a:hover{color:var(--text);}
+.footer-copy{font-size:12px;color:var(--muted);}
+
+/* LINE REVEAL */
+.line-wrap{overflow:hidden;}
+.line-inner{display:block;transform:translateY(110%);}
+
+/* FADE UP */
+.fade-up{opacity:0;transform:translateY(36px);}
+
+/* OVERFLOW CLIP */
+.clip{overflow:hidden;}
+</style>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div id="scroll-progress"></div>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- BG CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="site-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">Simpla<span>Docs</span></a>
+    <div class="nav-links">
+      <a href="#" class="active">Solutions</a>
+      <a href="#process">Process</a>
+      <a href="#cases">Work</a>
+    </div>
+    <a href="#cta" class="nav-cta">Let's Talk →</a>
+  </div>
+</nav>
+
+<!-- CHAPTER DOTS -->
+<div id="chapter-dots">
+  <div class="ch-dot active" data-label="Hero" data-target="hero"></div>
+  <div class="ch-dot" data-label="The Gap" data-target="gap-section"></div>
+  <div class="ch-dot" data-label="Foundation" data-target="coda-section"></div>
+  <div class="ch-dot" data-label="Services" data-target="services"></div>
+  <div class="ch-dot" data-label="Impossible" data-target="escher"></div>
+  <div class="ch-dot" data-label="Process" data-target="process"></div>
+  <div class="ch-dot" data-label="In Action" data-target="flow-section"></div>
+  <div class="ch-dot" data-label="The Proof" data-target="stats"></div>
+  <div class="ch-dot" data-label="Case Studies" data-target="cases"></div>
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section id="hero" class="section">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="t-label fade-up">The Impossible Connection</div>
+      <h1 class="t-display" style="margin-top:16px;">
+        <span class="clip"><span class="line-inner">Operations</span></span>
+        <span class="clip"><span class="line-inner t-serif"> built</span></span>
+        <span class="clip"><span class="line-inner"> to <span class="grad-cycle">scale.</span></span></span>
+      </h1>
+      <p class="hero-sub fade-up">SimplaDocs is the #1 Coda Implementation Partner — turning operational chaos into unified, automated, insight-driven systems. This is how we do it.</p>
+      <div class="hero-btns fade-up">
+        <a href="#gap-section" class="btn-primary">See How It Works</a>
+        <a href="#cases" class="btn-ghost">View Case Studies</a>
+      </div>
+    </div>
+    <canvas id="hero-canvas" width="400" height="400"></canvas>
+
+    <!-- Stats strip -->
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num grad" data-count="215" data-suffix="+">0</div>
+        <div class="stat-label">Projects Completed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num grad" data-count="83" data-suffix="k+">0</div>
+        <div class="stat-label">Hours Saved</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num grad" data-count="91" data-suffix="%">0</div>
+        <div class="stat-label">ROI in Month 1</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num grad" data-count="15" data-suffix="+ yrs">0</div>
+        <div class="stat-label">Combined Experience</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CH BAR I
+     ============================================================ -->
+<div id="gap-section" style="padding-top:40px;">
+<div class="ch-bar">
+  <span class="t-label ch-bar-label">Chapter I — The Gap</span>
+</div>
+
+<!-- SECTION 2: OPERATIONAL GAP -->
+<div style="max-width:1200px;margin:0 auto;padding:0 64px 120px;">
+  <div class="gap-grid">
+    <div>
+      <div class="t-label fade-up">The Problem</div>
+      <h2 class="t-h1 fade-up" style="margin-top:16px;">Your tools don't<br><span class="t-serif grad"> talk to each other.</span></h2>
+      <p class="t-body fade-up" style="margin-top:24px;">Most teams are drowning in a sea of disconnected tools. Sheets, Slack, Gmail, Jira — each holding a fragment of truth, none of them unified. The result: endless manual work, lost context, and decisions made on stale data.</p>
+      <div class="pain-list">
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>Duplicated data entry</strong> across 5+ tools wastes hours every week</div></div>
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>No single source of truth</strong> — everyone works off different versions</div></div>
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>Manual status updates</strong> require meetings that could be dashboards</div></div>
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>Institutional knowledge</strong> trapped in one person's head or inbox</div></div>
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>Scaling breaks everything</strong> — what worked at 10 people fails at 50</div></div>
+        <div class="pain-item fade-up"><div class="pain-icon">✕</div><div class="pain-text"><strong>Reporting takes days</strong> — data exists but insights don't</div></div>
+      </div>
+    </div>
+    <div class="chaos-wrap">
+      <div class="t-label" style="text-align:center;margin-bottom:16px;">Scroll to see the transformation →</div>
+      <canvas id="chaos-canvas" width="500" height="500"></canvas>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================
+     CH BAR II
+     ============================================================ -->
+<div id="coda-section" style="padding-top:40px;">
+<div class="ch-bar">
+  <span class="t-label ch-bar-label">Chapter II — The Foundation</span>
+</div>
+
+<!-- SECTION 3: CODA -->
+<div style="max-width:1200px;margin:0 auto;padding:0 64px 120px;text-align:center;">
+  <div class="t-label fade-up">Why Coda</div>
+  <h2 class="t-h1 fade-up" style="margin-top:16px;">The only platform where<br><span class="t-serif grad"> docs become databases.</span></h2>
+  <p class="t-body fade-up" style="margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto;">Coda uniquely merges the flexibility of a document with the power of a relational database. It's not a spreadsheet. It's not a wiki. It's the connective tissue your organization has been missing.</p>
+  <canvas id="coda-canvas" width="700" height="300"></canvas>
+  <div class="feature-cards">
+    <div class="feature-card fade-up">
+      <div class="feature-icon">📄</div>
+      <div class="feature-title">Living Documents</div>
+      <div class="feature-desc">Rich text, embeds, and interactive components that update in real time — shared context for every team.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">🗄️</div>
+      <div class="feature-title">Relational Tables</div>
+      <div class="feature-desc">Link any data to any other data. Build views, filters, and rollups without writing SQL or maintaining spreadsheets.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Native Automations</div>
+      <div class="feature-desc">Trigger actions on any event — send Slack messages, update rows, call APIs — without leaving Coda.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================
+     CH BAR III
+     ============================================================ -->
+<div id="services" style="padding-top:40px;">
+<div class="ch-bar">
+  <span class="t-label ch-bar-label">Chapter III — What We Build</span>
+</div>
+
+<!-- SECTION 4: SERVICES -->
+<div style="max-width:1200px;margin:0 auto;padding:0 64px 120px;">
+  <div class="t-label fade-up">Our Services</div>
+  <h2 class="t-h1 fade-up" style="margin-top:16px;">Four capabilities.<br><span class="t-serif grad"> Infinite combinations.</span></h2>
+  <div class="services-grid" style="margin-top:48px;">
+    <div class="svc-card fade-up">
+      <div class="svc-canvas-wrap"><canvas id="svc-canvas-1" width="600" height="200"></canvas></div>
+      <div class="svc-body">
+        <div class="t-label">01</div>
+        <div class="svc-title">Custom Coda Solutions</div>
+        <div class="svc-desc">Bespoke docs, databases, and dashboards built to match your exact operational workflow — no templates, no compromises.</div>
+      </div>
+    </div>
+    <div class="svc-card fade-up">
+      <div class="svc-canvas-wrap"><canvas id="svc-canvas-2" width="600" height="200"></canvas></div>
+      <div class="svc-body">
+        <div class="t-label">02</div>
+        <div class="svc-title">Workflow Automation</div>
+        <div class="svc-desc">Eliminate manual work. We map your processes and automate every repetitive step — from data entry to stakeholder notifications.</div>
+      </div>
+    </div>
+    <div class="svc-card fade-up">
+      <div class="svc-canvas-wrap"><canvas id="svc-canvas-3" width="600" height="200"></canvas></div>
+      <div class="svc-body">
+        <div class="t-label">03</div>
+        <div class="svc-title">Operational Visibility</div>
+        <div class="svc-desc">Real-time dashboards that surface the metrics that matter. Stop hunting for data — let it come to you.</div>
+      </div>
+    </div>
+    <div class="svc-card fade-up">
+      <div class="svc-canvas-wrap"><canvas id="svc-canvas-4" width="600" height="200"></canvas></div>
+      <div class="svc-body">
+        <div class="t-label">04</div>
+        <div class="svc-title">End-to-End Partnership</div>
+        <div class="svc-desc">We don't just build and leave. We train your team, iterate on feedback, and optimize as your company grows.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================
+     CH BAR IV
+     ============================================================ -->
+<div class="ch-bar">
+  <span class="t-label ch-bar-label">Chapter IV — The Impossible</span>
+</div>
+
+<!-- SECTION 5: ESCHER -->
+<section id="escher" class="section">
+  <canvas id="escher-canvas"></canvas>
+  <div class="escher-overlay">
+    <div class="t-label fade-up">M.C. Escher Philosophy</div>
+    <h2 class="t-h1 fade-up" style="margin-top:16px;text-shadow:0 4px 40px rgba(0,0,0,0.8);">
+      The Impossible<br><span class="t-serif grad-cycle">Connection Made Real.</span>
+    </h2>
+    <p class="t-body fade-up" style="max-width:500px;margin:20px auto 0;text-shadow:0 2px 20px rgba(0,0,0,0.9);">Our logo — like Escher's impossible buildings — shows two planes bridged by a single element. That bridge is SimplaDocs.</p>
+    <div class="escher-badges fade-up">
+      <span class="escher-badge">Connect</span>
+      <span class="escher-badge">Automate</span>
+      <span class="escher-badge">Scale</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CH BAR V
+     ============================================================ -->
+<div class="ch-bar" id="process">
+  <span class="t-label ch-bar-label">Chapter V — Our Method</span>
+</div>
+
+<!-- SECTION 6: PROCESS -->
+<div class="process-pin-wrap">
+  <div class="process-pin-inner" id="process-pin">
+    <div class="process-left">
+      <div class="t-label">How We Work</div>
+      <h2 class="t-h2" style="margin-top:12px;">A five-step<br><span class="t-serif grad">proven process.</span></h2>
+      <div class="process-steps">
+        <div class="process-step active" data-step="0">
+          <div class="process-step-num">Step 01</div>
+          <div class="process-step-title">Discovery</div>
+          <div class="process-step-desc">We map your entire operational landscape — tools, workflows, pain points, and goals.</div>
+        </div>
+        <div class="process-step" data-step="1">
+          <div class="process-step-num">Step 02</div>
+          <div class="process-step-title">System Design</div>
+          <div class="process-step-desc">We architect the data model, automation logic, and interface layout before writing a single formula.</div>
+        </div>
+        <div class="process-step" data-step="2">
+          <div class="process-step-num">Step 03</div>
+          <div class="process-step-title">Build & Iteration</div>
+          <div class="process-step-desc">Rapid sprints with weekly reviews — you see progress from day one and shape the result.</div>
+        </div>
+        <div class="process-step" data-step="3">
+          <div class="process-step-num">Step 04</div>
+          <div class="process-step-title">Training & Handoff</div>
+          <div class="process-step-desc">Live training, video walkthroughs, and documentation ensure your team adopts confidently.</div>
+        </div>
+        <div class="process-step" data-step="4">
+          <div class="process-step-num">Step 05</div>
+          <div class="process-step-title">Ongoing Optimization</div>
+          <div class="process-step-desc">As your business evolves, we evolve with it — quarterly reviews and continuous improvements.</div>
+        </div>
+      </div>
+    </div>
+    <div class="process-right">
+      <canvas class="process-canvas" id="proc-canvas-0" width="600" height="800"></canvas>
+      <canvas class="process-canvas" id="proc-canvas-1" width="600" height="800" style="display:none;"></canvas>
+      <canvas class="process-canvas" id="proc-canvas-2" width="600" height="800" style="display:none;"></canvas>
+      <canvas class="process-canvas" id="proc-canvas-3" width="600" height="800" style="display:none;"></canvas>
+      <canvas class="process-canvas" id="proc-canvas-4" width="600" height="800" style="display:none;"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CH BAR VI
+     ============================================================ -->
+<div class="ch-bar" id="flow-section">
+  <span class="t-label ch-bar-label">Chapter VI — In Action</span>
+</div>
+
+<!-- SECTION 7: FLOW -->
+<div style="max-width:1400px;margin:0 auto;padding:0 64px 80px;text-align:center;">
+  <div class="t-label fade-up">Automation in Action</div>
+  <h2 class="t-h2 fade-up" style="margin-top:12px;">Every trigger. Every action.<br><span class="t-serif grad">Flowing in real time.</span></h2>
+  <canvas id="flow-canvas" width="1200" height="300"></canvas>
+</div>
+
+<!-- SECTION 8: ARCH -->
+<div id="arch-section" style="max-width:1400px;margin:0 auto;padding:0 64px 120px;text-align:center;">
+  <div class="t-label fade-up">Data Architecture</div>
+  <h2 class="t-h2 fade-up" style="margin-top:12px;">Coda as your<br><span class="t-serif grad">operational hub.</span></h2>
+  <canvas id="arch-canvas" width="1200" height="480"></canvas>
+</div>
+
+<!-- ============================================================
+     CH BAR VII
+     ============================================================ -->
+<div class="ch-bar" id="stats">
+  <span class="t-label ch-bar-label">Chapter VII — The Proof</span>
+</div>
+
+<!-- SECTION 9: STATS -->
+<div style="max-width:1200px;margin:0 auto;padding:0 64px 80px;text-align:center;">
+  <div class="t-label fade-up">By the Numbers</div>
+  <h2 class="t-h2 fade-up" style="margin-top:12px;">Results that<br><span class="t-serif grad">speak for themselves.</span></h2>
+  <div class="stats-grid" style="margin-top:48px;">
+    <div class="stat-block fade-up">
+      <div class="stat-big grad" data-count="215" data-suffix="+">0</div>
+      <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted);">Projects Completed</div>
+    </div>
+    <div class="stat-block fade-up">
+      <div class="stat-big grad" data-count="83" data-suffix="k+">0</div>
+      <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted);">Hours Saved</div>
+    </div>
+    <div class="stat-block fade-up">
+      <div class="stat-ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#2e57ca"/>
+              <stop offset="100%" stop-color="#3de3ff"/>
+            </linearGradient>
+          </defs>
+          <circle class="stat-ring-track" cx="40" cy="40" r="34"/>
+          <circle class="stat-ring-fill" id="ring-91" cx="40" cy="40" r="34"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <span class="stat-big grad" data-count="91" data-suffix="%" style="font-size:1.8rem;">0</span>
+        </div>
+      </div>
+      <div class="stat-label" style="font-size:14px;color:var(--muted);">ROI in Month 1</div>
+    </div>
+    <div class="stat-block fade-up">
+      <div class="stat-big grad" data-count="11" data-suffix="×">0</div>
+      <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted);">Fastest Workflow Improvement</div>
+    </div>
+    <div class="stat-block fade-up">
+      <div class="stat-big grad" data-count="20" data-suffix="+">0</div>
+      <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted);">Teams Connected (Largest Project)</div>
+    </div>
+    <div class="stat-block fade-up">
+      <div class="stat-big grad-cycle" data-count-float="4.9" data-suffix="★">0</div>
+      <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted);">Client Satisfaction</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 10: CASE STUDIES -->
+<div id="cases" style="padding:0 0 0 0;">
+<div class="ch-bar" style="max-width:1200px;margin:0 auto;">
+  <span class="t-label ch-bar-label">Case Studies</span>
+</div>
+<div style="max-width:1200px;margin:0 auto;padding:0 64px 24px;">
+  <h2 class="t-h2 fade-up">Real companies.<br><span class="t-serif grad">Real transformations.</span></h2>
+</div>
+<div class="cases-reel-wrap">
+  <div class="cases-reel-pin">
+    <div class="cases-reel" id="cases-reel">
+      <div class="case-card">
+        <div class="t-label">NJM Design — Project Management</div>
+        <div class="case-stat grad">Zero</div>
+        <p class="t-body" style="font-size:1.1rem;">backfill hires needed after PM retirement.</p>
+        <p class="case-company">NJM Design Studio</p>
+        <p class="case-desc">When their veteran project manager retired, NJM feared chaos. SimplaDocs built a complete PM system in Coda that captured all institutional knowledge — making the team more effective without adding headcount.</p>
+      </div>
+      <div class="case-card">
+        <div class="t-label">AlixPartners — Team Unification</div>
+        <div class="case-stat grad">20+</div>
+        <p class="t-body" style="font-size:1.1rem;">teams connected in a single operational hub.</p>
+        <p class="case-company">AlixPartners Global Consulting</p>
+        <p class="case-desc">Across global offices and practice areas, AlixPartners needed a unified view of work. SimplaDocs built a cross-team Coda environment that replaced 6 separate tools and became the operational backbone for 20+ teams.</p>
+      </div>
+      <div class="case-card">
+        <div class="t-label">New Mexico Env. Dept. — Process Speed</div>
+        <div class="case-stat grad">11×</div>
+        <p class="t-body" style="font-size:1.1rem;">faster workflows. 250+ hours saved.</p>
+        <p class="case-company">State of New Mexico — Environment Department</p>
+        <p class="case-desc">Government processes are notoriously slow. SimplaDocs automated compliance tracking and reporting workflows that previously required hundreds of hours of manual work — cutting process time by 11× while improving accuracy.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TEAM -->
+<section id="team" class="section" style="padding:80px 64px 120px;">
+<div style="max-width:1200px;margin:0 auto;text-align:center;">
+  <div class="t-label fade-up">The Team</div>
+  <h2 class="t-h2 fade-up" style="margin-top:12px;">Built by operators,<br><span class="t-serif grad">for operators.</span></h2>
+  <div class="team-grid" style="margin-top:48px;">
+    <div class="team-card fade-up">
+      <div class="team-avatar">S</div>
+      <div class="team-name">Scott</div>
+      <div class="team-role">Founder & Lead Architect</div>
+    </div>
+    <div class="team-card fade-up">
+      <div class="team-avatar">S</div>
+      <div class="team-name">Steven</div>
+      <div class="team-role">Operations Strategist</div>
+    </div>
+    <div class="team-card fade-up">
+      <div class="team-avatar">J</div>
+      <div class="team-name">Jordyn</div>
+      <div class="team-role">Implementation Lead</div>
+    </div>
+    <div class="team-card fade-up">
+      <div class="team-avatar">D</div>
+      <div class="team-name">Daniel</div>
+      <div class="team-role">Automation Engineer</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="section">
+  <div class="cta-rings">
+    <div class="cta-ring"></div>
+    <div class="cta-ring"></div>
+    <div class="cta-ring"></div>
+  </div>
+  <div class="cta-card">
+    <div class="cta-border"></div>
+    <div class="cta-glow"></div>
+    <div class="t-label" style="position:relative;z-index:2;">Ready to Transform?</div>
+    <h2 class="t-h1 fade-up" style="margin-top:16px;position:relative;z-index:2;">Let's build something<br><span class="t-serif grad-cycle">impossible.</span></h2>
+    <p class="t-body fade-up" style="max-width:440px;margin:24px auto 0;position:relative;z-index:2;">Join 215+ companies that chose to operate at a higher level. Your Coda transformation starts with a single conversation.</p>
+    <div style="margin-top:40px;position:relative;z-index:2;">
+      <a href="mailto:info@simpladocs.com" class="btn-primary" style="font-size:1rem;padding:16px 36px;">Start the Conversation →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Simpla<span>Docs</span></div>
+  <div class="footer-links">
+    <a href="#">Solutions</a>
+    <a href="#">Process</a>
+    <a href="#">Work</a>
+    <a href="mailto:info@simpladocs.com">Contact</a>
+  </div>
+  <div class="footer-copy">© 2024 SimplaDocs. #1 Coda Implementation Partner.</div>
+</footer>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+// ================================================================
+// CONSTANTS
+// ================================================================
+const C = {
+  abyss:'#071829', navy:'#0d2d52', royal:'#2e57ca',
+  sky:'#2d84ef', cyan:'#3de3ff', lavender:'#889beb',
+  ocean:'#199bde', white:'#ffffff',
+  text:'rgba(255,255,255,0.88)', muted:'rgba(255,255,255,0.38)',
+  dim:'rgba(255,255,255,0.12)'
+};
+
+// ================================================================
+// CURSOR
+// ================================================================
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  dot.style.left=mx+'px'; dot.style.top=my+'px';
+});
+(function animCursor(){
+  rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animCursor);
+})();
+
+// ================================================================
+// SCROLL PROGRESS
+// ================================================================
+const prog = document.getElementById('scroll-progress');
+window.addEventListener('scroll',()=>{
+  const p = window.scrollY/(document.body.scrollHeight-window.innerHeight);
+  prog.style.width=(p*100)+'%';
+},{ passive:true });
+
+// ================================================================
+// VIZ 1: BG PARTICLE NETWORK
+// ================================================================
+(function(){
+  const cv = document.getElementById('bg-canvas');
+  const ctx = cv.getContext('2d');
+  let W,H,nodes=[];
+  function resize(){
+    W=cv.width=window.innerWidth;
+    H=cv.height=window.innerHeight;
+  }
+  resize(); window.addEventListener('resize',resize);
+  for(let i=0;i<80;i++){
+    nodes.push({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight,
+      vx:(Math.random()-0.5)*0.4,
+      vy:(Math.random()-0.5)*0.4,
+      r:Math.random()*2+1
+    });
+  }
+  function draw(){
+    W=cv.width; H=cv.height;
+    ctx.clearRect(0,0,W,H);
+    // lines
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<150){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(46,87,202,${(1-d/150)*0.5})`;
+          ctx.lineWidth=0.5;
+          ctx.moveTo(nodes[i].x,nodes[i].y);
+          ctx.lineTo(nodes[j].x,nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // dots
+    nodes.forEach(n=>{
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.globalAlpha=0.6;
+      ctx.fill();
+      ctx.globalAlpha=1;
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0||n.x>W) n.vx*=-1;
+      if(n.y<0||n.y>H) n.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ================================================================
+// VIZ 2: HERO CANVAS — Escher-S Construction
+// ================================================================
+(function(){
+  const cv = document.getElementById('hero-canvas');
+  const ctx = cv.getContext('2d');
+  const W=400,H=400;
+  let t=0;
+  const pts=[];
+  // Build grid dots
+  for(let x=20;x<=380;x+=30) for(let y=20;y<=380;y+=30)
+    pts.push({x,y,born:Math.random()*120});
+
+  function drawS(phase){
+    // Two parallelograms + bridge forming Escher-S
+    const cx=200, cy=200;
+    // Top-left parallelogram
+    ctx.beginPath();
+    ctx.moveTo(cx-80+phase*0, cy-90-phase*0);
+    ctx.lineTo(cx-20+phase*5, cy-90-phase*5);
+    ctx.lineTo(cx+10+phase*5, cy-30-phase*5);
+    ctx.lineTo(cx-50+phase*0, cy-30-phase*0);
+    ctx.closePath();
+    ctx.fillStyle=`rgba(46,87,202,${0.15+Math.sin(t*0.02)*0.05})`;
+    ctx.fill();
+    ctx.strokeStyle=C.cyan;
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+
+    // Bottom-right parallelogram
+    ctx.beginPath();
+    ctx.moveTo(cx+50-phase*0, cy+30+phase*0);
+    ctx.lineTo(cx+80-phase*5, cy+30+phase*5);
+    ctx.lineTo(cx+80-phase*5, cy+90+phase*5);
+    ctx.lineTo(cx+20-phase*0, cy+90+phase*0);
+    ctx.closePath();
+    ctx.fillStyle=`rgba(46,87,202,${0.15+Math.sin(t*0.02+1)*0.05})`;
+    ctx.fill();
+    ctx.strokeStyle=C.royal;
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+
+    // Bridge (horizontal connector)
+    ctx.beginPath();
+    ctx.moveTo(cx-20+phase*5, cy-30-phase*5);
+    ctx.lineTo(cx+50-phase*0, cy+30+phase*0);
+    ctx.lineWidth=3;
+    const grad=ctx.createLinearGradient(cx-20,cy-30,cx+50,cy+30);
+    grad.addColorStop(0,C.cyan);
+    grad.addColorStop(1,C.royal);
+    ctx.strokeStyle=grad;
+    ctx.stroke();
+
+    // Glow on bridge endpoints
+    [[cx-20+phase*5,cy-30-phase*5],[cx+50-phase*0,cy+30+phase*0]].forEach(([px,py])=>{
+      ctx.beginPath();
+      ctx.arc(px,py,5,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.shadowColor=C.cyan;
+      ctx.shadowBlur=12;
+      ctx.fill();
+      ctx.shadowBlur=0;
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Grid dots
+    pts.forEach(p=>{
+      if(t>p.born){
+        const a=Math.min((t-p.born)/20,1)*0.4;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
+        ctx.fillStyle=`rgba(61,227,255,${a})`;
+        ctx.fill();
+      }
+    });
+    const phase=Math.min((t-80)/60,1);
+    if(t>80) drawS(phase);
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ================================================================
+// VIZ 3: Hero stat counters
+// ================================================================
+gsap.registerPlugin(ScrollTrigger);
+
+function animateCounter(el){
+  const target=parseFloat(el.dataset.count||el.dataset.countFloat||0);
+  const suffix=el.dataset.suffix||'';
+  const isFloat=!!el.dataset.countFloat;
+  gsap.fromTo({v:0},{v:target},{
+    duration:2, ease:'power2.out',
+    onUpdate:function(){
+      el.textContent=(isFloat?this.targets()[0].v.toFixed(1):Math.round(this.targets()[0].v))+suffix;
+    }
+  });
+}
+
+// Hero stats on load
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.hero-stats .stat-num[data-count]').forEach(el=>{
+    setTimeout(()=>animateCounter(el),600);
+  });
+});
+
+// ================================================================
+// VIZ 4: CHAOS CANVAS — Tools organizing into hub
+// ================================================================
+(function(){
+  const cv = document.getElementById('chaos-canvas');
+  const ctx = cv.getContext('2d');
+  const W=500,H=500;
+  cv.width=W; cv.height=H;
+  const CX=W/2, CY=H/2;
+  const tools=[
+    {name:'Sheets',color:'#34a853',x:80,y:80,vx:0.8,vy:0.6},
+    {name:'Slack',color:'#4a154b',x:400,y:60,vx:-0.7,vy:0.9},
+    {name:'Gmail',color:'#ea4335',x:60,y:350,vx:0.9,vy:-0.5},
+    {name:'Jira',color:'#0052cc',x:430,y:380,vx:-0.6,vy:-0.8},
+    {name:'Notion',color:'#ffffff',x:250,y:40,vx:0.4,vy:0.7},
+    {name:'Zapier',color:'#ff4f00',x:40,y:200,vx:0.7,vy:0.3},
+    {name:'Salesforce',color:'#00a1e0',x:450,y:200,vx:-0.8,vy:0.4},
+    {name:'Calendar',color:'#4285f4',x:200,y:440,vx:0.5,vy:-0.7},
+    {name:'Drive',color:'#fbbc04',x:350,y:440,vx:-0.4,vy:-0.6},
+    {name:'Asana',color:'#f06a6a',x:150,y:160,vx:0.6,vy:0.8},
+    {name:'Figma',color:'#a259ff',x:360,y:140,vx:-0.5,vy:0.5},
+    {name:'HubSpot',color:'#ff7a59',x:100,y:300,vx:0.7,vy:-0.3},
+    {name:'Airtable',color:'#18bfff',x:380,y:300,vx:-0.6,vy:0.6},
+    {name:'Linear',color:'#5e6ad2',x:220,y:380,vx:0.3,vy:-0.8},
+    {name:'Loom',color:'#625df5',x:300,y:80,vx:-0.4,vy:0.7},
+    {name:'Dropbox',color:'#0061fe',x:460,y:460,vx:-0.5,vy:-0.5},
+    {name:'Trello',color:'#0079bf',x:30,y:430,vx:0.6,vy:-0.4},
+    {name:'Monday',color:'#ff3d57',x:280,y:460,vx:-0.3,vy:-0.6},
+    {name:'Zoom',color:'#2d8cff',x:130,y:480,vx:0.4,vy:-0.5},
+    {name:'Teams',color:'#6264a7',x:400,y:470,vx:-0.5,vy:-0.4},
+  ];
+  // Target angles for hub-spoke
+  const angleStep=Math.PI*2/tools.length;
+  const spokes=tools.map((t,i)=>{
+    const a=i*angleStep;
+    return {tx:CX+Math.cos(a)*160,ty:CY+Math.sin(a)*160};
+  });
+
+  let progress=0;
+
+  function draw(p){
+    ctx.clearRect(0,0,W,H);
+    // Dark bg
+    ctx.fillStyle='rgba(7,24,41,0.95)';
+    ctx.fillRect(0,0,W,H);
+
+    tools.forEach((tool,i)=>{
+      let tx, ty;
+      if(p<0.3){
+        // Chaos: bounce
+        tool.x+=tool.vx; tool.y+=tool.vy;
+        if(tool.x<20||tool.x>W-20) tool.vx*=-1;
+        if(tool.y<20||tool.y>H-20) tool.vy*=-1;
+        tx=tool.x; ty=tool.y;
+      } else {
+        const frac=Math.min((p-0.3)/0.7,1);
+        const ease=frac<0.5?2*frac*frac:1-Math.pow(-2*frac+2,2)/2;
+        tx=tool.x+(spokes[i].tx-tool.x)*ease;
+        ty=tool.y+(spokes[i].ty-tool.y)*ease;
+        if(p>0.6){
+          // draw spoke lines to center
+          const la=Math.min((p-0.6)/0.4,1);
+          ctx.beginPath();
+          ctx.moveTo(CX,CY); ctx.lineTo(tx,ty);
+          ctx.strokeStyle=`rgba(61,227,255,${la*0.4})`;
+          ctx.lineWidth=1;
+          ctx.stroke();
+        }
+      }
+      // dot
+      ctx.beginPath();
+      ctx.arc(tx,ty,10,0,Math.PI*2);
+      ctx.fillStyle=tool.color;
+      ctx.fill();
+      ctx.font='8px Rethink Sans';
+      ctx.fillStyle='white';
+      ctx.textAlign='center';
+      ctx.fillText(tool.name.slice(0,3),tx,ty+3);
+    });
+
+    // Central Coda node
+    const codaAlpha=Math.min(Math.max((p-0.5)/0.5,0),1);
+    if(codaAlpha>0){
+      ctx.save();
+      ctx.globalAlpha=codaAlpha;
+      const grad=ctx.createRadialGradient(CX,CY,0,CX,CY,50);
+      grad.addColorStop(0,C.royal);
+      grad.addColorStop(1,'rgba(46,87,202,0)');
+      ctx.beginPath(); ctx.arc(CX,CY,50,0,Math.PI*2);
+      ctx.fillStyle=grad; ctx.fill();
+      ctx.beginPath(); ctx.arc(CX,CY,32,0,Math.PI*2);
+      ctx.fillStyle=C.navy; ctx.fill();
+      ctx.strokeStyle=C.cyan; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='white'; ctx.font='bold 13px Rethink Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('Coda',CX,CY);
+      ctx.restore();
+    }
+  }
+
+  ScrollTrigger.create({
+    trigger:'#gap-section',
+    start:'top top',
+    end:'bottom bottom',
+    scrub:true,
+    onUpdate:self=>{
+      progress=self.progress;
+      draw(progress);
+    }
+  });
+  draw(0);
+  // Animate chaos initially
+  (function loop(){
+    if(progress<0.05) draw(0);
+    requestAnimationFrame(loop);
+  })();
+})();
+
+// ================================================================
+// VIZ 6: CODA CANVAS — Doc + DB merge
+// ================================================================
+(function(){
+  const cv = document.getElementById('coda-canvas');
+  const ctx = cv.getContext('2d');
+  const W=700, H=300;
+  cv.width=W; cv.height=H;
+  let t=0, triggered=false;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const phase=Math.min(t/180,1);
+    const ease=phase<0.5?2*phase*phase:1-Math.pow(-2*phase+2,2)/2;
+
+    const docX=W*0.25-ease*W*0.1;
+    const dbX=W*0.75+ease*W*0.1;
+    const alpha=1-ease*0.6;
+
+    // Doc rectangle
+    ctx.save();
+    ctx.globalAlpha=alpha+(1-alpha)*0.4;
+    roundRect(ctx,docX-70,H/2-60,140,120,12);
+    ctx.fillStyle='rgba(46,87,202,0.2)';
+    ctx.fill();
+    ctx.strokeStyle=C.royal;
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    // doc lines
+    for(let i=0;i<4;i++){
+      ctx.beginPath();
+      ctx.moveTo(docX-45,H/2-30+i*18);
+      ctx.lineTo(docX+45,H/2-30+i*18);
+      ctx.strokeStyle=`rgba(61,227,255,0.4)`;
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+    ctx.fillStyle='white'; ctx.font='bold 12px Rethink Sans';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Document',docX,H/2+70);
+    ctx.restore();
+
+    // DB grid
+    ctx.save();
+    ctx.globalAlpha=alpha+(1-alpha)*0.4;
+    const gx=dbX-65,gy=H/2-50;
+    for(let r=0;r<3;r++) for(let c=0;c<3;c++){
+      roundRect(ctx,gx+c*44,gy+r*35,40,31,4);
+      ctx.fillStyle=`rgba(13,45,82,0.8)`;
+      ctx.fill();
+      ctx.strokeStyle=`rgba(61,227,255,0.3)`;
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+    ctx.fillStyle='white'; ctx.font='bold 12px Rethink Sans';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Database',dbX,H/2+70);
+    ctx.restore();
+
+    // Merge overlay
+    if(ease>0.3){
+      const ma=Math.min((ease-0.3)/0.7,1);
+      ctx.save();
+      ctx.globalAlpha=ma;
+      roundRect(ctx,W/2-90,H/2-70,180,140,16);
+      const g=ctx.createLinearGradient(W/2-90,H/2-70,W/2+90,H/2+70);
+      g.addColorStop(0,'rgba(46,87,202,0.3)');
+      g.addColorStop(1,'rgba(61,227,255,0.2)');
+      ctx.fillStyle=g; ctx.fill();
+      ctx.strokeStyle=C.cyan; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='white'; ctx.font='bold 14px Rethink Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('Coda',W/2,H/2-10);
+      ctx.font='11px Rethink Sans';
+      ctx.fillStyle=C.muted;
+      ctx.fillText('One platform. Everything.',W/2,H/2+12);
+      ctx.restore();
+    }
+
+    // Pulsing connections
+    const pulse=(Math.sin(t*0.05)+1)/2;
+    if(phase>0.1){
+      ctx.beginPath();
+      ctx.moveTo(docX+70,H/2);
+      ctx.lineTo(W/2-90,H/2);
+      ctx.strokeStyle=`rgba(61,227,255,${0.3+pulse*0.4})`;
+      ctx.lineWidth=2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(dbX-65,H/2);
+      ctx.lineTo(W/2+90,H/2);
+      ctx.stroke();
+    }
+
+    if(triggered){ t++; requestAnimationFrame(draw); }
+  }
+
+  ScrollTrigger.create({
+    trigger:'#coda-section',
+    start:'top 70%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+  draw();
+})();
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ================================================================
+// VIZ 8: SERVICE CANVAS 1 — Blueprint schematic
+// ================================================================
+(function(){
+  const cv=document.getElementById('svc-canvas-1');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600, H=200;
+  cv.width=W; cv.height=H;
+  let t=0,triggered=false;
+
+  const nodes=[];
+  for(let i=0;i<12;i++)
+    nodes.push({x:Math.random()*(W-80)+40, y:Math.random()*(H-40)+20, r:Math.random()*3+2});
+  const edges=[];
+  for(let i=0;i<nodes.length;i++)
+    for(let j=i+1;j<nodes.length;j++){
+      const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y;
+      if(Math.sqrt(dx*dx+dy*dy)<120) edges.push([i,j]);
+    }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(7,24,41,0.9)';
+    ctx.fillRect(0,0,W,H);
+    const phase=Math.min(t/200,1);
+    edges.forEach(([a,b],ei)=>{
+      const ep=Math.min(Math.max((phase-(ei/(edges.length*1.2)))*2,0),1);
+      if(ep>0){
+        ctx.beginPath();
+        ctx.moveTo(nodes[a].x,nodes[a].y);
+        const mx=(nodes[a].x+nodes[b].x)/2,my=(nodes[a].y+nodes[b].y)/2;
+        ctx.lineTo(nodes[a].x+(nodes[b].x-nodes[a].x)*ep, nodes[a].y+(nodes[b].y-nodes[a].y)*ep);
+        ctx.strokeStyle=`rgba(46,87,202,0.6)`;
+        ctx.lineWidth=0.8;
+        ctx.stroke();
+      }
+    });
+    nodes.forEach((n,i)=>{
+      const np=Math.min(Math.max((phase-(i/(nodes.length*1.5)))*3,0),1);
+      if(np>0){
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle=C.cyan; ctx.globalAlpha=np;
+        ctx.fill(); ctx.globalAlpha=1;
+      }
+    });
+    if(triggered){ t++; requestAnimationFrame(draw); }
+  }
+
+  ScrollTrigger.create({
+    trigger:'#services',
+    start:'top 80%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+  draw();
+})();
+
+// ================================================================
+// VIZ 9: SERVICE CANVAS 2 — Flow dots
+// ================================================================
+(function(){
+  const cv=document.getElementById('svc-canvas-2');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600, H=200;
+  cv.width=W; cv.height=H;
+  let triggered=false;
+  const nodes=[];
+  const N=5;
+  for(let i=0;i<N;i++) nodes.push({x:W*0.1+i*(W*0.8/(N-1)),y:H/2});
+  const particles=[];
+  for(let i=0;i<12;i++) particles.push({t:Math.random(),seg:Math.floor(Math.random()*(N-1))});
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(7,24,41,0.9)';
+    ctx.fillRect(0,0,W,H);
+    // Lines
+    for(let i=0;i<N-1;i++){
+      ctx.beginPath();
+      ctx.moveTo(nodes[i].x,nodes[i].y);
+      ctx.lineTo(nodes[i+1].x,nodes[i+1].y);
+      ctx.strokeStyle='rgba(61,227,255,0.2)';
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+    // Nodes
+    nodes.forEach(n=>{
+      ctx.beginPath(); ctx.arc(n.x,n.y,10,0,Math.PI*2);
+      ctx.fillStyle=C.navy; ctx.fill();
+      ctx.strokeStyle=C.cyan; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    // Particles
+    particles.forEach(p=>{
+      p.t+=0.008;
+      if(p.t>1){ p.t=0; p.seg=(p.seg+1)%(N-1); }
+      const a=nodes[p.seg], b=nodes[p.seg+1];
+      const px=a.x+(b.x-a.x)*p.t;
+      const py=a.y+(b.y-a.y)*p.t;
+      ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.shadowColor=C.cyan; ctx.shadowBlur=8;
+      ctx.fill(); ctx.shadowBlur=0;
+    });
+    if(triggered) requestAnimationFrame(draw);
+  }
+
+  ScrollTrigger.create({
+    trigger:'#services',
+    start:'top 80%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+})();
+
+// ================================================================
+// VIZ 10: SERVICE CANVAS 3 — Bar chart + line
+// ================================================================
+(function(){
+  const cv=document.getElementById('svc-canvas-3');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600, H=200;
+  cv.width=W; cv.height=H;
+  let t=0, triggered=false;
+  const bars=[0.4,0.65,0.5,0.8,0.7,0.9,0.75,0.95];
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(7,24,41,0.9)'; ctx.fillRect(0,0,W,H);
+    const phase=Math.min(t/100,1);
+    const bw=W/(bars.length+1);
+    bars.forEach((h,i)=>{
+      const bh=(H-40)*h*phase;
+      const bx=bw*(i+0.5)-bw/4;
+      const g=ctx.createLinearGradient(0,H-20-bh,0,H-20);
+      g.addColorStop(0,C.cyan); g.addColorStop(1,C.royal);
+      ctx.fillStyle=g;
+      ctx.fillRect(bx,H-20-bh,bw*0.5,bh);
+    });
+    // Line overlay
+    if(phase>0.5){
+      const lp=Math.min((phase-0.5)/0.5,1);
+      ctx.beginPath();
+      bars.forEach((h,i)=>{
+        const px=bw*(i+0.5);
+        const py=H-20-(H-40)*h;
+        if(i===0) ctx.moveTo(px,py);
+        else ctx.lineTo(px,py);
+      });
+      ctx.strokeStyle=C.cyan;
+      ctx.lineWidth=2;
+      ctx.globalAlpha=lp;
+      ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+    if(triggered){ t++; requestAnimationFrame(draw); }
+  }
+
+  ScrollTrigger.create({
+    trigger:'#services',
+    start:'top 80%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+  draw();
+})();
+
+// ================================================================
+// VIZ 11: SERVICE CANVAS 4 — Progress ring
+// ================================================================
+(function(){
+  const cv=document.getElementById('svc-canvas-4');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600, H=200;
+  cv.width=W; cv.height=H;
+  let t=0, triggered=false;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(7,24,41,0.9)'; ctx.fillRect(0,0,W,H);
+    const cx=W/2, cy=H/2, R=65;
+    const phase=(t%240)/240;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=8; ctx.stroke();
+    const grad=ctx.createLinearGradient(cx-R,cy,cx+R,cy);
+    grad.addColorStop(0,C.royal); grad.addColorStop(1,C.cyan);
+    ctx.beginPath();
+    ctx.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);
+    ctx.strokeStyle=grad; ctx.lineWidth=8;
+    ctx.lineCap='round'; ctx.stroke();
+    ctx.fillStyle='white'; ctx.font='bold 20px Rethink Sans';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(Math.round(phase*100)+'%',cx,cy);
+    if(triggered){ t++; requestAnimationFrame(draw); }
+  }
+
+  ScrollTrigger.create({
+    trigger:'#services',
+    start:'top 80%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+  draw();
+})();
+
+// ================================================================
+// VIZ 12 + 13: ESCHER CANVAS — Isometric impossible staircase
+// ================================================================
+(function(){
+  const cv=document.getElementById('escher-canvas');
+  const ctx=cv.getContext('2d');
+  let W,H,t=0,mx=0,my=0;
+  function resize(){
+    W=cv.width=window.innerWidth;
+    H=cv.height=window.innerHeight;
+  }
+  resize(); window.addEventListener('resize',resize);
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+
+  // Isometric helpers
+  function iso(x,y,z,ox,oy,tiltX,tiltY){
+    const ix=(x-z)*Math.cos(Math.PI/6);
+    const iy=(x+z)*Math.sin(Math.PI/6)-y;
+    return [ox+ix+tiltX,oy+iy+tiltY];
+  }
+
+  function drawCube(ox,oy,gx,gy,gz,s,tX,tY){
+    // top face (royal)
+    const TL=iso(gx,gy+s,gz,ox,oy,tX,tY);
+    const TR=iso(gx+s,gy+s,gz,ox,oy,tX,tY);
+    const BR=iso(gx+s,gy+s,gz+s,ox,oy,tX,tY);
+    const BL=iso(gx,gy+s,gz+s,ox,oy,tX,tY);
+    ctx.beginPath();
+    ctx.moveTo(...TL); ctx.lineTo(...TR); ctx.lineTo(...BR); ctx.lineTo(...BL);
+    ctx.closePath();
+    ctx.fillStyle=C.royal; ctx.fill();
+    ctx.strokeStyle='rgba(61,227,255,0.3)'; ctx.lineWidth=0.5; ctx.stroke();
+
+    // left face (navy)
+    const LL=iso(gx,gy,gz,ox,oy,tX,tY);
+    const LB=iso(gx,gy,gz+s,ox,oy,tX,tY);
+    ctx.beginPath();
+    ctx.moveTo(...TL); ctx.lineTo(...LL); ctx.lineTo(...LB); ctx.lineTo(...BL);
+    ctx.closePath();
+    ctx.fillStyle=C.navy; ctx.fill();
+    ctx.strokeStyle='rgba(61,227,255,0.2)'; ctx.lineWidth=0.5; ctx.stroke();
+
+    // right face (abyss)
+    const RR=iso(gx+s,gy,gz,ox,oy,tX,tY);
+    const RB=iso(gx+s,gy,gz+s,ox,oy,tX,tY);
+    ctx.beginPath();
+    ctx.moveTo(...TR); ctx.lineTo(...RR); ctx.lineTo(...RB); ctx.lineTo(...BR);
+    ctx.closePath();
+    ctx.fillStyle=C.abyss; ctx.fill();
+    ctx.strokeStyle='rgba(61,227,255,0.15)'; ctx.lineWidth=0.5; ctx.stroke();
+  }
+
+  // Build staircase arms
+  const arms=4, stepsPerArm=8, s=20;
+  const cubes=[];
+  for(let arm=0;arm<arms;arm++){
+    for(let step=0;step<stepsPerArm;step++){
+      const angle=(arm/arms)*Math.PI*2;
+      const gx=Math.round(Math.cos(angle)*step*s*0.9);
+      const gz=Math.round(Math.sin(angle)*step*s*0.9);
+      const gy=step*s;
+      cubes.push({gx,gy,gz,arm,step});
+    }
+  }
+
+  // Cyan particles along stair edges
+  const edgeParticles=[];
+  for(let i=0;i<40;i++){
+    edgeParticles.push({
+      arm:Math.floor(Math.random()*arms),
+      t:Math.random(),
+      speed:0.003+Math.random()*0.004
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const ox=W/2+(mx-W/2)*0.02;
+    const oy=H/2+(my-H/2)*0.02+80;
+    const tX=(mx-W/2)*0.03;
+    const tY=(my-H/2)*0.02;
+
+    // Background glow
+    const bg=ctx.createRadialGradient(ox,oy,0,ox,oy,300);
+    bg.addColorStop(0,'rgba(46,87,202,0.15)');
+    bg.addColorStop(1,'rgba(7,24,41,0)');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    // Sort cubes for painter's algorithm
+    const sorted=[...cubes].sort((a,b)=>{
+      const da=a.gx+a.gy+a.gz, db=b.gx+b.gy+b.gz;
+      return da-db;
+    });
+
+    sorted.forEach(c=>{
+      drawCube(ox,oy,c.gx,c.gy,c.gz,s,tX,tY);
+    });
+
+    // Cyan edge highlights on top edges
+    cubes.forEach(c=>{
+      const TL=iso(c.gx,c.gy+s,c.gz,ox,oy,tX,tY);
+      const TR=iso(c.gx+s,c.gy+s,c.gz,ox,oy,tX,tY);
+      const TBR=iso(c.gx+s,c.gy+s,c.gz+s,ox,oy,tX,tY);
+      const TBL=iso(c.gx,c.gy+s,c.gz+s,ox,oy,tX,tY);
+      if(c.step===stepsPerArm-1){
+        ctx.beginPath();
+        ctx.moveTo(...TL); ctx.lineTo(...TR); ctx.lineTo(...TBR); ctx.lineTo(...TBL);
+        ctx.closePath();
+        ctx.strokeStyle=C.cyan;
+        ctx.lineWidth=1.5;
+        ctx.shadowColor=C.cyan; ctx.shadowBlur=8;
+        ctx.stroke(); ctx.shadowBlur=0;
+      }
+    });
+
+    // Flowing edge particles
+    edgeParticles.forEach(p=>{
+      p.t+=p.speed;
+      if(p.t>1) p.t=0;
+      const arm=p.arm;
+      const seg=Math.min(Math.floor(p.t*stepsPerArm),stepsPerArm-2);
+      const frac=(p.t*stepsPerArm)-seg;
+      const c0=cubes[arm*stepsPerArm+seg];
+      const c1=cubes[arm*stepsPerArm+seg+1];
+      if(!c0||!c1) return;
+      const pa=iso(c0.gx,c0.gy+s,c0.gz,ox,oy,tX,tY);
+      const pb=iso(c1.gx,c1.gy+s,c1.gz,ox,oy,tX,tY);
+      const px=pa[0]+(pb[0]-pa[0])*frac;
+      const py=pa[1]+(pb[1]-pa[1])*frac;
+      ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.shadowColor=C.cyan; ctx.shadowBlur=10;
+      ctx.fill(); ctx.shadowBlur=0;
+    });
+
+    t++; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ================================================================
+// VIZ 14-18: PROCESS CANVASES
+// ================================================================
+(function(){
+  const canvases=Array.from({length:5},(_,i)=>document.getElementById(`proc-canvas-${i}`));
+  let activeStep=0;
+
+  function showStep(i){
+    canvases.forEach((c,j)=>{c.style.display=j===i?'block':'none';});
+    activeStep=i;
+    document.querySelectorAll('.process-step').forEach((el,j)=>{
+      el.classList.toggle('active',j===i);
+    });
+  }
+
+  // VIZ 14: Discovery — mind map
+  (function(){
+    const cv=canvases[0],ctx=cv.getContext('2d');
+    let t=0;
+    const W=cv.offsetWidth||600,H=cv.offsetHeight||800;
+    cv.width=W; cv.height=H;
+    const cx=W/2,cy=H/2;
+    const spokes=8;
+    const dots=[];
+    for(let i=0;i<spokes;i++){
+      const a=(i/spokes)*Math.PI*2;
+      const r=120+Math.random()*60;
+      dots.push({x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r, born:i*15, a});
+      const sr=160+Math.random()*60;
+      dots.push({x:cx+Math.cos(a+0.3)*sr, y:cy+Math.sin(a+0.3)*sr, born:i*15+30, a:a+0.3, child:i});
+    }
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='rgba(7,24,41,0.95)'; ctx.fillRect(0,0,W,H);
+      dots.forEach((d,i)=>{
+        if(t>d.born){
+          const a=Math.min((t-d.born)/20,1);
+          ctx.globalAlpha=a;
+          ctx.beginPath();
+          ctx.moveTo(cx,cy); ctx.lineTo(d.x,d.y);
+          ctx.strokeStyle=C.royal; ctx.lineWidth=1; ctx.stroke();
+          ctx.beginPath(); ctx.arc(d.x,d.y,6,0,Math.PI*2);
+          ctx.fillStyle=C.cyan; ctx.fill();
+          ctx.globalAlpha=1;
+        }
+      });
+      ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2);
+      ctx.fillStyle=C.royal; ctx.fill();
+      ctx.strokeStyle=C.cyan; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='white'; ctx.font='bold 9px Rethink Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('YOU',cx,cy);
+      t++; requestAnimationFrame(draw);
+    })();
+  })();
+
+  // VIZ 15: System Design — wireframe
+  (function(){
+    const cv=canvases[1],ctx=cv.getContext('2d');
+    const W=cv.offsetWidth||600,H=cv.offsetHeight||800;
+    cv.width=W; cv.height=H;
+    let t=0;
+    const boxes=[
+      {x:W/2-100,y:80,w:200,h:50,label:'Header'},
+      {x:W/2-160,y:180,w:140,h:80,label:'Nav'},
+      {x:W/2+20,y:180,w:140,h:80,label:'Dashboard'},
+      {x:W/2-180,y:320,w:160,h:60,label:'Tables'},
+      {x:W/2+20,y:320,w:160,h:60,label:'Charts'},
+      {x:W/2-100,y:440,w:200,h:50,label:'Actions'},
+    ];
+    const connections=[[0,1],[0,2],[1,3],[2,4],[3,5],[4,5]];
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='rgba(7,24,41,0.95)'; ctx.fillRect(0,0,W,H);
+      const phase=Math.min(t/180,1);
+      connections.forEach(([a,b],i)=>{
+        const cp=Math.min(Math.max((phase-(i*0.08))*3,0),1);
+        if(cp>0){
+          const ba=boxes[a],bb=boxes[b];
+          ctx.beginPath();
+          ctx.moveTo(ba.x+ba.w/2,ba.y+ba.h);
+          ctx.lineTo(bb.x+bb.w/2,bb.y);
+          ctx.strokeStyle=`rgba(61,227,255,${cp*0.5})`;
+          ctx.lineWidth=1; ctx.stroke();
+        }
+      });
+      boxes.forEach((b,i)=>{
+        const bp=Math.min(Math.max((phase-(i*0.07))*4,0),1);
+        ctx.globalAlpha=bp;
+        roundRect(ctx,b.x,b.y,b.w,b.h,8);
+        ctx.fillStyle='rgba(13,45,82,0.8)'; ctx.fill();
+        ctx.strokeStyle=C.royal; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle='white'; ctx.font='11px Rethink Sans';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(b.label,b.x+b.w/2,b.y+b.h/2);
+        ctx.globalAlpha=1;
+      });
+      t++; requestAnimationFrame(draw);
+    })();
+  })();
+
+  // VIZ 16: Build — tetris blocks
+  (function(){
+    const cv=canvases[2],ctx=cv.getContext('2d');
+    const W=cv.offsetWidth||600,H=cv.offsetHeight||800;
+    cv.width=W; cv.height=H;
+    let t=0;
+    const cols=8, rows=10;
+    const bw=Math.min(W/cols,60), bh=40;
+    const startX=(W-cols*bw)/2;
+    const colors=[C.royal,C.navy,C.ocean,C.cyan,C.lavender,C.sky];
+    const blocks=[];
+    for(let r=rows-1;r>=0;r--)
+      for(let c=0;c<cols;c++)
+        blocks.push({c,r,color:colors[Math.floor(Math.random()*colors.length)],born:(rows-1-r)*20+c*3});
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='rgba(7,24,41,0.95)'; ctx.fillRect(0,0,W,H);
+      const base=H-40;
+      blocks.forEach(b=>{
+        if(t>b.born){
+          const a=Math.min((t-b.born)/15,1);
+          const bx=startX+b.c*bw;
+          const by=base-b.r*bh-(1-a)*bh;
+          ctx.globalAlpha=a;
+          roundRect(ctx,bx+2,by+2,bw-4,bh-4,4);
+          ctx.fillStyle=b.color; ctx.fill();
+          ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.stroke();
+          ctx.globalAlpha=1;
+        }
+      });
+      t++; requestAnimationFrame(draw);
+    })();
+  })();
+
+  // VIZ 17: Training — progress bars
+  (function(){
+    const cv=canvases[3],ctx=cv.getContext('2d');
+    const W=cv.offsetWidth||600,H=cv.offsetHeight||800;
+    cv.width=W; cv.height=H;
+    let t=0;
+    const teams=['Team Alpha','Team Beta','Team Gamma'];
+    const vals=[0.92,0.78,0.85];
+    const starts=[0,80,160];
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='rgba(7,24,41,0.95)'; ctx.fillRect(0,0,W,H);
+      const cx=W/2, cy=H/2;
+      teams.forEach((name,i)=>{
+        const progress=Math.min(Math.max((t-starts[i])/100,0),1);
+        const barW=W*0.6, barH=20;
+        const bx=cx-barW/2, by=cy-60+i*90;
+        // Track
+        roundRect(ctx,bx,by,barW,barH,10);
+        ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fill();
+        // Fill
+        if(progress>0){
+          const grad=ctx.createLinearGradient(bx,0,bx+barW,0);
+          grad.addColorStop(0,C.royal); grad.addColorStop(1,C.cyan);
+          roundRect(ctx,bx,by,barW*progress*vals[i],barH,10);
+          ctx.fillStyle=grad; ctx.fill();
+        }
+        ctx.fillStyle='white'; ctx.font='bold 12px Rethink Sans';
+        ctx.textAlign='left'; ctx.textBaseline='bottom';
+        ctx.fillText(name,bx,by-6);
+        ctx.textAlign='right';
+        ctx.fillText(Math.round(progress*vals[i]*100)+'%',bx+barW,by-6);
+      });
+      t++; requestAnimationFrame(draw);
+    })();
+  })();
+
+  // VIZ 18: Optimization — line chart going up
+  (function(){
+    const cv=canvases[4],ctx=cv.getContext('2d');
+    const W=cv.offsetWidth||600,H=cv.offsetHeight||800;
+    cv.width=W; cv.height=H;
+    let t=0;
+    const pts=[];
+    const N=60;
+    for(let i=0;i<N;i++){
+      const base=0.2+i/N*0.7;
+      pts.push(base+Math.sin(i*0.8)*0.05+(Math.random()-0.5)*0.03);
+    }
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='rgba(7,24,41,0.95)'; ctx.fillRect(0,0,W,H);
+      const margin=60,cw=W-margin*2,ch=H-margin*2;
+      const maxPts=Math.min(Math.floor(t/2)+1,N);
+      if(maxPts<2){t++;requestAnimationFrame(draw);return;}
+      // Area fill
+      ctx.beginPath();
+      pts.slice(0,maxPts).forEach((p,i)=>{
+        const px=margin+i/(N-1)*cw;
+        const py=margin+ch-(p*ch);
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      ctx.lineTo(margin+(maxPts-1)/(N-1)*cw,margin+ch);
+      ctx.lineTo(margin,margin+ch);
+      ctx.closePath();
+      const g=ctx.createLinearGradient(0,margin,0,margin+ch);
+      g.addColorStop(0,'rgba(46,87,202,0.3)'); g.addColorStop(1,'rgba(46,87,202,0)');
+      ctx.fillStyle=g; ctx.fill();
+      // Line
+      ctx.beginPath();
+      pts.slice(0,maxPts).forEach((p,i)=>{
+        const px=margin+i/(N-1)*cw;
+        const py=margin+ch-(p*ch);
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      const lineG=ctx.createLinearGradient(margin,0,margin+cw,0);
+      lineG.addColorStop(0,C.royal); lineG.addColorStop(1,C.cyan);
+      ctx.strokeStyle=lineG; ctx.lineWidth=2.5; ctx.stroke();
+      // End dot
+      const lastP=pts[maxPts-1];
+      const lx=margin+(maxPts-1)/(N-1)*cw;
+      const ly=margin+ch-(lastP*ch);
+      ctx.beginPath(); ctx.arc(lx,ly,5,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.shadowColor=C.cyan; ctx.shadowBlur=12;
+      ctx.fill(); ctx.shadowBlur=0;
+      t++; requestAnimationFrame(draw);
+    })();
+  })();
+
+  // ScrollTrigger for process steps
+  ScrollTrigger.create({
+    trigger:'.process-pin-wrap',
+    start:'top top',
+    end:'bottom bottom',
+    pin:'.process-pin-inner',
+    scrub:true,
+    onUpdate:self=>{
+      const step=Math.min(Math.floor(self.progress*5),4);
+      if(step!==activeStep) showStep(step);
+    }
+  });
+})();
+
+// ================================================================
+// VIZ 19: FLOW CANVAS — Workflow with bezier + dots
+// ================================================================
+(function(){
+  const cv=document.getElementById('flow-canvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||1200,H=300;
+  cv.width=W; cv.height=H;
+  let triggered=false;
+  const nodeNames=['Trigger','Filter','Transform','Action','Notify'];
+  const N=nodeNames.length;
+  const nodes=nodeNames.map((name,i)=>({
+    x:W*0.1+i*(W*0.8/(N-1)),y:H/2,name
+  }));
+  const particles=[];
+  for(let i=0;i<20;i++) particles.push({t:Math.random(),seg:Math.floor(Math.random()*(N-1)),active:false});
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Bezier paths between nodes
+    for(let i=0;i<N-1;i++){
+      const a=nodes[i],b=nodes[i+1];
+      const cpx=(a.x+b.x)/2;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.bezierCurveTo(cpx,a.y-40,cpx,b.y+40,b.x,b.y);
+      ctx.strokeStyle='rgba(61,227,255,0.2)';
+      ctx.lineWidth=2; ctx.stroke();
+    }
+    // Nodes
+    nodes.forEach((n,i)=>{
+      const pulse=(Math.sin(Date.now()*0.003+i)*0.5+0.5);
+      ctx.beginPath(); ctx.arc(n.x,n.y,20,0,Math.PI*2);
+      const g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,20);
+      g.addColorStop(0,C.royal); g.addColorStop(1,'rgba(46,87,202,0.3)');
+      ctx.fillStyle=g; ctx.fill();
+      ctx.strokeStyle=`rgba(61,227,255,${0.5+pulse*0.5})`;
+      ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='white'; ctx.font='bold 10px Rethink Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(n.name,n.x,n.y);
+    });
+    // Particles
+    particles.forEach(p=>{
+      if(!p.active) return;
+      p.t+=0.006;
+      if(p.t>1){p.t=0;p.seg=(p.seg+1)%(N-1);}
+      const a=nodes[p.seg],b=nodes[p.seg+1];
+      const cpx=(a.x+b.x)/2;
+      const t=p.t;
+      const px=Math.pow(1-t,3)*a.x+3*Math.pow(1-t,2)*t*cpx+3*(1-t)*t*t*cpx+t*t*t*b.x;
+      const py=Math.pow(1-t,3)*a.y+3*Math.pow(1-t,2)*t*(a.y-40)+3*(1-t)*t*t*(b.y+40)+t*t*t*b.y;
+      ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2);
+      ctx.fillStyle=C.cyan;
+      ctx.shadowColor=C.cyan; ctx.shadowBlur=8;
+      ctx.fill(); ctx.shadowBlur=0;
+    });
+    if(triggered) requestAnimationFrame(draw);
+  }
+
+  ScrollTrigger.create({
+    trigger:'#flow-section',
+    start:'top 80%',
+    onEnter:()=>{
+      triggered=true;
+      particles.forEach(p=>{p.active=true;});
+      draw();
+    }
+  });
+})();
+
+// ================================================================
+// VIZ 20: ARCH CANVAS — Hub + spokes
+// ================================================================
+(function(){
+  const cv=document.getElementById('arch-canvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||1200,H=480;
+  cv.width=W; cv.height=H;
+  let triggered=false,t=0;
+  const cx=W/2,cy=H/2;
+  const spokeTools=['Slack','Gmail','Sheets','Jira','Salesforce','Zapier','Calendar','Notion'];
+  const spokeCols=['#4a154b','#ea4335','#34a853','#0052cc','#00a1e0','#ff4f00','#4285f4','#ffffff'];
+  const R=180;
+  const spokeNodes=spokeTools.map((name,i)=>{
+    const a=(i/spokeTools.length)*Math.PI*2;
+    return {x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R,name,color:spokeCols[i],lit:false,litT:0,a};
+  });
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Glow behind hub
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,120);
+    g.addColorStop(0,'rgba(46,87,202,0.25)');
+    g.addColorStop(1,'rgba(7,24,41,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+    // Light up spokes sequentially
+    const litIdx=Math.floor((t/60)%spokeNodes.length);
+    if(t%60===0) spokeNodes[litIdx].lit=true;
+    spokeNodes.forEach(n=>{if(n.lit)n.litT=Math.min(n.litT+0.05,1);});
+
+    // Spoke lines + nodes
+    spokeNodes.forEach((n,i)=>{
+      const pulse=(Math.sin(t*0.04+i)*0.5+0.5);
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(cx,cy); ctx.lineTo(n.x,n.y);
+      const la=n.litT>0?0.4+n.litT*0.4:0.15+pulse*0.1;
+      ctx.strokeStyle=`rgba(61,227,255,${la})`;
+      ctx.lineWidth=n.litT>0?2:1;
+      ctx.stroke();
+
+      // Dot
+      ctx.beginPath(); ctx.arc(n.x,n.y,18,0,Math.PI*2);
+      ctx.fillStyle=n.color==='#ffffff'?'rgba(255,255,255,0.15)':n.color+'33';
+      ctx.fill();
+      ctx.strokeStyle=n.litT>0?C.cyan:`rgba(255,255,255,0.2)`;
+      ctx.lineWidth=n.litT>0?2:1;
+      if(n.litT>0){
+        ctx.shadowColor=C.cyan; ctx.shadowBlur=15;
+      }
+      ctx.stroke(); ctx.shadowBlur=0;
+      ctx.fillStyle='white'; ctx.font='bold 9px Rethink Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(n.name,n.x,n.y);
+    });
+
+    // Hub
+    ctx.beginPath(); ctx.arc(cx,cy,50,0,Math.PI*2);
+    const hg=ctx.createRadialGradient(cx,cy,0,cx,cy,50);
+    hg.addColorStop(0,C.royal); hg.addColorStop(1,'rgba(46,87,202,0.6)');
+    ctx.fillStyle=hg; ctx.fill();
+    ctx.strokeStyle=C.cyan; ctx.lineWidth=2;
+    ctx.shadowColor=C.cyan; ctx.shadowBlur=20;
+    ctx.stroke(); ctx.shadowBlur=0;
+    ctx.fillStyle='white'; ctx.font='bold 16px Rethink Sans';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Coda',cx,cy-6);
+    ctx.font='10px Rethink Sans'; ctx.fillStyle=C.muted;
+    ctx.fillText('HUB',cx,cy+10);
+
+    t++;
+    if(triggered) requestAnimationFrame(draw);
+  }
+
+  ScrollTrigger.create({
+    trigger:'#arch-section',
+    start:'top 80%',
+    onEnter:()=>{ triggered=true; draw(); }
+  });
+})();
+
+// ================================================================
+// VIZ 21-26: STATS COUNTERS
+// ================================================================
+ScrollTrigger.create({
+  trigger:'#stats',
+  start:'top 80%',
+  once:true,
+  onEnter:()=>{
+    document.querySelectorAll('#stats .stat-big[data-count], #stats .stat-big[data-count-float]').forEach(el=>animateCounter(el));
+    // Ring animation
+    const ring=document.getElementById('ring-91');
+    if(ring){
+      const circ=2*Math.PI*34;
+      ring.style.strokeDashoffset=circ-(circ*0.91);
+    }
+  }
+});
+
+// ================================================================
+// HORIZONTAL CASE REEL (VIZ 27-29)
+// ================================================================
+(function(){
+  const reel=document.getElementById('cases-reel');
+  const wrap=document.querySelector('.cases-reel-wrap');
+  if(!reel||!wrap) return;
+  const totalCards=reel.children.length;
+  const cardW=640; // approx card + gap
+
+  ScrollTrigger.create({
+    trigger:wrap,
+    start:'top top',
+    end:`+=${totalCards*cardW}`,
+    pin:'.cases-reel-pin',
+    scrub:1,
+    onUpdate:self=>{
+      const maxX=-(totalCards-1)*cardW;
+      reel.style.transform=`translateX(${self.progress*maxX}px)`;
+    }
+  });
+})();
+
+// ================================================================
+// FADE-UP ANIMATIONS
+// ================================================================
+document.querySelectorAll('.fade-up').forEach(el=>{
+  gsap.fromTo(el,
+    {opacity:0,y:36},
+    {
+      opacity:1,y:0,duration:0.8,ease:'power2.out',
+      scrollTrigger:{trigger:el,start:'top 85%',once:true}
+    }
+  );
+});
+
+// Line reveals
+document.querySelectorAll('.line-inner').forEach((el,i)=>{
+  gsap.fromTo(el,
+    {y:'110%'},
+    {y:'0%',duration:0.9,ease:'power3.out',delay:i*0.12,
+     scrollTrigger:{trigger:el,start:'top 90%',once:true}}
+  );
+});
+
+// ================================================================
+// CHAPTER DOT NAV
+// ================================================================
+const sections=[
+  {id:'hero',dotIdx:0},
+  {id:'gap-section',dotIdx:1},
+  {id:'coda-section',dotIdx:2},
+  {id:'services',dotIdx:3},
+  {id:'escher',dotIdx:4},
+  {id:'process',dotIdx:5},
+  {id:'flow-section',dotIdx:6},
+  {id:'stats',dotIdx:7},
+  {id:'cases',dotIdx:8},
+];
+const dots=document.querySelectorAll('.ch-dot');
+sections.forEach(({id,dotIdx})=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  ScrollTrigger.create({
+    trigger:el,
+    start:'top 60%',
+    end:'bottom 60%',
+    onToggle:self=>{
+      if(self.isActive){
+        dots.forEach(d=>d.classList.remove('active'));
+        dots[dotIdx]?.classList.add('active');
+      }
+    }
+  });
+});
+
+// Dot click
+dots.forEach(d=>{
+  d.addEventListener('click',()=>{
+    const target=document.getElementById(d.dataset.target);
+    if(target) target.scrollIntoView({behavior:'smooth'});
+  });
+});
+
+</script>
+</body>
+</html>

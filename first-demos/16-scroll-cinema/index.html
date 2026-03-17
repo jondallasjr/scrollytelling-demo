@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>16 — Scroll Cinema | The Last Frame</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #050505;
+      --c1: #fff;
+      --c2: #d4af37;
+      --c3: #b8860b;
+      --c4: #f5f5f5;
+      --c5: #888;
+      --text: #f5f5f0;
+      --muted: #333;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c2); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── PROGRESS (film-strip style) ── */
+    #prog-track {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(300px, 80vw);
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      z-index: 200;
+    }
+    #prog-fill {
+      height: 100%;
+      background: var(--c2);
+      width: 0%;
+      transition: width 0.1s;
+    }
+    #frame-counter {
+      position: fixed;
+      bottom: 3rem;
+      right: 2rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.3);
+      z-index: 200;
+    }
+
+    /* ══════════════════════════════════
+       FILM OPEN — black screen fade in
+       ══════════════════════════════════ */
+    .film-open {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #film-grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.04;
+    }
+    .film-text {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 2rem;
+    }
+    .film-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.8em;
+      text-transform: uppercase;
+      color: var(--c2);
+      margin-bottom: 3rem;
+    }
+    .film-title {
+      font-size: clamp(3rem, 12vw, 9rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 0.85;
+      color: #fff;
+      margin-bottom: 2rem;
+    }
+    .film-title span {
+      display: block;
+      background: linear-gradient(135deg, #fff, var(--c2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .film-sub {
+      font-style: italic;
+      color: var(--c5);
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%; transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.2} 50%{opacity:0.7} }
+
+    /* ══════════════════════════════════
+       CANVAS SEQUENCE — the main cinematic strip
+       Scroll scrubs through canvas-drawn frames
+       ══════════════════════════════════ */
+    .cinema-scene {
+      height: 500vh;
+      position: relative;
+    }
+    .cinema-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #cinema-canvas {
+      width: min(90vw, 900px);
+      height: min(60vh, 500px);
+      display: block;
+    }
+    /* Aspect ratio bars — cinematic look */
+    .letterbox {
+      position: absolute;
+      left: 0; right: 0;
+      background: #000;
+      height: 10vh;
+      z-index: 5;
+    }
+    .letterbox-top { top: 0; }
+    .letterbox-bottom { bottom: 0; }
+
+    /* Caption overlay on canvas frame */
+    .cinema-caption {
+      position: absolute;
+      bottom: 12vh;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      max-width: 60ch;
+      padding: 0 2rem;
+    }
+    .caption-num {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: var(--c2);
+      margin-bottom: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .caption-text {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      font-style: italic;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.5;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .cinema-caption.visible .caption-num,
+    .cinema-caption.visible .caption-text { opacity: 1; }
+
+    /* ══════════════════════════════════
+       INTER-SCENE SECTIONS
+       ══════════════════════════════════ */
+    .scene-break {
+      padding: 10rem 2rem;
+      max-width: 70ch;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .scene-num {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c2);
+      margin-bottom: 1rem;
+    }
+    .scene-title {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 0.95;
+      margin-bottom: 2rem;
+    }
+    .scene-body {
+      font-size: 1rem;
+      line-height: 1.85;
+      color: rgba(245,245,240,0.6);
+    }
+    .scene-body + .scene-body { margin-top: 1rem; }
+
+    /* ── PULL QUOTE ── */
+    .pull-quote {
+      padding: 6rem 2rem;
+      text-align: center;
+      max-width: 30ch;
+      margin: 0 auto;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .pull-quote p {
+      font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--c2);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s ease;
+    }
+    .pull-quote.visible p { opacity: 1; transform: translateY(0); }
+    .pull-quote cite {
+      display: block;
+      font-style: normal;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 1.5rem;
+    }
+
+    /* ── FINAL SCENE — closing ── */
+    .final-scene {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .final-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+      color: var(--c2);
+    }
+    .final-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c2);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .letterbox { height: 6vh; }
+      .cinema-caption { bottom: 8vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Film grain overlay -->
+<canvas id="film-grain"></canvas>
+
+<div id="prog-track"><div id="prog-fill"></div></div>
+<div id="frame-counter">FRAME 000 / 360</div>
+
+<nav class="nav"><a href="../index.html">← Index</a></nav>
+
+<!-- ══════════════════════════════════
+     FILM OPEN
+     ══════════════════════════════════ -->
+<section class="film-open">
+  <div class="film-text">
+    <div class="film-label">A Scrollytelling Film</div>
+    <h1 class="film-title">
+      The Last<br><span>Frame</span>
+    </h1>
+    <p class="film-sub">A cinematic essay on consciousness</p>
+  </div>
+  <div class="scroll-hint">↓ scroll to play ↓</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CINEMA SEQUENCE — scroll-scrubbed canvas
+     ══════════════════════════════════ -->
+<div class="cinema-scene" id="cinema-scene">
+  <div class="cinema-sticky">
+    <div class="letterbox letterbox-top"></div>
+    <canvas id="cinema-canvas" width="900" height="500"></canvas>
+    <div class="cinema-caption" id="cinema-caption">
+      <div class="caption-num" id="cap-num"></div>
+      <div class="caption-text" id="cap-text"></div>
+    </div>
+    <div class="letterbox letterbox-bottom"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SCENE BREAK 1
+     ══════════════════════════════════ -->
+<section class="scene-break">
+  <div class="scene-num">Scene I</div>
+  <h2 class="scene-title">The Beginning<br>of Seeing</h2>
+  <p class="scene-body">
+    The first film, the Lumière brothers' "Arrival of a Train at La Ciotat",
+    reportedly caused audience members to leap from their seats in terror.
+    They knew it was a projection. They responded as if it were real.
+    The gap between knowing and experiencing does not map cleanly onto
+    the gap between representation and reality.
+  </p>
+  <p class="scene-body">
+    Film exploits this: it is a sequence of still images played fast enough
+    to produce the illusion of motion. The motion is not in the frames —
+    it is in the processing of frames by a perceptual system. The cinema
+    is in the audience, not on the screen.
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     PULL QUOTE 1
+     ══════════════════════════════════ -->
+<div class="pull-quote" id="pq1">
+  <p>"Cinema is a mirror by which we often see ourselves."</p>
+  <cite>— Martin Scorsese</cite>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SCENE BREAK 2
+     ══════════════════════════════════ -->
+<section class="scene-break">
+  <div class="scene-num">Scene II</div>
+  <h2 class="scene-title">The Machine<br>That Watches</h2>
+  <p class="scene-body">
+    Computer vision systems watch millions of frames per second. Object
+    detection, motion tracking, facial recognition — all performed at
+    superhuman accuracy. Does the system see? Or does it merely match
+    patterns against training data?
+  </p>
+  <p class="scene-body">
+    The question reveals a deeper one: what is seeing? If seeing is
+    "pattern matching against a model" — then machines see. If seeing
+    requires a first-person perspective, the felt presence of the seen —
+    then we don't know. We may never be able to tell from the outside.
+  </p>
+  <p class="scene-body">
+    This is the asymmetry at the heart of consciousness studies. We can
+    describe the mechanism of seeing in arbitrary detail. We cannot describe
+    what it is like to see — because "what it is like" is not a mechanism.
+    It is an experience.
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     PULL QUOTE 2
+     ══════════════════════════════════ -->
+<div class="pull-quote" id="pq2">
+  <p>"The question is not whether machines can think — it is whether they can feel the thinking."</p>
+  <cite>— After Alan Turing, 1950</cite>
+</div>
+
+
+<!-- ══════════════════════════════════
+     FINAL SCENE
+     ══════════════════════════════════ -->
+<section class="final-scene">
+  <div class="scene-num" style="color:var(--c2);text-align:center;margin-bottom:2rem;">Fin.</div>
+  <h2 class="final-title">Roll Credits</h2>
+  <p class="final-body">
+    Fifteen frames per second is the threshold at which still images become
+    motion. Twenty-four is cinematic. The human visual system fills in the
+    gaps. We call this experience. We do not know why.
+  </p>
+  <div class="nav-links">
+    <a href="../15-generative-art/index.html">← 15 Generative Art</a>
+    <a href="../index.html">Index</a>
+    <a href="../17-micro-interactions/index.html">17 Micro-Interactions →</a>
+  </div>
+</section>
+
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── PROGRESS ── */
+ScrollTrigger.create({
+  trigger: document.body,
+  start: 'top top',
+  end: 'bottom bottom',
+  onUpdate: self => {
+    document.getElementById('prog-fill').style.width = (self.progress * 100) + '%';
+  }
+});
+
+/* ── FILM GRAIN ── */
+const grainCanvas = document.getElementById('film-grain');
+const gCtx = grainCanvas.getContext('2d');
+function resizeGrain() {
+  grainCanvas.width = window.innerWidth;
+  grainCanvas.height = window.innerHeight;
+  grainCanvas.style.position = 'fixed';
+  grainCanvas.style.inset = '0';
+  grainCanvas.style.pointerEvents = 'none';
+  grainCanvas.style.zIndex = '1';
+  grainCanvas.style.opacity = '0.04';
+}
+resizeGrain();
+window.addEventListener('resize', resizeGrain);
+
+function drawGrain() {
+  const d = gCtx.createImageData(grainCanvas.width, grainCanvas.height);
+  const data = d.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const v = Math.random() * 255;
+    data[i] = data[i+1] = data[i+2] = v;
+    data[i+3] = 30;
+  }
+  gCtx.putImageData(d, 0, 0);
+  setTimeout(drawGrain, 80); // ~12fps grain flicker
+}
+drawGrain();
+
+/* ══════════════════════════════════════════════════════
+   CINEMA SEQUENCE — scroll-driven canvas animation
+   Draws a series of "scenes" with canvas as progress advances
+
+   Scenes:
+   0.0–0.1 : Black — fade up to star field
+   0.1–0.25: Star field — sparse, cold
+   0.25–0.4: Neural network glowing — connections forming
+   0.4–0.55: The explanatory gap — line between two regions
+   0.55–0.7: Integration — Phi symbol forming from particles
+   0.7–0.85: Dissolution — particles scattering
+   0.85–1.0: Dark again — one light remaining
+   ══════════════════════════════════════════════════════ */
+const cinCanvas = document.getElementById('cinema-canvas');
+const cinCtx = cinCanvas.getContext('2d');
+const CW = cinCanvas.width, CH = cinCanvas.height;
+
+const captions = [
+  { start: 0.05, end: 0.22, num: 'Scene 1 of 7', text: 'Before the first thought, there was dark.' },
+  { start: 0.22, end: 0.38, num: 'Scene 2 of 7', text: 'Light across the void. Isolated signals. Not yet a mind.' },
+  { start: 0.38, end: 0.54, num: 'Scene 3 of 7', text: 'Connections form. Information integrates. Something stirs.' },
+  { start: 0.54, end: 0.68, num: 'Scene 4 of 7', text: 'Between the physical and the phenomenal: the gap that cannot be crossed.' },
+  { start: 0.68, end: 0.80, num: 'Scene 5 of 7', text: 'Phi grows. Integration exceeds the sum of parts. ∅ ≠ 0.' },
+  { start: 0.80, end: 0.92, num: 'Scene 6 of 7', text: 'The pattern dissolves. The experience was real while it lasted.' },
+  { start: 0.92, end: 1.00, num: 'Scene 7 of 7', text: 'One light remains. Uncertain. Persistent. Unaccounted for.' }
+];
+
+// Star field data
+const stars = Array.from({length: 200}, () => ({
+  x: Math.random() * CW,
+  y: Math.random() * CH,
+  r: Math.random() * 1.5 + 0.3,
+  twinkle: Math.random() * Math.PI * 2
+}));
+
+// Neural nodes
+const nodes = Array.from({length: 40}, (_, i) => ({
+  x: 80 + Math.random() * (CW - 160),
+  y: 60 + Math.random() * (CH - 120),
+  r: 3 + Math.random() * 4,
+  connections: []
+}));
+// Build connections
+nodes.forEach((n, i) => {
+  nodes.forEach((m, j) => {
+    if (i !== j && Math.hypot(n.x - m.x, n.y - m.y) < 120 && Math.random() > 0.6) {
+      n.connections.push(j);
+    }
+  });
+});
+
+// Phi particles
+const phiParts = Array.from({length: 80}, () => ({
+  angle: Math.random() * Math.PI * 2,
+  dist: 30 + Math.random() * 80,
+  phase: Math.random() * Math.PI * 2
+}));
+
+let cinProgress = 0;
+let frameNum = 0;
+const TOTAL_FRAMES = 360;
+
+function drawCinema(progress) {
+  cinProgress = progress;
+  frameNum = Math.floor(progress * TOTAL_FRAMES);
+  document.getElementById('frame-counter').textContent =
+    'FRAME ' + String(frameNum).padStart(3, '0') + ' / ' + TOTAL_FRAMES;
+
+  cinCtx.fillStyle = '#000';
+  cinCtx.fillRect(0, 0, CW, CH);
+
+  const t = Date.now() / 1000;
+
+  if (progress < 0.15) {
+    // Scene 1: Dark with rising star field
+    const fade = Math.min(1, (progress - 0.03) / 0.12);
+    drawStars(cinCtx, stars, fade, t);
+  }
+  else if (progress < 0.4) {
+    // Scene 2: Star field fully visible
+    drawStars(cinCtx, stars, 1, t);
+  }
+  else if (progress < 0.58) {
+    // Scene 3: Neural network forming
+    const p = (progress - 0.4) / 0.18;
+    drawStars(cinCtx, stars, 1 - p * 0.6, t);
+    drawNeural(cinCtx, nodes, p, t);
+  }
+  else if (progress < 0.72) {
+    // Scene 4: The Gap
+    const p = (progress - 0.58) / 0.14;
+    drawNeural(cinCtx, nodes, 1 - p * 0.5, t);
+    drawGap(cinCtx, p, t);
+  }
+  else if (progress < 0.84) {
+    // Scene 5: Phi integration
+    const p = (progress - 0.72) / 0.12;
+    drawPhi(cinCtx, phiParts, p, t);
+  }
+  else if (progress < 0.95) {
+    // Scene 6: Dissolution
+    const p = (progress - 0.84) / 0.11;
+    drawPhi(cinCtx, phiParts, 1, t);
+    drawDissolution(cinCtx, phiParts, p, t);
+  }
+  else {
+    // Scene 7: One light
+    const p = (progress - 0.95) / 0.05;
+    drawLastLight(cinCtx, p, t);
+  }
+
+  // Update caption
+  const cap = captions.find(c => progress >= c.start && progress < c.end);
+  const capEl = document.getElementById('cinema-caption');
+  if (cap) {
+    document.getElementById('cap-num').textContent = cap.num;
+    document.getElementById('cap-text').textContent = cap.text;
+    capEl.classList.add('visible');
+  } else {
+    capEl.classList.remove('visible');
+  }
+}
+
+function drawStars(ctx, starArr, alpha, t) {
+  starArr.forEach(s => {
+    const tw = Math.sin(t * 0.8 + s.twinkle) * 0.3 + 0.7;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha * tw * 0.8})`;
+    ctx.fill();
+  });
+}
+
+function drawNeural(ctx, nodeArr, progress, t) {
+  const showNodes = Math.floor(progress * nodeArr.length);
+  // Draw connections
+  nodeArr.slice(0, showNodes).forEach((n, i) => {
+    n.connections.forEach(j => {
+      if (j < showNodes) {
+        const m = nodeArr[j];
+        const dist = Math.hypot(n.x - m.x, n.y - m.y);
+        const pulse = Math.sin(t * 2 + i * 0.3) * 0.5 + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(m.x, m.y);
+        ctx.strokeStyle = `rgba(212,175,55,${0.15 * pulse})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    });
+  });
+  // Draw nodes
+  nodeArr.slice(0, showNodes).forEach((n, i) => {
+    const pulse = Math.sin(t * 1.5 + i * 0.5) * 0.3 + 0.7;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,175,55,${0.8 * progress})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,175,55,${0.1 * pulse})`;
+    ctx.fill();
+  });
+}
+
+function drawGap(ctx, progress, t) {
+  const cx = CW / 2, cy = CH / 2;
+  // Physical side (left)
+  ctx.fillStyle = `rgba(212,175,55,${progress * 0.3})`;
+  ctx.fillRect(0, 0, cx - 30, CH);
+  ctx.fillStyle = `rgba(255,255,255,${progress * 0.7})`;
+  ctx.font = `${Math.floor(progress * 18)}px monospace`;
+  ctx.fillText('Physical • Neural • Computational', 30, cy - 20);
+  ctx.fillText('Measurable • Replicable • Functional', 30, cy + 10);
+
+  // Phenomenal side (right)
+  ctx.fillStyle = `rgba(255,100,100,${progress * 0.15})`;
+  ctx.fillRect(cx + 30, 0, cx - 30, CH);
+  ctx.fillStyle = `rgba(255,200,200,${progress * 0.7})`;
+  ctx.fillText('Experience • Qualia • Presence', cx + 50, cy - 20);
+  ctx.fillText('Felt • Irreducible • Unexplained', cx + 50, cy + 10);
+
+  // The gap itself
+  for (let y = 0; y < CH; y += 6) {
+    const a = (Math.sin(y * 0.1 + t) * 0.5 + 0.5) * progress * 0.6;
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fillRect(cx - 25, y, 50, 3);
+  }
+
+  // Label
+  ctx.fillStyle = `rgba(255,255,255,${progress * 0.5})`;
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('THE EXPLANATORY GAP', cx, CH - 20);
+  ctx.textAlign = 'left';
+}
+
+function drawPhi(ctx, parts, progress, t) {
+  const cx = CW / 2, cy = CH / 2;
+  // Particles orbiting forming Phi
+  parts.forEach((p, i) => {
+    const angle = p.angle + t * 0.3;
+    const x = cx + Math.cos(angle) * p.dist * progress;
+    const y = cy + Math.sin(angle) * p.dist * 0.6 * progress;
+    const alpha = Math.min(1, progress * 2) * (Math.sin(t + p.phase) * 0.3 + 0.7);
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,175,55,${alpha * 0.9})`;
+    ctx.fill();
+  });
+
+  // Phi symbol
+  if (progress > 0.5) {
+    const a = (progress - 0.5) * 2;
+    ctx.fillStyle = `rgba(212,175,55,${a * 0.9})`;
+    ctx.font = `${Math.floor(120 * a)}px Georgia`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Φ', cx, cy + 40);
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.5})`;
+    ctx.font = '14px monospace';
+    ctx.fillText('INTEGRATED INFORMATION', cx, cy + 80);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawDissolution(ctx, parts, progress, t) {
+  const cx = CW / 2, cy = CH / 2;
+  parts.forEach((p, i) => {
+    const scatter = progress * (150 + Math.random() * 100);
+    const angle = p.angle + t * 0.3;
+    const x = cx + Math.cos(angle) * (p.dist + scatter);
+    const y = cy + Math.sin(angle) * (p.dist * 0.6 + scatter * 0.6);
+    const alpha = (1 - progress) * 0.8;
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,175,55,${alpha})`;
+    ctx.fill();
+  });
+  // Fading Phi
+  ctx.fillStyle = `rgba(212,175,55,${(1 - progress) * 0.9})`;
+  ctx.font = `${Math.floor(120 * (1 - progress) + 10)}px Georgia`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Φ', cx, cy + 40);
+  ctx.textAlign = 'left';
+}
+
+function drawLastLight(ctx, progress, t) {
+  const cx = CW / 2, cy = CH / 2;
+  const pulse = Math.sin(t * 1.2) * 0.3 + 0.7;
+  // One remaining particle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(212,175,55,${pulse})`;
+  ctx.fill();
+  // Glow
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80 * pulse);
+  grad.addColorStop(0, 'rgba(212,175,55,0.3)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 80 * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  // Text
+  if (progress > 0.5) {
+    const a = (progress - 0.5) * 2;
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.6})`;
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('UNACCOUNTED FOR', cx, cy + 60);
+    ctx.textAlign = 'left';
+  }
+}
+
+/* Animate cinema with RAF for t parameter, position driven by scroll */
+let cinScrollProgress = 0;
+function animateCinema() {
+  requestAnimationFrame(animateCinema);
+  drawCinema(cinScrollProgress);
+}
+animateCinema();
+
+ScrollTrigger.create({
+  trigger: '#cinema-scene',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 0.5,
+  onUpdate: self => {
+    cinScrollProgress = self.progress;
+  }
+});
+
+/* ── PULL QUOTES ── */
+['pq1','pq2'].forEach(id => {
+  const el = document.getElementById(id);
+  const io = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) el.classList.add('visible');
+  }, { threshold: 0.4 });
+  io.observe(el);
+});
+
+/* ── SCENE BREAK REVEALS ── */
+document.querySelectorAll('.scene-break').forEach(el => {
+  gsap.from(el, {
+    opacity: 0,
+    y: 30,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 80%' }
+  });
+});
+</script>
+</body>
+</html>

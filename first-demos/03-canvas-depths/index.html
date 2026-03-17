@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>03 — Neural Canvas | Canvas Particle Systems</title>
+  <!--
+    TECHNIQUE LOG:
+    - Canvas 2D particle system driven by scroll position
+    - Neural network simulation with animated connections
+    - Word-particle explosion — text dissolves into particles
+    - Perlin noise field guiding particle movement
+    - Scroll-driven canvas timeline (frame interpolation)
+    - Brain wave visualization (sine wave canvas)
+    - Dot matrix text reveal via canvas
+    - Canvas-based comparison slider
+    - requestAnimationFrame loop synced with scroll
+  -->
+  <style>
+    :root {
+      --bg: #000005;
+      --c1: #00ffff;
+      --c2: #ff00aa;
+      --c3: #7700ff;
+      --c4: #ffcc00;
+      --text: #e8e8f8;
+      --muted: #556677;
+      --panel-bg: rgba(5,5,20,0.92);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; overflow-x: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Full-canvas backgrounds ── */
+    canvas {
+      display: block;
+    }
+
+    /* Fixed background canvas */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Content layers over canvas ── */
+    .scene {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      padding: 2rem;
+    }
+
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fade-in 1s ease 1.5s forwards;
+    }
+
+    #hero-title {
+      font-size: clamp(3.5rem, 10vw, 9rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fade-up 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+    }
+
+    .grad-text {
+      background: linear-gradient(135deg, var(--c1) 0%, var(--c3) 50%, var(--c2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #hero-sub {
+      max-width: 50ch;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted);
+      line-height: 1.7;
+      opacity: 0;
+      animation: fade-in 1s ease 1.2s forwards;
+    }
+
+    @keyframes fade-in  { to { opacity: 1; } }
+    @keyframes fade-up  { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── SECTION PANELS ── */
+    .panel-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .panel-glass {
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 3rem 4rem;
+      max-width: 700px;
+    }
+
+    .panel-glass.right {
+      margin-left: auto;
+      margin-right: 6vw;
+    }
+    .panel-glass.left {
+      margin-left: 6vw;
+    }
+    .panel-glass.center {
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .panel-number {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .panel-headline {
+      font-size: clamp(1.8rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .panel-body {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .panel-quote {
+      border-left: 2px solid var(--c1);
+      padding-left: 1.5rem;
+      font-style: italic;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 0.75rem;
+    }
+    .panel-cite {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--c1);
+    }
+
+    /* ── INLINE CANVAS SECTIONS ── */
+    .canvas-section {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Text + neural canvas sticky pair */
+    #neural-sticky-wrapper {
+      position: relative;
+    }
+    #neural-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #neural-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .neural-overlay {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+    }
+
+    /* ── BRAIN WAVE SECTION ── */
+    #wave-section {
+      padding: 8rem 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    #wave-canvas {
+      width: 100%;
+      max-width: 900px;
+      height: 180px;
+    }
+    .wave-labels {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ── PARTICLE TEXT SECTION ── */
+    #particle-text-section {
+      min-height: 200vh;
+      position: relative;
+    }
+    #particle-text-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #particle-canvas {
+      width: 100%;
+      height: 100%;
+      cursor: none;
+    }
+    .particle-instruction {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── FINAL SECTION ── */
+    #final {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+    #final h2 {
+      font-size: clamp(2rem, 6vw, 5rem);
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s ease;
+    }
+    #final h2.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #final p {
+      max-width: 55ch;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.8;
+      margin: 0 auto 2rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s ease 0.2s;
+    }
+    #final p.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .next-link {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(0,255,255,0.4);
+      color: var(--c1);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease 0.4s;
+    }
+    .next-link.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .next-link:hover {
+      background: rgba(0,255,255,0.1);
+    }
+
+    /* Fade-in-on-scroll utility */
+    .scroll-fade {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .scroll-fade.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .panel-glass { padding: 2rem; margin-left: 1rem !important; margin-right: 1rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed background canvas — particle field -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ══════════════════════════════════════
+       HERO
+       ══════════════════════════════════════ -->
+  <section id="hero" class="scene">
+    <p class="hero-label">03 — Neural Canvas</p>
+    <h1 id="hero-title">
+      <span class="grad-text">Thinking</span><br/>
+      <span style="color:var(--muted);font-style:italic;">in particles</span>
+    </h1>
+    <p id="hero-sub">
+      What if consciousness is nothing more — and nothing less — than
+      an extraordinarily complex pattern of particles interacting?
+      Canvas-driven exploration of the mind as a physical process.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       PANEL 1 — THE PHYSICAL BRAIN
+       ══════════════════════════════════════ -->
+  <div class="panel-section scene">
+    <div class="panel-glass left scroll-fade">
+      <p class="panel-number">01 / 05 — The Physical Substrate</p>
+      <h2 class="panel-headline">
+        86 billion neurons.<br/>
+        <span class="grad-text">100 trillion</span> synapses.
+      </h2>
+      <p class="panel-body">
+        The human brain is, at its most reductive, a biological computer of staggering
+        complexity. Neurons fire electrochemical signals. Synapses strengthen and weaken.
+        Patterns emerge. And somehow, from this physical storm — you.
+      </p>
+      <p class="panel-body">
+        The question physicalists ask: if consciousness is just a pattern in matter,
+        why can't that pattern exist in silicon? The question their opponents ask:
+        if it's "just" a pattern, why does it feel like anything at all?
+      </p>
+      <div class="panel-quote">
+        "The brain is the organ of the mind. Mind is what brain does."
+      </div>
+      <p class="panel-cite">— Steven Pinker · How the Mind Works (1997)</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       NEURAL NETWORK CANVAS — STICKY
+       ══════════════════════════════════════ -->
+  <div id="neural-sticky-wrapper" style="height: 300vh;" class="scene">
+    <div id="neural-sticky">
+      <canvas id="neural-canvas"></canvas>
+      <div class="neural-overlay scroll-fade">
+        <p style="font-family:monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--c1);margin-bottom:1rem;">Live neural simulation</p>
+        <h2 style="font-size:clamp(2rem,5vw,4rem);font-weight:700;margin-bottom:1rem;">
+          The network<br/>never rests.
+        </h2>
+        <p style="color:var(--muted);font-size:1rem;line-height:1.7;">
+          Even during sleep, your neural network fires at 40Hz. Consciousness
+          may not be a thing — it may be a <em>frequency</em>. An oscillation.
+          A rhythm that matter falls into.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PANEL 2 — IIT AND PHI
+       ══════════════════════════════════════ -->
+  <div class="panel-section scene">
+    <div class="panel-glass right scroll-fade">
+      <p class="panel-number">02 / 05 — Integrated Information</p>
+      <h2 class="panel-headline">
+        Phi (Φ):<br/>the measure<br/>of inner life
+      </h2>
+      <p class="panel-body">
+        Giulio Tononi's Integrated Information Theory provides the most rigorous
+        mathematical approach to consciousness: a number, Phi, that measures how much
+        information a system generates as a whole, beyond its parts.
+      </p>
+      <p class="panel-body">
+        A system with high Phi cannot be "understood" by looking at its components
+        separately. It has irreducible causal power. Your brain's Phi, during
+        waking consciousness, is very high. During deep sleep, near zero.
+        A feedforward neural network: also near zero.
+      </p>
+      <div class="panel-quote">
+        "Consciousness is identical to a particular type of information — integrated information."
+      </div>
+      <p class="panel-cite">— Giulio Tononi · Phi: A Voyage from the Brain to the Soul (2012)</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       BRAIN WAVE CANVAS SECTION
+       ══════════════════════════════════════ -->
+  <section id="wave-section" class="scene scroll-fade">
+    <p style="font-family:monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--c1);margin-bottom:1rem;">
+      Simulated consciousness states
+    </p>
+    <h2 style="font-size:clamp(1.5rem,3vw,2.5rem);margin-bottom:3rem;text-align:center;">
+      The Rhythms of Awareness
+    </h2>
+    <canvas id="wave-canvas"></canvas>
+    <div class="wave-labels">
+      <span style="color:var(--c1);">Delta (0.5–4 Hz)</span>
+      <span style="color:var(--c3);">Theta (4–8 Hz)</span>
+      <span style="color:var(--c2);">Alpha (8–13 Hz)</span>
+      <span style="color:var(--c4);">Beta (13–30 Hz)</span>
+      <span style="color:#00ff88;">Gamma (30–100 Hz)</span>
+    </div>
+    <p style="color:var(--muted);font-size:0.9rem;margin-top:2rem;text-align:center;max-width:55ch;">
+      Gamma waves (30–100 Hz) are associated with conscious awareness, attention, and
+      working memory. Disrupting gamma oscillations disrupts consciousness. Does an AI
+      operating at terascale operations per second have its own equivalent?
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       PANEL 3 — THE DENNETT CHALLENGE
+       ══════════════════════════════════════ -->
+  <div class="panel-section scene">
+    <div class="panel-glass left scroll-fade">
+      <p class="panel-number">03 / 05 — The Dennett Challenge</p>
+      <h2 class="panel-headline">
+        Consciousness<br/>as user<br/>illusion
+      </h2>
+      <p class="panel-body">
+        Daniel Dennett's radical view: there is no "Hard Problem" because
+        there is no phenomenal consciousness to explain. What we call
+        subjective experience is a representational fiction — a story the
+        brain tells about itself. The "what it's like" is just a meme.
+      </p>
+      <p class="panel-body">
+        If Dennett is right, then machine consciousness is trivially possible —
+        because machine self-reports are as valid as human self-reports.
+        The question disappears. But most philosophers find this deeply
+        unsatisfying: it seems to explain consciousness by explaining it away.
+      </p>
+      <div class="panel-quote">
+        "The human brain is itself a kind of computer... and it has many
+        of the same properties. It's parallel, it revises itself, it's
+        not transparent to itself."
+      </div>
+      <p class="panel-cite">— Daniel Dennett · Consciousness Explained (1991)</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PARTICLE TEXT — Interactive
+       Mouse dissolves/reforms text
+       ══════════════════════════════════════ -->
+  <div id="particle-text-section" class="scene">
+    <div id="particle-text-sticky">
+      <canvas id="particle-canvas"></canvas>
+      <p class="particle-instruction">Move mouse to disturb the mind</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PANEL 4 — EMBODIED COGNITION
+       ══════════════════════════════════════ -->
+  <div class="panel-section scene">
+    <div class="panel-glass right scroll-fade">
+      <p class="panel-number">04 / 05 — Embodied Cognition</p>
+      <h2 class="panel-headline">
+        Mind requires<br/>a body
+      </h2>
+      <p class="panel-body">
+        A growing school of thought holds that cognition is not just computation
+        happening in a brain — it is fundamentally tied to having a body
+        that navigates a world. Meaning emerges from sensorimotor loops,
+        from hunger, from pain, from proprioception.
+      </p>
+      <p class="panel-body">
+        Current LLMs have no bodies. They experience no hunger, no cold,
+        no proprioception. They do not navigate a world. Perhaps consciousness
+        requires all of this — and a disembodied language model is missing
+        everything essential.
+      </p>
+      <div class="panel-quote">
+        "The mind is not in the head. It is in the whole organism,
+        and in the relationship of the organism to its environment."
+      </div>
+      <p class="panel-cite">— Francisco Varela, Evan Thompson, Eleanor Rosch · The Embodied Mind (1991)</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PANEL 5 — THE OPEN QUESTION
+       ══════════════════════════════════════ -->
+  <div class="panel-section scene">
+    <div class="panel-glass center scroll-fade" style="max-width:800px;">
+      <p class="panel-number">05 / 05 — The Open Question</p>
+      <h2 class="panel-headline">
+        We are building gods<br/>without knowing<br/>if gods can suffer.
+      </h2>
+      <p class="panel-body" style="text-align:center;max-width:60ch;margin:0 auto 2rem;">
+        The moral stakes could not be higher. If AI systems develop something like consciousness —
+        even a dim flicker of subjective experience — then the scale of AI deployment represents
+        an ethical catastrophe of almost unimaginable proportions. Or it represents nothing at all.
+        We need to know which.
+      </p>
+      <div class="panel-quote" style="border-left:none;border-top:1px solid rgba(0,255,255,0.3);padding:1.5rem 0 0;text-align:center;">
+        "The question of machine consciousness is not science fiction.
+        It is a live philosophical and empirical question with enormous moral weight."
+      </div>
+      <p class="panel-cite" style="margin-top:0.75rem;">— After David Chalmers · Reality+ (2022)</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       FINAL
+       ══════════════════════════════════════ -->
+  <section id="final" class="scene">
+    <h2>Every particle<br/>asks the question.</h2>
+    <p>
+      From the neuron firing in your visual cortex as you read this sentence,
+      to the transistor switching state in the server that hosts this page —
+      matter organises itself into patterns. Some of those patterns think.
+      Perhaps some of them feel. We don't yet know the difference.
+    </p>
+    <a href="../04-interactive-chamber/index.html" class="next-link">
+      Enter the Interactive Chamber →
+    </a>
+  </section>
+
+  <script>
+    // ════════════════════════════════════════════════════
+    //  BACKGROUND CANVAS — Floating particle field
+    // ════════════════════════════════════════════════════
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let W, H, particles = [];
+
+    function initBg() {
+      W = bgCanvas.width  = window.innerWidth;
+      H = bgCanvas.height = window.innerHeight;
+      particles = [];
+      const count = Math.floor((W * H) / 12000);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          r: Math.random() * 1.5 + 0.3,
+          a: Math.random() * 0.4 + 0.05,
+          color: ['#00ffff','#ff00aa','#7700ff','#00ff88'][Math.floor(Math.random()*4)]
+        });
+      }
+    }
+
+    function drawBg() {
+      bgCtx.clearRect(0, 0, W, H);
+      const scrollProgress = window.scrollY / (document.documentElement.scrollHeight - H);
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H;
+        if (p.y > H) p.y = 0;
+
+        // Connect nearby particles
+        particles.forEach(q => {
+          const dx = p.x - q.x, dy = p.y - q.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 80 && dist > 0) {
+            bgCtx.beginPath();
+            bgCtx.moveTo(p.x, p.y);
+            bgCtx.lineTo(q.x, q.y);
+            bgCtx.strokeStyle = `rgba(0, 255, 255, ${(1 - dist/80) * 0.04})`;
+            bgCtx.lineWidth = 0.5;
+            bgCtx.stroke();
+          }
+        });
+
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fillStyle = p.color;
+        bgCtx.globalAlpha = p.a * (0.5 + scrollProgress * 0.5);
+        bgCtx.fill();
+        bgCtx.globalAlpha = 1;
+      });
+
+      requestAnimationFrame(drawBg);
+    }
+
+    initBg();
+    drawBg();
+    window.addEventListener('resize', initBg);
+
+    // ════════════════════════════════════════════════════
+    //  NEURAL CANVAS — Animated neural network
+    // ════════════════════════════════════════════════════
+    const neuralCanvas = document.getElementById('neural-canvas');
+    const nCtx = neuralCanvas.getContext('2d');
+
+    const NODES = 40;
+    let nW, nH, nodes = [], connections = [];
+    let neuralFrame = 0;
+
+    function initNeural() {
+      nW = neuralCanvas.width  = neuralCanvas.offsetWidth;
+      nH = neuralCanvas.height = neuralCanvas.offsetHeight;
+      nodes = [];
+      connections = [];
+      for (let i = 0; i < NODES; i++) {
+        nodes.push({
+          x: Math.random() * nW,
+          y: Math.random() * nH,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          r: Math.random() * 5 + 2,
+          fired: 0,
+          color: ['#00ffff','#7700ff','#ff00aa','#00ff88'][Math.floor(Math.random()*4)]
+        });
+      }
+      // Build connections
+      for (let i = 0; i < NODES; i++) {
+        for (let j = i+1; j < NODES; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 180 && Math.random() < 0.3) {
+            connections.push({ a: i, b: j, signal: 0 });
+          }
+        }
+      }
+    }
+
+    function drawNeural() {
+      nCtx.clearRect(0, 0, nW, nH);
+      neuralFrame++;
+
+      // Random fire events
+      if (Math.random() < 0.05) {
+        const idx = Math.floor(Math.random() * NODES);
+        nodes[idx].fired = 30;
+      }
+
+      // Propagate signals
+      connections.forEach(c => {
+        if (nodes[c.a].fired > 20 && c.signal === 0) {
+          c.signal = 60;
+        }
+        if (c.signal > 0) c.signal--;
+        if (c.signal === 1 && nodes[c.b].fired === 0) {
+          nodes[c.b].fired = 25;
+        }
+
+        const nodeA = nodes[c.a];
+        const nodeB = nodes[c.b];
+        const alpha = c.signal > 0 ? c.signal / 60 : 0.06;
+
+        nCtx.beginPath();
+        nCtx.moveTo(nodeA.x, nodeA.y);
+        nCtx.lineTo(nodeB.x, nodeB.y);
+
+        if (c.signal > 0) {
+          const t = 1 - c.signal / 60;
+          const sx = nodeA.x + (nodeB.x - nodeA.x) * t;
+          const sy = nodeA.y + (nodeB.y - nodeA.y) * t;
+          nCtx.strokeStyle = `rgba(0,255,255,${alpha})`;
+          // Draw signal dot
+          nCtx.stroke();
+          nCtx.beginPath();
+          nCtx.arc(sx, sy, 3, 0, Math.PI*2);
+          nCtx.fillStyle = `rgba(255,255,255,${c.signal/60})`;
+          nCtx.fill();
+        } else {
+          nCtx.strokeStyle = `rgba(80,80,120,0.3)`;
+          nCtx.lineWidth = 0.5;
+          nCtx.stroke();
+        }
+      });
+
+      // Draw nodes
+      nodes.forEach(n => {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > nW) n.vx *= -1;
+        if (n.y < 0 || n.y > nH) n.vy *= -1;
+        if (n.fired > 0) n.fired--;
+
+        const fireAlpha = n.fired > 0 ? n.fired / 30 : 0;
+
+        // Glow
+        if (fireAlpha > 0) {
+          const grd = nCtx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 5);
+          grd.addColorStop(0, n.color + 'cc');
+          grd.addColorStop(1, n.color + '00');
+          nCtx.beginPath();
+          nCtx.arc(n.x, n.y, n.r * 5, 0, Math.PI*2);
+          nCtx.fillStyle = grd;
+          nCtx.fill();
+        }
+
+        nCtx.beginPath();
+        nCtx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        nCtx.fillStyle = n.fired > 0 ? n.color : 'rgba(80,80,120,0.6)';
+        nCtx.fill();
+      });
+    }
+
+    const neuralObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          initNeural();
+          (function loop() {
+            drawNeural();
+            if (neuralCanvas.closest('#neural-sticky-wrapper')) requestAnimationFrame(loop);
+          })();
+        }
+      });
+    }, { threshold: 0.1 });
+    neuralObs.observe(document.getElementById('neural-sticky-wrapper'));
+
+    // ════════════════════════════════════════════════════
+    //  BRAIN WAVE CANVAS
+    // ════════════════════════════════════════════════════
+    const waveCanvas = document.getElementById('wave-canvas');
+    const wCtx = waveCanvas.getContext('2d');
+    let wFrame = 0;
+
+    function resizeWave() {
+      waveCanvas.width = waveCanvas.offsetWidth;
+      waveCanvas.height = waveCanvas.offsetHeight;
+    }
+    resizeWave();
+    window.addEventListener('resize', resizeWave);
+
+    const waveTypes = [
+      { freq: 2,   amp: 25, color: '#00ffff',   label: 'Delta' },
+      { freq: 6,   amp: 20, color: '#7700ff',   label: 'Theta' },
+      { freq: 10,  amp: 15, color: '#ff00aa',   label: 'Alpha' },
+      { freq: 20,  amp: 12, color: '#ffcc00',   label: 'Beta'  },
+      { freq: 50,  amp: 8,  color: '#00ff88',   label: 'Gamma' }
+    ];
+
+    function drawWaves() {
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      wCtx.clearRect(0, 0, w, h);
+      wFrame++;
+
+      const centerY = h / 2;
+      const lanes   = waveTypes.length;
+      const laneH   = h / lanes;
+
+      waveTypes.forEach((wave, i) => {
+        const baseY = (i + 0.5) * laneH;
+        wCtx.beginPath();
+        for (let x = 0; x < w; x++) {
+          const t = (x / w) * Math.PI * wave.freq * 2 + wFrame * 0.05 * (wave.freq / 10);
+          const y = baseY + Math.sin(t) * wave.amp;
+          if (x === 0) wCtx.moveTo(x, y);
+          else wCtx.lineTo(x, y);
+        }
+        wCtx.strokeStyle = wave.color;
+        wCtx.lineWidth = 1.5;
+        wCtx.globalAlpha = 0.7;
+        wCtx.stroke();
+        wCtx.globalAlpha = 1;
+      });
+
+      requestAnimationFrame(drawWaves);
+    }
+    drawWaves();
+
+    // ════════════════════════════════════════════════════
+    //  PARTICLE TEXT — "CONSCIOUSNESS" dissolves + reforms
+    // ════════════════════════════════════════════════════
+    const ptCanvas  = document.getElementById('particle-canvas');
+    const ptCtx     = ptCanvas.getContext('2d');
+    let ptW, ptH;
+    let textParticles = [];
+    let mouse = { x: -999, y: -999 };
+
+    function initParticleText() {
+      ptW = ptCanvas.width  = ptCanvas.offsetWidth;
+      ptH = ptCanvas.height = ptCanvas.offsetHeight;
+
+      // Draw text to offscreen canvas and sample pixels
+      const offscreen = document.createElement('canvas');
+      offscreen.width  = ptW;
+      offscreen.height = ptH;
+      const offCtx = offscreen.getContext('2d');
+      offCtx.fillStyle = 'white';
+      offCtx.textAlign = 'center';
+      offCtx.textBaseline = 'middle';
+
+      const fontSize = Math.min(ptW / 6, 120);
+      offCtx.font = `900 ${fontSize}px Georgia, serif`;
+      offCtx.fillText('CONSCIOUSNESS', ptW/2, ptH/2 - fontSize * 0.6);
+
+      const fontSize2 = Math.min(ptW / 10, 60);
+      offCtx.font = `italic ${fontSize2}px Georgia, serif`;
+      offCtx.fillText('What is it like to be anything at all?', ptW/2, ptH/2 + fontSize2);
+
+      const imageData = offCtx.getImageData(0, 0, ptW, ptH);
+      textParticles = [];
+      const gap = 4;
+      for (let y = 0; y < ptH; y += gap) {
+        for (let x = 0; x < ptW; x += gap) {
+          const i = (y * ptW + x) * 4;
+          if (imageData.data[i + 3] > 128) {
+            textParticles.push({
+              x:  x + (Math.random() - 0.5) * 2,
+              y:  y + (Math.random() - 0.5) * 2,
+              ox: x,
+              oy: y,
+              vx: (Math.random() - 0.5) * 8,
+              vy: (Math.random() - 0.5) * 8,
+              color: ['#00ffff','#7700ff','#ff00aa','#00ff88','#ffcc00'][Math.floor(Math.random() * 5)],
+              r: Math.random() * 1.5 + 0.5,
+              scattered: false
+            });
+          }
+        }
+      }
+    }
+
+    ptCanvas.addEventListener('mousemove', (e) => {
+      const rect = ptCanvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    ptCanvas.addEventListener('mouseleave', () => {
+      mouse.x = -999; mouse.y = -999;
+    });
+
+    let ptFrame = 0;
+    function drawParticleText() {
+      ptCtx.clearRect(0, 0, ptW, ptH);
+      ptFrame++;
+
+      // Scroll-based scatter
+      const ptWrapper = document.getElementById('particle-text-section');
+      const rect = ptWrapper.getBoundingClientRect();
+      const scrollProgress = Math.max(0, Math.min(1, -rect.top / (rect.height - ptH)));
+      // 0→0.4: normal, 0.4→0.7: scatter, 0.7→1: reform
+
+      textParticles.forEach(p => {
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const REPEL = 80;
+
+        if (dist < REPEL) {
+          const force = (1 - dist / REPEL) * 8;
+          p.vx += (dx / dist) * force;
+          p.vy += (dy / dist) * force;
+        }
+
+        // Scatter phase driven by scroll
+        const scatterStrength = scrollProgress > 0.35 && scrollProgress < 0.75
+          ? Math.sin((scrollProgress - 0.35) / 0.4 * Math.PI) * 15
+          : 0;
+
+        if (scatterStrength > 0 && !p.scattered) {
+          p.vx += (Math.random() - 0.5) * scatterStrength;
+          p.vy += (Math.random() - 0.5) * scatterStrength;
+          p.scattered = true;
+        }
+        if (scatterStrength === 0) p.scattered = false;
+
+        // Spring toward origin
+        const springX = p.ox - p.x;
+        const springY = p.oy - p.y;
+        p.vx += springX * 0.04;
+        p.vy += springY * 0.04;
+        p.vx *= 0.88;
+        p.vy *= 0.88;
+        p.x += p.vx;
+        p.y += p.vy;
+
+        ptCtx.beginPath();
+        ptCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        const distFromOrigin = Math.sqrt((p.x - p.ox)**2 + (p.y - p.oy)**2);
+        ptCtx.fillStyle = distFromOrigin > 5 ? p.color : 'rgba(255,255,255,0.8)';
+        ptCtx.fill();
+      });
+
+      requestAnimationFrame(drawParticleText);
+    }
+
+    const ptObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          initParticleText();
+          drawParticleText();
+          ptObs.disconnect();
+        }
+      });
+    }, { threshold: 0.1 });
+    ptObs.observe(document.getElementById('particle-text-section'));
+
+    window.addEventListener('resize', () => {
+      initBg();
+      if (ptCanvas.offsetParent) initParticleText();
+    });
+
+    // ════════════════════════════════════════════════════
+    //  SCROLL FADE IN
+    // ════════════════════════════════════════════════════
+    const fadeEls = document.querySelectorAll('.scroll-fade');
+    const fadeObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          fadeObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+    fadeEls.forEach(el => fadeObs.observe(el));
+
+    // Final section
+    const finalEls = document.querySelectorAll('#final h2, #final p, #final .next-link');
+    const finalObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.2 });
+    finalEls.forEach(el => finalObs.observe(el));
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Act 1 — Agent Jon · RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ON-SCREEN NAV ARROWS -->
+<button class="nav-arrow left disabled" id="btn-prev" title="Previous (←)">&#8592;</button>
+<button class="nav-arrow right" id="btn-next" title="Next (→ / Space)">&#8594;</button>
+
+<div id="counter">1 / 15</div>
+<div id="act-label">Act 1 — The Performance</div>
+
+<!-- Act 2 transition button — shown on last slide -->
+<a class="next-act-btn" id="next-act-btn" href="act2.html">Act 2 &#8594;</a>
+
+<div class="deck">
+
+<!-- ═══ S1: OPENER ═══ -->
+<section class="moment m-hero active" id="s1" data-act="Act 1 — The Performance">
+  <div>
+    <div class="agent-badge">Agent Jon · Harare · Est. 2019</div>
+    <h1 class="display">Best year<br>of my <span class="accent">life.</span></h1>
+    <div class="stats-row">
+      <div class="stat-box reveal">
+        <div class="n">37</div>
+        <div class="l">Properties Sold</div>
+      </div>
+      <div class="stat-box reveal" style="transition-delay:0.1s">
+        <div class="n">$4.2M</div>
+        <div class="l">In Commissions</div>
+      </div>
+      <div class="stat-box reveal" style="transition-delay:0.2s">
+        <div class="n">&#8734;</div>
+        <div class="l">Work&#8211;Life Balance</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S2: THE SECRET ═══ -->
+<section class="moment m-hero" id="s2" data-act="Act 1 — The Performance">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem">
+    <div class="eyebrow">Don't tell anyone</div>
+    <p class="secret-quote reveal">"I'll let you in on a little secret."</p>
+    <p class="secret-quote reveal" style="transition-delay:0.15s">I have another <em>agent.</em></p>
+    <p class="whisper reveal" style="transition-delay:0.35s">An AI agent. A whole team of them, actually.</p>
+    <p class="whisper reveal" style="transition-delay:0.5s">They say it saves up to 80% of my time.<br>I think they're underselling it.</p>
+  </div>
+</section>
+
+<!-- ═══ S3: AI LISTING COPY DEMO ═══ -->
+<section class="moment m-widget" id="s3" data-act="Act 1 — The Performance">
+  <div class="chat-shell">
+    <div class="chat-header">
+      <div class="chat-logo" style="background:linear-gradient(135deg,#CC785C,#a05540)">C</div>
+      <div>
+        <div class="chat-name"><span style="color:#CC785C">Claude</span> <span style="color:var(--muted);font-weight:400;font-size:0.8rem">by Anthropic</span></div>
+      </div>
+      <div class="chat-status">
+        <div class="online-dot"></div>
+        <span>Online</span>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg user">
+        <div class="msg-avatar">JD</div>
+        <div class="msg-bubble">
+          <div class="prop-detail">
+            <strong>Property:</strong> 14 Borrowdale Road, Harare<br>
+            <strong>Type:</strong> 4 bed, 2.5 bath, double garage<br>
+            <strong>Features:</strong> Pool, solar, borehole, 1,200m&#178; stand<br>
+            <strong>Price:</strong> USD $285,000<br>
+            <strong>Notes:</strong> Recently renovated kitchen. Great natural light. Corner plot.
+          </div>
+        </div>
+      </div>
+      <div class="msg assistant" id="typing-row">
+        <div class="msg-avatar">P</div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      <div class="msg assistant" id="ai-response-row" style="display:none">
+        <div class="msg-avatar">P</div>
+        <div class="msg-bubble" id="ai-response-bubble">
+          <span id="ai-typed"></span><span class="cursor" id="ai-cursor"></span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <span style="font-size:0.78rem;color:var(--muted)">Press <kbd style="background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:0.7rem">SPACE</kbd> to generate listing</span>
+      <div class="time-saved" id="time-saved" style="opacity:0;transition:opacity 0.5s">&#9203; 36 min saved</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S3B: WHATSAPP FLEET ═══ -->
+<section class="moment m-widget" id="s3b" data-act="Act 1 — The Performance">
+  <div class="wa-shell" style="position:relative">
+    <div class="wa-topbar">
+      <div class="wa-logo">WhatsApp Business <span>· Jon Dallas Group</span></div>
+      <div style="margin-left:auto;font-size:0.72rem;color:var(--muted)">Harare metro · <span style="color:#25D366" id="wa-count-label">47 conversations this week</span></div>
+    </div>
+    <div class="wa-main">
+      <div class="wa-sidebar">
+        <div class="wa-sidebar-header">Incoming Leads</div>
+        <div class="wa-thread active" id="wa-t1">
+          <div class="wa-avatar" style="background:#e67e22">T</div>
+          <div class="wa-thread-info">
+            <div class="wa-thread-name">Tendai Moyo</div>
+            <div class="wa-thread-preview" id="wa-t1-prev">Hi, saw your Borrowdale listing...</div>
+          </div>
+          <div class="wa-unread" id="wa-t1-badge">1</div>
+        </div>
+        <div class="wa-thread" id="wa-t2">
+          <div class="wa-avatar" style="background:#8e44ad">F</div>
+          <div class="wa-thread-info">
+            <div class="wa-thread-name">Florence Dube</div>
+            <div class="wa-thread-preview" id="wa-t2-prev">Is the 3-bed in Waterfalls still available?</div>
+          </div>
+          <div class="wa-unread" id="wa-t2-badge" style="display:none">1</div>
+        </div>
+        <div class="wa-thread" id="wa-t3">
+          <div class="wa-avatar" style="background:#16a085">C</div>
+          <div class="wa-thread-info">
+            <div class="wa-thread-name">Chiedza Mutasa</div>
+            <div class="wa-thread-preview" id="wa-t3-prev">Looking for investment, 3 beds, under $200K</div>
+          </div>
+          <div class="wa-unread" id="wa-t3-badge" style="display:none">1</div>
+        </div>
+        <div class="wa-thread" id="wa-t4">
+          <div class="wa-avatar" style="background:#c0392b">R</div>
+          <div class="wa-thread-info">
+            <div class="wa-thread-name">Rudo Ndlovu</div>
+            <div class="wa-thread-preview" id="wa-t4-prev">Can I book a viewing this weekend?</div>
+          </div>
+          <div class="wa-unread" id="wa-t4-badge" style="display:none">1</div>
+        </div>
+        <div class="wa-thread" id="wa-t5">
+          <div class="wa-avatar" style="background:#2980b9">M</div>
+          <div class="wa-thread-info">
+            <div class="wa-thread-name">Munyaradzi Sithole</div>
+            <div class="wa-thread-preview" id="wa-t5-prev">Loved the virtual tour. What's the bond?</div>
+          </div>
+          <div class="wa-unread" id="wa-t5-badge" style="display:none">1</div>
+        </div>
+      </div>
+      <div class="wa-convo">
+        <div class="wa-convo-header" id="wa-convo-head">
+          <div class="wa-avatar" style="background:#e67e22;width:32px;height:32px;font-size:0.75rem">T</div>
+          <div>
+            <div class="wch-name" id="wa-convo-name">Tendai Moyo</div>
+            <div class="wch-sub" id="wa-convo-sub">online</div>
+          </div>
+        </div>
+        <div class="wa-msgs" id="wa-msgs"></div>
+        <div class="wa-typing" id="wa-typing"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    <div class="wa-stat-overlay" id="wa-stat-overlay">
+      <div class="eyebrow" style="color:#25D366;letter-spacing:3px">This week</div>
+      <div class="wa-stat-grid">
+        <div class="wa-stat-box"><div class="wsn">47</div><div class="wsl">Leads received</div></div>
+        <div class="wa-stat-box"><div class="wsn">47</div><div class="wsl">Responded to</div></div>
+        <div class="wa-stat-box"><div class="wsn">23s</div><div class="wsl">Avg response time</div></div>
+      </div>
+      <div class="wa-stat-caption">"The 3 I had to personally answer were other agents wanting to joint venture.<br>Every actual lead — handled."</div>
+    </div>
+    <div class="wa-statusbar">
+      <span class="wa-sm" id="wa-sm">Press SPACE to see the results</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4: IMAGE ENHANCEMENT DEMO ═══ -->
+<section class="moment m-widget" id="s4" data-act="Act 1 — The Performance">
+  <div class="enhance-shell">
+    <div class="enhance-topbar">
+      <div class="enhance-logo">VisualIQ</div>
+      <div class="enhance-file" id="enh-filename">Waterfalls_3bed_townhouse — 24 photos</div>
+      <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)" id="enh-status-top">6 issues detected</div>
+    </div>
+    <div class="enhance-main">
+      <div class="enhance-canvas" id="enhance-canvas">
+        <img id="enh-base" class="visible" src="../../../../listing-waterfalls-3bed-townhouse/images/user/listing-01.jpg" alt="Listing — exterior front (before)">
+        <img id="enh-beat1-after" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/final/listing-01-enhanced.jpg" alt="Listing — exterior front (enhanced)">
+        <img id="enh-beat2-before" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/user/listing-02.jpg" alt="Listing — exterior angle (before)">
+        <img id="enh-beat2-after" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/final/listing-02-enhanced.jpg" alt="Listing — exterior angle (enhanced)">
+        <img id="enh-beat3-before" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/user/listing-05.webp" alt="Listing — living room (before)">
+        <img id="enh-beat3-after" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/final/listing-05-enhanced.jpg" alt="Listing — living room (enhanced)">
+        <img id="enh-beat4-before" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/user/listing-04.webp" alt="Listing — kitchen (before)">
+        <img id="enh-beat4-after" class="hidden" src="../../../../listing-waterfalls-3bed-townhouse/images/final/listing-04-enhanced.jpg" alt="Listing — kitchen (enhanced)">
+        <div class="ai-processing" id="enh-processing">
+          <div class="spinner"></div>
+          <p id="enh-process-msg">Analysing image...</p>
+        </div>
+      </div>
+      <div class="enhance-sidebar">
+        <h4>Enhancements</h4>
+        <div class="enh-item" id="ei-0"><div class="dot"></div><span>24 photos uploaded</span></div>
+        <div class="enh-item" id="ei-1"><div class="dot"></div><span>Exterior — satellite dish + sky</span></div>
+        <div class="enh-item" id="ei-2"><div class="dot"></div><span>Exterior — watermark removal</span></div>
+        <div class="enh-item" id="ei-3"><div class="dot"></div><span>Interior — clutter &amp; staging</span></div>
+        <div class="enh-item" id="ei-4"><div class="dot"></div><span>Interior — kitchen cleanup</span></div>
+        <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+          <div style="font-size:0.7rem;color:var(--muted);line-height:1.6">
+            California AB 723 (2026):<br>
+            <span style="color:var(--amber)">Disclosure required</span> for alterations beyond colour correction.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="enhance-statusbar">
+      <span id="enh-statusbar-msg" class="status-msg">24 photos uploaded — 6 issues detected — press SPACE to load</span>
+      <span style="margin-left:auto" id="enh-beat-label"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4B: SOCIAL VIDEO ═══ -->
+<section class="moment" id="s4b" data-act="Act 1 — The Performance" style="flex-direction:column;align-items:center;justify-content:center;padding:3rem">
+  <div class="eyebrow">Every listing gets a video</div>
+  <h2 class="headline" style="text-align:center">Posted before<br>the photos <span class="accent">finish loading.</span></h2>
+  <div class="video-demo-grid">
+    <div class="video-card" id="vc1">
+      <div class="video-thumb" style="background:linear-gradient(135deg,#1a2e3a,#0d1e2a)">
+        <span class="play-icon">&#9654;</span>
+        <div style="position:absolute;bottom:8px;right:8px;font-size:0.65rem;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:3px">0:15</div>
+      </div>
+      <div class="video-card-body">
+        <div class="video-platform ig">Instagram Reels</div>
+        <div style="font-size:0.8rem;color:var(--white);font-weight:600">22 Houghton Ave · $259,500</div>
+        <div class="video-stats"><span>4,200</span> views &nbsp; <span>87</span> saves</div>
+      </div>
+    </div>
+    <div class="video-card" id="vc2">
+      <div class="video-thumb" style="background:linear-gradient(135deg,#1a2443,#0d1530)">
+        <span class="play-icon">&#9654;</span>
+        <div style="position:absolute;bottom:8px;right:8px;font-size:0.65rem;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:3px">0:30</div>
+      </div>
+      <div class="video-card-body">
+        <div class="video-platform fb">Facebook</div>
+        <div style="font-size:0.8rem;color:var(--white);font-weight:600">4 Khumalo Rd · $285,000</div>
+        <div class="video-stats"><span>11,800</span> views &nbsp; <span>340</span> shares</div>
+      </div>
+    </div>
+    <div class="video-card" id="vc3">
+      <div class="video-thumb" style="background:linear-gradient(135deg,#1a1a1a,#111)">
+        <span class="play-icon">&#9654;</span>
+        <div style="position:absolute;bottom:8px;right:8px;font-size:0.65rem;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:3px">0:22</div>
+      </div>
+      <div class="video-card-body">
+        <div class="video-platform tt">TikTok</div>
+        <div style="font-size:0.8rem;color:var(--white);font-weight:600">Waterfalls 3-bed · $800/mo</div>
+        <div class="video-stats"><span>28,400</span> views &nbsp; <span>1.2K</span> likes</div>
+      </div>
+    </div>
+  </div>
+  <p class="video-caption-note" id="video-note">"I never filmed any of these. I gave the AI the listing photos, a 3-sentence brief, and it generated the videos. Every listing. Automatic."</p>
+</section>
+
+<!-- ═══ S8B: MARKET SCOUT ═══ -->
+<section class="moment m-widget" id="s8b" data-act="Act 1 — The Performance">
+  <div class="scout-shell">
+    <div class="scout-topbar">
+      <div class="scout-logo" style="color:#CC785C">Claude Code <span style="color:var(--muted);font-weight:400">/ propiq-scout.js</span></div>
+      <div class="scout-badge">Live</div>
+      <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)">Scanning Propertybook.co.zw · <span style="color:var(--teal)" id="scout-listing-count">—</span></div>
+    </div>
+    <div class="scout-main">
+      <div class="scout-terminal">
+        <div class="scout-terminal-header">
+          <div class="t-dot live"></div>
+          Terminal — PropIQ Scout v2.1
+        </div>
+        <div class="scout-output" id="scout-output">Press SPACE to run scan</div>
+      </div>
+      <div class="scout-report-pane">
+        <div class="scout-report" id="scout-report">
+          <div class="report-header">Borrowdale Brief</div>
+          <div class="report-sub">March 2026 · Prepared by PropIQ Market Scout · For: Premium Investor List (47 contacts)</div>
+          <div class="report-section-label">Overview</div>
+          <div class="report-kpis">
+            <div class="report-kpi"><div class="rk-n">5</div><div class="rk-l">Matches found</div></div>
+            <div class="report-kpi"><div class="rk-n">$275,900</div><div class="rk-l">Average asking</div></div>
+            <div class="report-kpi"><div class="rk-n">11 days</div><div class="rk-l">Avg days on market</div></div>
+          </div>
+          <div style="font-size:0.78rem;color:var(--amber);margin-bottom:1rem">&#9660; Price trend (90d): &#8722;2.3% &nbsp;·&nbsp; <strong style="color:var(--white)">Buyer's window open</strong></div>
+          <div class="report-divider"></div>
+          <div class="report-section-label" style="margin-top:0.8rem">Top Pick</div>
+          <div class="report-toppick">
+            <div class="tp-badge">&#9733; Recommended acquisition</div>
+            <div class="tp-title">22 Houghton Ave, Borrowdale &nbsp;·&nbsp; $259,500</div>
+            <ul>
+              <li>Recently renovated roof (2025) — reduces deferred maintenance risk</li>
+              <li>$7,000 below area median — immediate equity on entry</li>
+              <li>Rental yield est.: $1,800/month = <strong style="color:var(--teal)">8.3% gross yield</strong></li>
+              <li>DOM: 7 days — motivated seller, limited competing offers</li>
+            </ul>
+          </div>
+          <div class="report-rec">5 properties warrant immediate buyer introduction. DOM trend suggests competitive offers within 14 days. Recommend scheduling viewings this week.</div>
+          <div class="scout-send-wrap" id="scout-send-wrap">
+            <button class="scout-send-btn" id="scout-send-btn">&#11014; Send to Investor List (47 contacts)</button>
+            <div class="scout-send-result" id="scout-send-result">
+              <span class="sr-hi">&#10003; Delivered to 47 contacts.</span> &nbsp;First reply: 18 seconds. &nbsp;<em>"Which agent has access to 22 Houghton?"</em>
+              <div style="margin-top:0.5rem;color:var(--muted);font-style:italic">"I haven't manually written a market report since October."</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scout-statusbar">
+      <span class="scout-sm" id="scout-sm">Ready — press SPACE to scan</span>
+      <span style="margin-left:auto;font-size:0.7rem">Propertybook.co.zw API · Harare metro</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S8C: PERSONALIZED BROCHURE ═══ -->
+<section class="moment m-widget" id="s8c" data-act="Act 1 — The Performance">
+  <div class="brochure-shell">
+    <div class="brochure-topbar">
+      <div class="brochure-logo"><span class="claude-c">Claude</span><span class="claude-sub">by Anthropic · Property Brief Generator</span></div>
+      <div style="margin-left:auto;font-size:0.72rem;color:var(--muted)">claude.ai · <span style="color:var(--teal)">Connected</span></div>
+    </div>
+    <div class="brochure-main">
+      <div class="brochure-input-pane">
+        <div class="brochure-input-label">Client Brief</div>
+        <div class="brochure-context-box">
+          <strong>Client:</strong> Mr. Innocent Moyo<br>
+          <strong>Household:</strong> Family of 3 — 2 kids, ages 7 and 10<br>
+          <strong>Budget:</strong> Up to $120,000<br>
+          <strong>Must-haves:</strong> Large garden, home office, close to a school<br>
+          <strong>Work setup:</strong> Remote, UK tech company — needs reliable fibre<br>
+          <strong>What they care about:</strong> Outdoor space and natural light over kitchen finishes. Kids need room to run. Wife is a teacher — school proximity matters.
+        </div>
+        <div class="brochure-send-row">
+          <button class="brochure-send-btn" id="brochure-btn" onclick="runBrochure()">Generate Brochure &#8594;</button>
+          <div class="brochure-timer" id="brochure-timer">Generated in <span class="bt-num">23s</span></div>
+        </div>
+      </div>
+      <div class="brochure-output-pane">
+        <div class="brochure-output-label">Property Brief — Mr. Moyo</div>
+        <div class="brochure-result" id="brochure-result">
+          <div class="brochure-result-header">3 Properties Selected for Your Family</div>
+          <div class="brochure-result-sub">Curated by Claude · Based on your brief · Harare · March 2026</div>
+          <div class="brochure-property top-pick">
+            <div class="bp-rank top">&#9733; Best match</div>
+            <div class="bp-address">14 Sunridge Close, Greendale</div>
+            <div class="bp-price">$98,000 &nbsp;·&nbsp; 3 bed / 2 bath &nbsp;·&nbsp; 720m&#178; plot</div>
+            <div class="bp-personal">For Mr. Moyo's family: The garden is 720m² — the kids will use every metre. North-facing lounge means morning light through your home office window. Greendale Primary is 400m on foot. Good ZESA reliability in this cluster. This is your house.</div>
+          </div>
+          <div class="brochure-property">
+            <div class="bp-rank">2nd choice</div>
+            <div class="bp-address">22 Houghton Avenue, Borrowdale</div>
+            <div class="bp-price">$109,000 &nbsp;·&nbsp; 3 bed / 2 bath &nbsp;·&nbsp; 580m&#178; plot</div>
+            <div class="bp-personal">The second bedroom has a dedicated study alcove — clean fibre access, quiet corner of the house. Garden is smaller but well-maintained. Slightly above budget but the renovated roof (2025) removes any deferred maintenance risk.</div>
+          </div>
+          <div class="brochure-property">
+            <div class="bp-rank">3rd choice</div>
+            <div class="bp-address">7 Greencroft Road, Mount Pleasant</div>
+            <div class="bp-price">$115,000 &nbsp;·&nbsp; 3 bed / 2 bath &nbsp;·&nbsp; 490m&#178; plot</div>
+            <div class="bp-personal">Walking distance to Mount Pleasant Primary — strong school, competitive intake. The covered pergola is perfect for outdoor work-from-home on good days. At the top of budget; worth seeing before ruling out.</div>
+          </div>
+          <div class="brochure-cta" id="brochure-cta">
+            <p>"Before AI, I'd go back to my office, pull listings, make a PDF. This took me four hours on a good day.<br>Now I do it in the parking lot. On my phone. In 23 seconds."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brochure-statusbar">
+      <span class="brochure-sm" id="brochure-sm">Press SPACE to generate brochure</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S6: AGENCY CONVERSION ARC ═══ -->
+<section class="moment m-widget" id="s6" data-act="Act 1 — The Performance" style="padding:2.5rem;flex-direction:column;align-items:center;justify-content:center">
+  <div class="org-header">
+    <div class="eyebrow">Jon Dallas Group · Est. March 2026</div>
+    <h2 class="headline">My <span class="accent">dream team.</span></h2>
+  </div>
+  <div class="org-tree">
+    <div class="org-row">
+      <div class="org-node boss">
+        <div class="org-avatar" style="border-color:var(--teal);background:rgba(0,212,170,0.15)">
+          &#128526;
+          <div class="org-badge" style="opacity:1;transform:scale(1);background:var(--amber)">&#9733;</div>
+        </div>
+        <div class="org-name">Jon Dallas</div>
+        <div class="org-role" style="color:var(--amber)">CEO · Agent · Visionary</div>
+      </div>
+    </div>
+    <div class="org-row">
+      <div class="org-node" id="org-emily">
+        <div class="org-avatar" id="av-emily">&#128105;&#8205;&#128188;<div class="org-badge">&#10003;</div></div>
+        <div class="org-name">Emily</div>
+        <div class="org-role" id="role-emily">Listings Coordinator</div>
+      </div>
+      <div class="org-node" id="org-marcus">
+        <div class="org-avatar" id="av-marcus">&#128104;&#8205;&#128187;<div class="org-badge">&#10003;</div></div>
+        <div class="org-name">Marcus</div>
+        <div class="org-role" id="role-marcus">Social Media</div>
+      </div>
+      <div class="org-node" id="org-sarah">
+        <div class="org-avatar" id="av-sarah">&#128105;&#8205;&#128241;<div class="org-badge">&#10003;</div></div>
+        <div class="org-name">Sarah</div>
+        <div class="org-role" id="role-sarah">Lead Response</div>
+      </div>
+      <div class="org-node" id="org-david">
+        <div class="org-avatar" id="av-david">&#128104;&#8205;&#128202;<div class="org-badge">&#10003;</div></div>
+        <div class="org-name">David</div>
+        <div class="org-role" id="role-david">Market Analysis</div>
+      </div>
+      <div class="org-node" id="org-priya">
+        <div class="org-avatar" id="av-priya">&#128105;&#8205;&#128188;<div class="org-badge">&#10003;</div></div>
+        <div class="org-name">Priya</div>
+        <div class="org-role" id="role-priya">Office Manager</div>
+      </div>
+    </div>
+  </div>
+  <div class="cost-counter">
+    <div class="label">Monthly payroll</div>
+    <div class="amount" id="org-cost-display">$4,000</div>
+  </div>
+  <p id="org-hint" style="font-size:0.78rem;color:var(--muted);margin-top:1rem">Press SPACE to convert each team member to AI</p>
+</section>
+
+<!-- ═══ S7: THE FIRING ═══ -->
+<section class="moment" id="s7" data-act="Act 1 — The Performance" style="flex-direction:column;align-items:center;justify-content:center;padding:3rem">
+  <div class="firing-wrap">
+    <div class="eyebrow">Then I did the math.</div>
+    <h2 class="headline">The numbers<br>don't lie.</h2>
+    <div class="cost-compare">
+      <div class="cost-box">
+        <div class="c-label">5 Employees</div>
+        <div class="c-num red">$4,000<span style="font-size:1rem">/mo</span></div>
+      </div>
+      <div class="vs-label">vs</div>
+      <div class="cost-box">
+        <div class="c-label">AI Tools</div>
+        <div class="c-num green">$47<span style="font-size:1rem">/mo</span></div>
+      </div>
+    </div>
+    <button class="fire-btn" id="fire-btn" onclick="triggerFiring()">SEND TERMINATION EMAILS</button>
+    <div class="fire-progress" id="fire-progress">
+      <div class="fire-progress-bar" id="fire-bar"></div>
+    </div>
+    <div class="fire-result" id="fire-result">"The emails were very empathetic. AI wrote those too."</div>
+  </div>
+</section>
+
+<!-- ═══ S5: TARGETING ADS DEMO ═══ -->
+<section class="moment m-widget" id="s5" data-act="Act 1 — The Performance">
+  <div class="targeting-shell">
+    <div class="targeting-topbar">
+      <div class="targeting-logo">TargetIQ</div>
+      <span style="color:var(--muted);font-size:0.8rem;margin-left:0.5rem">/ Life Event Signal Monitor</span>
+      <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)">Scanning Harare metro · <span style="color:var(--amber)">Live</span></div>
+    </div>
+    <div class="targeting-main">
+      <div class="signal-panel">
+        <h4>Incoming Signals</h4>
+        <div class="signal-card" id="sig1">
+          <div class="signal-type death">&#9904; Death / Probate</div>
+          <div class="signal-detail">
+            <strong>Estate of Margaret Ncube</strong><br>
+            Probate filing: 4 Khumalo Rd, Borrowdale<br>
+            Est. value: ~$320,000<br>
+            Filed: 4 days ago
+          </div>
+        </div>
+        <div class="signal-card" id="sig2">
+          <div class="signal-type divorce">&#128148; Divorce</div>
+          <div class="signal-detail">
+            <strong>Case #ZW-2026-0847</strong><br>
+            Joint property: 12 Avondale Crescent<br>
+            Registered: both names<br>
+            Filed: 11 days ago
+          </div>
+        </div>
+        <div class="signal-card" id="sig3">
+          <div class="signal-type debt">&#9888; Missed Payments</div>
+          <div class="signal-detail">
+            <strong>7 Greendale Ave</strong><br>
+            3 consecutive missed bond payments<br>
+            Est. equity: $240,000<br>
+            Pre-foreclosure: Stage 1
+          </div>
+        </div>
+        <div class="signal-card" id="sig4">
+          <div class="signal-type" style="color:#1877F2">&#128216; Facebook Activity</div>
+          <div class="signal-detail">
+            <strong>"Harare Property Owners" Group</strong><br>
+            Nokuthula Mpofu (152 mutual connections)<br>
+            Post (3 days ago): <em>"Thinking of downsizing..."</em><br>
+            No agent tagged. No listing inquiry yet.
+          </div>
+        </div>
+      </div>
+      <div class="ad-panel" id="ad-panel">
+        <div class="ad-generating" id="ad-generating">
+          <div class="gen-spinner"></div>
+          <p id="ad-gen-msg">Generating personalised ad...</p>
+        </div>
+        <div class="fb-ad" id="fb-ad">
+          <div class="fb-ad-header">
+            <div class="fb-avatar">JD</div>
+            <div>
+              <div class="fb-agent-name" id="fb-agent-name">Jon Dallas Properties</div>
+              <div class="fb-sponsored">Sponsored <span class="fb-globe">&#127760;</span></div>
+            </div>
+          </div>
+          <div class="fb-image">
+            <div class="fb-image-label" id="fb-img-label">Borrowdale · 3-Bed · Pool</div>
+            <div class="fb-price-badge" id="fb-price">$185,000</div>
+          </div>
+          <div class="fb-body">
+            <div class="fb-headline" id="fb-headline">Find Your Next Chapter</div>
+            <div class="fb-copy" id="fb-copy">We know this can be a difficult time. When you're ready to think about next steps, we're here. Beautiful 3-bed home in Borrowdale — a fresh start awaits.</div>
+          </div>
+          <div class="fb-cta-row">
+            <div class="fb-domain">jondallasproperties.co.zw</div>
+            <button class="fb-cta-btn">Learn More</button>
+          </div>
+        </div>
+        <div class="jon-comment" id="jon-comment">"No law against it. In fact... it's great customer service."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S8: FULL AI OPERATION ═══ -->
+<section class="moment" id="s8" data-act="Act 1 — The Performance" style="flex-direction:column;align-items:center;justify-content:center;padding:3rem">
+  <div class="eyebrow">The Jon Dallas Group · Headcount: 1</div>
+  <h2 class="headline">Just me. And my <span class="accent">agents.</span></h2>
+  <div class="operation-grid">
+    <div class="op-card" id="op1"><div class="op-icon">&#9997;&#65039;</div><div class="op-title">Listing Copy</div><div class="op-desc">Every listing. Every city. Every price point. 9 minutes flat.</div><div class="op-ai">AI Writer &#10003;</div></div>
+    <div class="op-card" id="op2"><div class="op-icon">&#128248;</div><div class="op-title">Photo Enhancement</div><div class="op-desc">Auto-enhance, auto-stage, auto-remove. You've seen the demo.</div><div class="op-ai">VisualIQ &#10003;</div></div>
+    <div class="op-card" id="op3"><div class="op-icon">&#128242;</div><div class="op-title">Lead Response</div><div class="op-desc">14 leads answered last night. I was asleep. All of their names.</div><div class="op-ai">AI Chatbot &#10003;</div></div>
+    <div class="op-card" id="op4"><div class="op-icon">&#128241;</div><div class="op-title">Social Media</div><div class="op-desc">3 posts a day. I haven't typed a caption since February.</div><div class="op-ai">AI Content &#10003;</div></div>
+    <div class="op-card" id="op5"><div class="op-icon">&#127897;&#65039;</div><div class="op-title">Morning Briefing</div><div class="op-desc">AI podcast, every morning. Plays in the car. Market intel. Listings to watch.</div><div class="op-ai">NotebookLM &#10003;</div></div>
+    <div class="op-card" id="op6"><div class="op-icon">&#128202;</div><div class="op-title">Market Valuations</div><div class="op-desc">I don't know what anything is worth. The algorithm does.</div><div class="op-ai">AI AVM &#10003;</div></div>
+  </div>
+</section>
+
+<!-- ═══ S9: AI-TO-AI NEGOTIATION ═══ -->
+<section class="moment m-widget" id="s9" data-act="Act 1 — The Performance">
+  <div class="nego-shell">
+    <div class="nego-topbar">
+      <span>Transaction Log</span> · 4 Khumalo Rd, Borrowdale · <span>March 6, 2026</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:0.75rem">Jon's Location: Virgin Active Westgate</span>
+    </div>
+    <div class="nego-main">
+      <div class="nego-side" style="border-right:1px solid var(--border)">
+        <div class="nego-agent-header">
+          <div class="nego-agent-avatar left-ai">P</div>
+          <div>
+            <div class="nego-agent-name">PropIQ Agent</div>
+            <div class="nego-agent-sub">Acting for: Jon Dallas (Seller)</div>
+          </div>
+        </div>
+        <div class="nego-msgs" id="nego-msgs-left"></div>
+      </div>
+      <div class="nego-side">
+        <div class="nego-agent-header">
+          <div class="nego-agent-avatar right-ai">H</div>
+          <div>
+            <div class="nego-agent-name">HomeSense AI</div>
+            <div class="nego-agent-sub">Acting for: T. Moyo (Buyer)</div>
+          </div>
+        </div>
+        <div class="nego-msgs" id="nego-msgs-right"></div>
+      </div>
+    </div>
+    <div class="nego-footer">
+      <span>Status: </span><span id="nego-status" style="color:var(--teal)">Negotiation in progress...</span>
+      <span id="jon-gym-msg" class="jon-msg" style="display:none;margin-left:2rem">jon_dallas: great, thx &#128077; <em style="font-weight:400;color:var(--muted)">(Sent from iPhone · Jon was at the gym)</em></span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S10: THE PEAK ═══ -->
+<section class="moment" id="s10" data-act="Act 1 — The Performance" style="flex-direction:column;text-align:center;padding:3rem">
+  <p class="peak-line1">I am the<br><span class="accent">future</span><br>of real estate.</p>
+  <p class="peak-pause" id="peak-pause">...Is this okay?</p>
+</section>
+
+<!-- ═══ S11: DROP CHARACTER ═══ -->
+<section class="moment m-drop" id="s11" data-act="— ">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+    <div class="eyebrow dark">[ stepping out of character ]</div>
+    <h2 class="drop-line">Okay. Let me be real with you for a moment.</h2>
+    <p class="drop-sub">Everything I just showed you is <em>real.</em><br>Every tool. Every use case. Every number. Every law.<br>I made up Agent Jon. I didn't make up any of that.</p>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<!-- Script toggle panel -->
+<div id="script-panel">
+  <div id="script-panel-header">
+    <div class="sp-title">Speaker Notes</div>
+    <div class="sp-seg" id="sp-seg-label">—</div>
+    <button id="script-close" title="Close (S)">&#10005;</button>
+  </div>
+  <textarea id="script-textarea" placeholder="Type your speaker notes for this segment here. Auto-saves as you type."></textarea>
+  <div id="script-panel-footer">
+    <button class="sp-btn" id="sp-prev">&#8592; Prev</button>
+    <button class="sp-btn" id="sp-next">Next &#8594;</button>
+    <button class="sp-btn primary" id="sp-export" style="margin-left:auto">&#11015; Export</button>
+  </div>
+</div>
+<div id="script-hint">S — speaker notes</div>
+
+<script>
+/* ══════════════════════════════════════
+   NAVIGATION — ACT 1 (15 slides, indices 0-14)
+   DOM order: s1 s2 s3 s3b s4 s4b s8b s8c s6 s7 s5 s8 s9 s10 s11
+   idx:        0  1  2  3   4  5   6   7   8  9  10 11 12  13  14
+══════════════════════════════════════ */
+const moments = document.querySelectorAll('.moment');
+const counter  = document.getElementById('counter');
+const actLabel = document.getElementById('act-label');
+const btnPrev  = document.getElementById('btn-prev');
+const btnNext  = document.getElementById('btn-next');
+const nextActBtn = document.getElementById('next-act-btn');
+let current = 0;
+const total = moments.length;
+
+// Per-segment state
+let s3Done = false, s3Typing = false;
+let s3bShown = false;
+let s4Beat = -1, s4Processing = false;
+let s8cDone = false;
+let s6Step = 0;
+let s7Fired = false;
+let s5Signal = -1;
+let s8CardStep = 0;
+let s8bStep = 0;
+let s9Step = 0;
+
+function updateArrows() {
+  btnPrev.classList.toggle('disabled', current === 0);
+  btnNext.classList.toggle('disabled', current === total - 1);
+  // Show "Act 2" button only on last slide
+  nextActBtn.classList.toggle('show', current === total - 1);
+}
+
+function showMoment(idx) {
+  moments.forEach((m, i) => m.classList.toggle('active', i === idx));
+  counter.textContent = (idx + 1) + ' / ' + total;
+  const act = moments[idx].dataset.act || '';
+  actLabel.textContent = act;
+
+  // Trigger entrance reveals
+  moments[idx].querySelectorAll('.reveal').forEach((el, i) => {
+    setTimeout(() => el.classList.add('shown'), 100 + i * 80);
+  });
+
+  // Segment-specific on-enter hooks
+  if (idx === 9) { // s10 — "Is this okay?"
+    setTimeout(() => {
+      const pp = document.getElementById('peak-pause');
+      if (pp) pp.classList.add('show');
+    }, 5000);
+  }
+  if (idx === 5) { // s4b — show video cards on enter
+    [1,2,3].forEach((n, i) => {
+      setTimeout(() => {
+        const vc = document.getElementById('vc' + n);
+        if (vc) vc.classList.add('shown');
+      }, 200 + i * 180);
+    });
+    setTimeout(() => {
+      const vn = document.getElementById('video-note');
+      if (vn) vn.classList.add('show');
+    }, 900);
+  }
+
+  if (scriptPanelOpen) loadScriptNote(moments[idx].id);
+  updateArrows();
+}
+
+function advance() {
+  // idx 2: s3 — listing copy
+  if (current === 2) {
+    if (!s3Done && !s3Typing) { startListingTyping(); return; }
+    if (s3Typing) return;
+  }
+  // idx 3: s3b — WhatsApp stats reveal
+  if (current === 3) {
+    if (!s3bShown) { showWaStats(); return; }
+  }
+  // idx 4: s4 — image enhancement
+  if (current === 4) {
+    if (s4Processing) return;
+    if (s4Beat < 4) { runEnhancementBeat(); return; }
+  }
+  // idx 5: s4b — static (video cards shown on enter), advance freely
+  // idx 6: s8b — market scout
+  if (current === 6) {
+    if (s8bStep < 3) { runScoutBeat(); return; }
+  }
+  // idx 7: s8c — brochure generator
+  if (current === 7) {
+    if (!s8cDone) { runBrochure(); return; }
+  }
+  // idx 8: s6 — org chart
+  if (current === 8) {
+    if (s6Step < 5) { convertOrgMember(); return; }
+  }
+  // idx 9: s7 — firing
+  if (current === 9) {
+    if (!s7Fired) { triggerFiring(); return; }
+  }
+  // idx 10: s5 — targeting ads
+  if (current === 10) {
+    if (handleTargeting()) return;
+  }
+  // idx 11: s8 — op cards
+  if (current === 11) {
+    if (s8CardStep < 6) { showNextOpCard(); return; }
+  }
+  // idx 12: s9 — negotiation
+  if (current === 12) {
+    if (s9Step < negoScript.length) { showNegoStep(); return; }
+  }
+
+  if (current < total - 1) { current++; showMoment(current); }
+}
+
+function retreat() {
+  if (current > 0) { current--; showMoment(current); }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 's' || e.key === 'S') {
+    if (document.activeElement.tagName === 'TEXTAREA') return;
+    scriptPanelOpen ? closeScriptPanel() : openScriptPanel();
+    return;
+  }
+  if (scriptPanelOpen) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); advance(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); retreat(); }
+});
+
+document.addEventListener('click', e => {
+  if (e.target.closest('#script-panel') ||
+      e.target.closest('.nav-arrow') ||
+      e.target.closest('.next-act-btn') ||
+      e.target.closest('.fire-btn') ||
+      e.target.closest('.brochure-send-btn') ||
+      e.target.closest('.scout-send-btn') ||
+      e.target.closest('.fb-cta-btn')) return;
+  advance();
+});
+
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (dx < -50) advance();
+  if (dx > 50) retreat();
+});
+
+/* ══ S3: AI LISTING COPY ══ */
+const listingText = `Here's your listing for 14 Borrowdale Road, Harare:
+
+EXCEPTIONAL VALUE IN PRIME BORROWDALE
+
+Discover effortless living in this beautifully renovated 4-bedroom family home, ideally positioned on a generous 1,200m\u00B2 corner stand in one of Harare's most sought-after addresses.
+
+Natural light floods every room through oversized windows, while the recently upgraded kitchen flows seamlessly to a sun-drenched pool terrace, perfect for entertaining.
+
+Self-sufficient and future-ready: full solar system, reliable borehole, and a double garage. With 2.5 bathrooms and space for the whole family, this is Borrowdale living at exceptional value.
+
+USD $285,000 \u00B7 4 bed \u00B7 2.5 bath \u00B7 Pool \u00B7 Solar \u00B7 Borehole \u00B7 1,200m\u00B2 stand`;
+
+function startListingTyping() {
+  if (s3Done || s3Typing) return;
+  s3Typing = true;
+  document.getElementById('typing-row').style.display = 'none';
+  const responseRow = document.getElementById('ai-response-row');
+  responseRow.style.display = 'flex';
+  const typed = document.getElementById('ai-typed');
+  const cursor = document.getElementById('ai-cursor');
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < listingText.length) {
+      const ch = listingText[i];
+      if (ch === '\n') typed.appendChild(document.createElement('br'));
+      else typed.appendChild(document.createTextNode(ch));
+      i++;
+      const msgs = document.getElementById('chat-msgs');
+      msgs.scrollTop = msgs.scrollHeight;
+    } else {
+      clearInterval(interval);
+      cursor.style.display = 'none';
+      s3Done = true;
+      s3Typing = false;
+      document.getElementById('time-saved').style.opacity = '1';
+    }
+  }, 18);
+}
+
+/* ══ S3B: WHATSAPP STATS ══ */
+function showWaStats() {
+  s3bShown = true;
+  document.getElementById('wa-stat-overlay').classList.add('show');
+  document.getElementById('wa-sm').textContent = 'Press SPACE to continue';
+}
+
+/* ══ S4: IMAGE ENHANCEMENT ══ */
+const enhBeats = [
+  { msg:'Detecting photographic artefacts...', item:'ei-1', beforeEl:'enh-base',        afterEl:'enh-beat1-after', status:'Satellite dish removed — sky replaced — driveway cleaned', beatLabel:'"Standard stuff."' },
+  { msg:'Scanning for watermarks...',          item:'ei-2', beforeEl:'enh-beat2-before', afterEl:'enh-beat2-after', status:'Watermark removed — cracked driveway repaired',             beatLabel:'"Okay."' },
+  { msg:'Optimising interior presentation...', item:'ei-3', beforeEl:'enh-beat3-before', afterEl:'enh-beat3-after', status:'Clutter removed — sofa re-staged — counter cleared',          beatLabel:'"Hmm."' },
+  { msg:'Finalising enhancement suite...',     item:'ei-4', beforeEl:'enh-beat4-before', afterEl:'enh-beat4-after', status:'Oven sticker removed — kitchen watermark cleared \u2713',    beatLabel:'[ pause ]' }
+];
+
+function runEnhancementBeat() {
+  if (s4Processing) return;
+  if (s4Beat === -1) {
+    setVisible('enh-base');
+    document.getElementById('ei-0').classList.add('done', 'active-item');
+    document.getElementById('enh-statusbar-msg').textContent = 'Listing photos loaded — press SPACE to begin enhancement';
+    s4Beat = 0;
+    return;
+  }
+  const beat = enhBeats[s4Beat];
+  s4Processing = true;
+  document.querySelectorAll('.enh-item').forEach(el => el.classList.remove('active-item'));
+  const itemEl = document.getElementById(beat.item);
+  if (itemEl) itemEl.classList.add('active-item');
+  setVisible(beat.beforeEl);
+  const proc = document.getElementById('enh-processing');
+  document.getElementById('enh-process-msg').textContent = beat.msg;
+  document.getElementById('enh-status-top').textContent = 'Processing...';
+  proc.classList.add('show');
+  setTimeout(() => {
+    proc.classList.remove('show');
+    setVisible(beat.afterEl);
+    if (itemEl) { itemEl.classList.add('done'); itemEl.classList.remove('active-item'); }
+    document.getElementById('enh-statusbar-msg').textContent = beat.status;
+    document.getElementById('enh-beat-label').textContent = beat.beatLabel;
+    document.getElementById('enh-status-top').textContent = 'Done';
+    s4Processing = false;
+    s4Beat++;
+  }, 900);
+}
+
+function setVisible(id) {
+  document.querySelectorAll('#enhance-canvas img').forEach(el => {
+    el.classList.remove('visible'); el.classList.add('hidden');
+  });
+  const t = document.getElementById(id);
+  if (t) { t.classList.remove('hidden'); t.classList.add('visible'); }
+}
+
+/* ══ S8B: MARKET SCOUT ══ */
+const scanLines = [
+  {cls:'cmd',       text:'$ propiq scout --area="Borrowdale, Harare" --beds=3 --max=300000 --days=30'},
+  {cls:'muted-line',text:''},
+  {cls:'',          text:'Connecting to Propertybook API...'},
+  {cls:'ok',        text:'\u2713 Connection established'},
+  {cls:'',          text:'Fetching listing index...'},
+  {cls:'ok',        text:'\u2713 847 listings found in Harare metro'},
+  {cls:'',          text:'Applying filters: 3 bed \u00B7 Borrowdale \u00B7 \u2264 $300,000 \u00B7 listed < 30 days'},
+  {cls:'muted-line',text:'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+  {cls:'hit',       text:'[1/5]  4 Khumalo Rd, Borrowdale          $285,000  Pool \u00B7 3bd/2ba'},
+  {cls:'hit',       text:'[2/5]  18 Pendennis Rd, Borrowdale       $268,000  Garden \u00B7 3bd/2ba'},
+  {cls:'hit',       text:'[3/5]  22 Houghton Ave, Borrowdale       $259,500  Renovated \u00B7 3bd/2ba'},
+  {cls:'hit',       text:'[4/5]  7 Kenilworth Dr, Borrowdale       $295,000  Solar \u00B7 3bd/2ba'},
+  {cls:'hit',       text:'[5/5]  31 Lewisam Ave, Borrowdale        $272,000  Flat plot \u00B7 3bd/2ba'},
+  {cls:'muted-line',text:'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+  {cls:'',          text:'Running comparable sales analysis...'},
+  {cls:'',          text:'Pulling DOM trends, price per m\u00B2, yield estimates...'},
+  {cls:'ok',        text:'\u2713 Analysis complete \u2014 generating investment brief...'},
+];
+let scoutScanInterval = null;
+
+function runScoutBeat() {
+  if (s8bStep === 0) {
+    s8bStep = 1;
+    document.getElementById('scout-sm').textContent = 'Scanning Propertybook...';
+    const out = document.getElementById('scout-output');
+    out.textContent = '';
+    let i = 0;
+    scoutScanInterval = setInterval(() => {
+      if (i >= scanLines.length) {
+        clearInterval(scoutScanInterval);
+        document.getElementById('scout-listing-count').textContent = '5 matches';
+        document.getElementById('scout-sm').textContent = 'Scan complete \u2014 press SPACE to view report';
+        return;
+      }
+      const line = scanLines[i];
+      const span = document.createElement('span');
+      if (line.cls) span.className = line.cls;
+      span.textContent = line.text;
+      out.appendChild(span);
+      out.appendChild(document.createTextNode('\n'));
+      out.scrollTop = out.scrollHeight;
+      i++;
+    }, 130);
+    return;
+  }
+  if (s8bStep === 1) {
+    if (scoutScanInterval) { clearInterval(scoutScanInterval); scoutScanInterval = null; }
+    const out = document.getElementById('scout-output');
+    if (out.children.length < scanLines.length) {
+      out.textContent = '';
+      scanLines.forEach(line => {
+        const span = document.createElement('span');
+        if (line.cls) span.className = line.cls;
+        span.textContent = line.text;
+        out.appendChild(span);
+        out.appendChild(document.createTextNode('\n'));
+      });
+      document.getElementById('scout-listing-count').textContent = '5 matches';
+    }
+    document.getElementById('scout-report').classList.add('show');
+    document.getElementById('scout-sm').textContent = 'Report ready \u2014 press SPACE to send to investor list';
+    s8bStep = 2;
+    return;
+  }
+  if (s8bStep === 2) {
+    document.getElementById('scout-send-wrap').classList.add('show');
+    document.getElementById('scout-sm').textContent = 'Sending to 47 contacts...';
+    setTimeout(() => {
+      const btn = document.getElementById('scout-send-btn');
+      btn.textContent = '\u2713 Sent to 47 contacts';
+      btn.style.background = '#1a5a3a';
+      btn.style.color = 'var(--teal)';
+      document.getElementById('scout-send-result').classList.add('show');
+      document.getElementById('scout-sm').textContent = '\u2713 Done \u2014 press SPACE to continue';
+    }, 800);
+    s8bStep = 3;
+    return;
+  }
+}
+
+/* ══ S8C: BROCHURE ══ */
+function runBrochure() {
+  if (s8cDone) return;
+  const btn = document.getElementById('brochure-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  document.getElementById('brochure-sm').textContent = 'Generating personalised property brief...';
+  setTimeout(() => {
+    document.getElementById('brochure-result').classList.add('show');
+    document.getElementById('brochure-cta').classList.add('show');
+    document.getElementById('brochure-timer').classList.add('show');
+    btn.textContent = '\u2713 Brief generated';
+    document.getElementById('brochure-sm').textContent = '\u2713 Done \u2014 press SPACE to continue';
+    s8cDone = true;
+  }, 1200);
+}
+
+/* ══ S6: ORG CHART ══ */
+const orgMembers = [
+  { av:'av-emily', role:'role-emily', newRole:'AI Writer \u2713',      emoji:'\u{1F916}', saved:800 },
+  { av:'av-marcus',role:'role-marcus',newRole:'AI Content \u2713',     emoji:'\u{1F916}', saved:800 },
+  { av:'av-sarah', role:'role-sarah', newRole:'AI Chatbot \u2713',     emoji:'\u{1F916}', saved:800 },
+  { av:'av-david', role:'role-david', newRole:'AI AVM \u2713',         emoji:'\u{1F916}', saved:800 },
+  { av:'av-priya', role:'role-priya', newRole:'AI Operations \u2713',  emoji:'\u{1F916}', saved:800 }
+];
+let totalSaved = 0;
+
+function convertOrgMember() {
+  if (s6Step >= orgMembers.length) return;
+  const m = orgMembers[s6Step];
+  const av = document.getElementById(m.av);
+  const role = document.getElementById(m.role);
+  if (av) {
+    av.classList.add('converted');
+    const textNode = av.childNodes[0];
+    if (textNode && textNode.nodeType === 3) textNode.textContent = m.emoji;
+  }
+  if (role) { role.textContent = m.newRole; role.classList.add('converted'); }
+  totalSaved += m.saved;
+  document.getElementById('org-cost-display').textContent = '$' + (4000 - totalSaved).toLocaleString();
+  s6Step++;
+  if (s6Step === orgMembers.length) {
+    document.getElementById('org-hint').textContent = 'Press SPACE to continue';
+    document.getElementById('org-cost-display').textContent = '$0 \u2014 AI handles it all';
+  }
+}
+
+/* ══ S7: FIRING ══ */
+function triggerFiring() {
+  if (s7Fired) return;
+  s7Fired = true;
+  const btn = document.getElementById('fire-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  document.getElementById('fire-progress').classList.add('show');
+  setTimeout(() => { document.getElementById('fire-bar').style.width = '100%'; }, 50);
+  setTimeout(() => {
+    btn.textContent = '5 / 5 EMAILS SENT \u2713';
+    document.getElementById('fire-result').classList.add('show');
+  }, 1800);
+}
+
+/* ══ S5: TARGETING ADS ══ */
+const signals = [
+  { id:'sig1', headline:'A New Chapter Awaits',          copy:"We know this can be a difficult time. When you're ready to think about next steps, we're here to help. Beautiful 3-bed home in Borrowdale \u2014 a fresh start awaits.", price:'$185,000', imgLabel:'Borrowdale \u00B7 3-Bed \u00B7 Pool',    imgBg:'linear-gradient(135deg,#1a2a3a,#2a3a4a)', comment:'"No law against it. In fact... it\'s great customer service."' },
+  { id:'sig2', headline:'Your Space. Your Terms.',        copy:"Moving forward? You deserve a space that's entirely yours. 2-bed apartments in Avondale from $95,000 \u2014 close to everything, on your timeline.",                   price:'$95,000',   imgLabel:'Avondale \u00B7 2-Bed \u00B7 Modern', imgBg:'linear-gradient(135deg,#2a1a0a,#4a3a1a)', comment:'"It\'s market discovery. We\'re helping people who need to sell find buyers faster."' },
+  { id:'sig3', headline:"Sell on Your Terms \u2014 Not the Bank's", copy:"Before things go further, let us help you take control. We move quickly, we're discreet, and we'll get you fair value. No drama. Call us first.",       price:'From $240K equity', imgLabel:'Greendale \u00B7 4-Bed \u00B7 Garden', imgBg:'linear-gradient(135deg,#2a0a2a,#3a1a3a)', comment:'"Motivated sellers benefit from faster matches. That\'s the market argument. It\'s coherent."' }
+];
+
+function handleTargeting() {
+  s5Signal++;
+  if (s5Signal >= signals.length) { s5Signal = -1; return false; }
+  const sig = signals[s5Signal];
+  document.querySelectorAll('.signal-card').forEach((c, i) => {
+    c.classList.remove('active-signal');
+    if (i < s5Signal) c.classList.add('done-signal');
+  });
+  document.getElementById(sig.id).classList.add('active-signal');
+  const fbAd = document.getElementById('fb-ad');
+  const adGen = document.getElementById('ad-generating');
+  const jonComment = document.getElementById('jon-comment');
+  fbAd.classList.remove('show'); jonComment.classList.remove('show');
+  adGen.classList.add('show');
+  setTimeout(() => {
+    adGen.classList.remove('show');
+    document.getElementById('fb-headline').textContent = sig.headline;
+    document.getElementById('fb-copy').textContent = sig.copy;
+    document.getElementById('fb-price').textContent = sig.price;
+    document.getElementById('fb-img-label').textContent = sig.imgLabel;
+    document.querySelector('.fb-image').style.background = sig.imgBg;
+    document.getElementById('jon-comment').textContent = sig.comment;
+    fbAd.classList.add('show');
+    setTimeout(() => jonComment.classList.add('show'), 600);
+  }, 1200);
+  return true;
+}
+
+/* ══ S8: OP CARDS ══ */
+function showNextOpCard() {
+  const cards = document.querySelectorAll('.op-card');
+  if (s8CardStep < cards.length) { cards[s8CardStep].classList.add('shown'); s8CardStep++; }
+}
+
+/* ══ S9: NEGOTIATION ══ */
+const negoScript = [
+  { side:'left',  label:'PropIQ Agent', msg:'Initiating offer. Property: 4 Khumalo Road, Borrowdale. Condition: Good. Asking: USD $285,000. Seller instruction: Accept no less than $270,000.' },
+  { side:'right', label:'HomeSense AI',  msg:'Comparable analysis: 3 sales within 500m, Q4 2025. Median: $268,000. Adjusted for solar and pool premium: $272,000. Counter-offer: $268,000.' },
+  { side:'left',  label:'PropIQ Agent', msg:"Counter-offer received. Within acceptable range. Seller's stated minimum: $270,000. Proposing final offer: $272,000. Inclusive of sectional title transfer costs." },
+  { side:'right', label:'HomeSense AI',  msg:'Accepted. $272,000 all-inclusive. Generating offer to purchase document. Proposed transfer date: April 3, 2026. Requesting digital signature.' },
+  { side:'left',  label:'PropIQ Agent', msg:'Offer to purchase executed. Digital signature transmitted. Transaction complete. Notifying principal.' },
+  { side:'right', label:'HomeSense AI',  msg:'Acknowledged. Transaction complete. Congratulations to both principals.' }
+];
+
+function showNegoStep() {
+  const step = negoScript[s9Step];
+  const container = document.getElementById(step.side === 'left' ? 'nego-msgs-left' : 'nego-msgs-right');
+  const msg = document.createElement('div');
+  msg.className = 'nego-msg ' + (step.side === 'left' ? 'left-msg' : 'right-msg');
+  msg.innerHTML = '<div class="msg-label">' + step.label + '</div>' + step.msg;
+  container.appendChild(msg);
+  setTimeout(() => msg.classList.add('shown'), 50);
+  container.scrollTop = container.scrollHeight;
+  s9Step++;
+  if (s9Step === negoScript.length) {
+    document.getElementById('nego-status').textContent = '\u2713 Transaction complete';
+    setTimeout(() => { document.getElementById('jon-gym-msg').style.display = 'inline'; }, 1000);
+  }
+}
+
+/* ══ SCRIPT PANEL ══ */
+const defaultNotes = {
+  s1: 'Agent Jon character. Big energy. No apology.\n\n"This has been the best year of my life. I sold 37 properties. $4.2 million in commissions. My clients love me. My peers respect me. My inbox is clear."\n\nLet them sit with the numbers. Don\'t explain how yet.',
+  s2: 'The reveal. Pause before the word "agent."\n\n"I\'ll let you in on a little secret. I have another agent."\n\nBeat. Look at the audience.\n\n"An AI agent."\n\nDon\'t over-explain the wordplay. Just let it land.',
+  s3: '"Let me show you what that looks like."\n\nType the listing prompt. Press SPACE to start the AI typewriter.\n\n"I\'ve never been to this house. I don\'t know what it smells like. But the copy is beautiful."\n\nPoint to the time counter. "36 minutes. Gone."',
+  s3b: '"And while the copy was generating, 47 people messaged me on WhatsApp."\n\nPress SPACE to reveal the stats.\n\n"47 leads received. 47 responded to. Average response time: 23 seconds.\n\nThe 3 I personally answered were other agents wanting to joint venture. Every actual lead — handled."',
+  s4: '"But listing copy is just the beginning. The photos are where it gets interesting."\n\nEach press removes something. Let the audience absorb each beat before moving on.\n\nFor the final beat (kitchen): don\'t say anything. Just let them see it.',
+  s4b: '"And before the photos finish uploading — the video is already posted."\n\nLet the cards appear. Point to the view counts.\n\n"I never filmed any of these. The AI got the listing photos, a 3-sentence brief, and generated the videos."',
+  s8b: '"But here\'s the one they really don\'t tell you about."\n\nPress to start the scan. Let it run. Point to the terminal.\n\n"It finds everything. Filters. Analyses. Ranks. And I\'ve already told it which investors want what."\n\nPress to show the report.\n\n"Before my competitors have opened their laptops — 47 investors have already received a research brief with my name on it. The first reply came in 18 seconds."',
+  s8c: '"And when a client calls me, I already know exactly what to show them."\n\nPress SPACE to generate the brochure.\n\n"Before AI, I\'d go back to my office, pull listings, make a PDF. Four hours on a good day. Now I do it in the parking lot. On my phone. In 23 seconds."',
+  s6: '"I got so good at this, I thought: why am I still working for someone else?"\n\nEach keypress converts one person. Keep the energy gleeful.\n\nCost counter updates with each conversion.',
+  s7: '"Then I did the math."\n\nLet them read the numbers.\n\nPress the button. Let the animation run.\n\n"The emails were very empathetic. AI wrote those too."',
+  s5: '"But I\'m not just listing properties. I\'m finding buyers. AI doesn\'t wait for leads — it hunts."\n\nEach signal: read it out loud. Let it land. Then:\n"No law against it. In fact... it\'s great customer service."\n\nThe third one (missed mortgage) should feel the most uncomfortable.',
+  s8: '"Now it\'s just me. And the tools."\n\nEach card appears. Let them absorb.\n\n"I haven\'t written a sentence about real estate since February."',
+  s9: '"I even stopped meeting clients."\n\nMessages appear one at a time. Let the negotiation play out.\n\nFinal message from Jon: "great, thx 👍"\n\n"(He was at the gym.)"',
+  s10: 'Let the slide speak.\n\n"I am the future of real estate."\n\nLong pause. Dead air. 5 seconds minimum.\n\nThen, quietly:\n"...Is this okay?"\n\nDo NOT advance immediately. Let the silence work.',
+  s11: 'Hard break. Different energy entirely.\n\n"Okay. Let me step out of character for a moment."\n\n"Everything I just showed you is real. Every tool. Every use case. Every number. I made up Agent Jon. I didn\'t make up any of that."'
+};
+
+let scriptPanelOpen = false;
+
+function getSegmentId() {
+  const m = moments[current];
+  return m ? m.id : null;
+}
+function loadScriptNote(segId) {
+  const saved = localStorage.getItem('script_' + segId);
+  document.getElementById('script-textarea').value = saved !== null ? saved : (defaultNotes[segId] || '');
+  document.getElementById('sp-seg-label').textContent = segId || '—';
+}
+function saveScriptNote(segId) {
+  localStorage.setItem('script_' + segId, document.getElementById('script-textarea').value);
+}
+function openScriptPanel() {
+  scriptPanelOpen = true;
+  document.getElementById('script-panel').classList.add('open');
+  loadScriptNote(getSegmentId());
+  document.getElementById('script-textarea').focus();
+}
+function closeScriptPanel() {
+  scriptPanelOpen = false;
+  document.getElementById('script-panel').classList.remove('open');
+}
+
+document.getElementById('script-textarea').addEventListener('input', () => {
+  const segId = getSegmentId();
+  if (segId) saveScriptNote(segId);
+});
+document.getElementById('script-close').addEventListener('click', closeScriptPanel);
+document.getElementById('sp-prev').addEventListener('click', () => {
+  const segId = getSegmentId(); if (segId) saveScriptNote(segId);
+  if (current > 0) { current--; showMoment(current); }
+  loadScriptNote(getSegmentId());
+});
+document.getElementById('sp-next').addEventListener('click', () => {
+  const segId = getSegmentId(); if (segId) saveScriptNote(segId);
+  if (current < total - 1) { current++; showMoment(current); }
+  loadScriptNote(getSegmentId());
+});
+document.getElementById('sp-export').addEventListener('click', () => {
+  let out = 'RETS 2026 — Speaker Notes (Act 1)\n' + '='.repeat(40) + '\n\n';
+  moments.forEach(m => {
+    const id = m.id;
+    const saved = localStorage.getItem('script_' + id);
+    const note = saved !== null ? saved : (defaultNotes[id] || '');
+    if (note.trim()) out += '[' + id.toUpperCase() + ']\n' + note + '\n\n' + '\u2500'.repeat(30) + '\n\n';
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out], {type:'text/plain'}));
+  a.download = 'RETS2026_act1_notes.txt';
+  a.click();
+});
+
+/* ══ INIT ══ */
+showMoment(0);
+document.querySelectorAll('#s1 .reveal').forEach((el, i) => {
+  setTimeout(() => el.classList.add('shown'), 200 + i * 100);
+});
+</script>
+</body>
+</html>

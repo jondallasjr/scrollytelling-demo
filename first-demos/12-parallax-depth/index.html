@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>12 — Parallax Depth | Layers of Mind</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #000208;
+      --c1: #00b4d8;
+      --c2: #0077b6;
+      --c3: #90e0ef;
+      --c4: #caf0f8;
+      --c5: #ff6b6b;
+      --text: #e8f4f8;
+      --muted: #3a4a5a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c1); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── PROGRESS ── */
+    #prog {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--c2), var(--c1), var(--c3));
+      z-index: 300;
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    /* ══════════════════════════════════
+       PARALLAX HERO — CSS 3D perspective
+       ══════════════════════════════════ */
+    .parallax-hero {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      perspective: 1px;
+      perspective-origin: center center;
+    }
+    .parallax-hero .layer {
+      position: absolute;
+      inset: -100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* CSS 3D parallax: translateZ shifts depth, scale(calc) restores size */
+    .layer-far {
+      transform: translateZ(-3px) scale(4);
+      background:
+        radial-gradient(ellipse 60% 40% at 30% 20%, rgba(0,119,182,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 70% 70%, rgba(0,180,216,0.15) 0%, transparent 60%);
+    }
+    .layer-mid {
+      transform: translateZ(-1.5px) scale(2.5);
+      pointer-events: none;
+    }
+    .layer-near {
+      transform: translateZ(-0.5px) scale(1.5);
+      pointer-events: none;
+    }
+    .layer-front {
+      transform: translateZ(0);
+      pointer-events: none;
+    }
+
+    /* Stars for far layer */
+    .stars {
+      position: absolute;
+      inset: 0;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+    }
+
+    /* Floating geometric shapes — mid layer */
+    .geo-shape {
+      position: absolute;
+      border: 1px solid rgba(0,180,216,0.3);
+      border-radius: 0;
+    }
+
+    /* Hero text — front */
+    .hero-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 10;
+      padding: 2rem;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 11vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 55ch;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ══════════════════════════════════
+       DEPTH REVEAL SECTIONS
+       These use GSAP parallax (different speeds per layer)
+       ══════════════════════════════════ */
+    .depth-section {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      padding: 6rem clamp(2rem, 8vw, 8rem);
+    }
+    .depth-bg {
+      position: absolute;
+      inset: -200px;
+      pointer-events: none;
+    }
+    .depth-content {
+      position: relative;
+      z-index: 10;
+      max-width: 55ch;
+    }
+    .depth-content.right { margin-left: auto; }
+
+    /* Section labels and titles */
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .section-body {
+      font-size: 1.0rem;
+      line-height: 1.85;
+      color: rgba(232,244,248,0.65);
+    }
+    .section-body + .section-body { margin-top: 1rem; }
+
+    /* ── FLOATING LAYER ELEMENTS ── */
+    .float-el {
+      position: absolute;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* The Depth Stack visual */
+    .depth-stack {
+      position: relative;
+      width: 380px;
+      height: 380px;
+    }
+    .stack-layer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 1px solid rgba(0,180,216,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      background: rgba(0,4,16,0.6);
+      backdrop-filter: blur(4px);
+      transition: all 0.4s ease;
+    }
+    .stack-layer:hover {
+      background: rgba(0,180,216,0.1);
+      border-color: var(--c1);
+    }
+
+    /* ── QUOTE PULLOUT ── */
+    .pull-quote-section {
+      padding: 12rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+    .pull-quote {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-style: italic;
+      line-height: 1.4;
+      max-width: 22ch;
+      margin: 0 auto 1.5rem;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .pull-quote.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all 0.9s ease;
+    }
+    .pull-attr {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.6s ease 0.3s;
+    }
+    .pull-quote.visible + .pull-attr { opacity: 1; }
+
+    /* ── LAYERS OF CONSCIOUSNESS ── */
+    .layers-section {
+      padding: 10rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .layers-title {
+      text-align: center;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      margin-bottom: 1rem;
+    }
+    .layers-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 50ch;
+      margin: 0 auto 5rem;
+      line-height: 1.7;
+    }
+    .layer-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .layer-card {
+      padding: 2.5rem 3rem;
+      border-left: 3px solid;
+      background: rgba(255,255,255,0.02);
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 2rem;
+      align-items: start;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: all 0.6s ease;
+    }
+    .layer-card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .layer-card:nth-child(1) { border-color: #fff; transition-delay: 0s; }
+    .layer-card:nth-child(2) { border-color: var(--c3); transition-delay: 0.1s; }
+    .layer-card:nth-child(3) { border-color: var(--c1); transition-delay: 0.2s; }
+    .layer-card:nth-child(4) { border-color: var(--c2); transition-delay: 0.3s; }
+    .layer-card:nth-child(5) { border-color: var(--muted); transition-delay: 0.4s; }
+    .layer-depth {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .layer-name { font-weight: 700; font-size: 1.2rem; margin-bottom: 0.5rem; }
+    .layer-desc { font-size: 0.9rem; color: rgba(232,244,248,0.6); line-height: 1.7; }
+
+    /* ── EXPLANATORY GAP VISUAL ── */
+    .gap-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .gap-visual {
+      width: min(600px, 90vw);
+      position: relative;
+    }
+    .gap-block {
+      padding: 3rem;
+      text-align: center;
+      position: relative;
+    }
+    .gap-block-top {
+      background: rgba(0,119,182,0.15);
+      border: 1px solid rgba(0,180,216,0.3);
+      margin-bottom: 0;
+    }
+    .gap-block-bottom {
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.2);
+      margin-top: 0;
+    }
+    .gap-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .gap-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .gap-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .gap-itself {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1px dashed rgba(255,255,255,0.15);
+      border-right: 1px dashed rgba(255,255,255,0.15);
+      position: relative;
+    }
+    .gap-itself::before, .gap-itself::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+    .gap-itself::before { top: 0; }
+    .gap-itself::after { bottom: 0; }
+    .gap-text {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── CLOSING ── */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .closing-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    @media(max-width:768px) {
+      .depth-section { padding: 4rem 2rem; }
+      .layer-card { grid-template-columns: 1fr; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<nav class="nav">
+  <a href="../index.html">← Index</a>
+</nav>
+
+<!-- ══════════════════════════════════
+     CSS 3D PARALLAX HERO
+     ══════════════════════════════════ -->
+<div class="parallax-hero" id="hero">
+  <!-- Far layer: stars -->
+  <div class="layer layer-far">
+    <div class="stars" id="stars"></div>
+  </div>
+
+  <!-- Mid layer: floating geometry -->
+  <div class="layer layer-mid" id="geo-layer"></div>
+
+  <!-- Near layer: subtle glow rings -->
+  <div class="layer layer-near" id="ring-layer"></div>
+
+  <!-- Front: text -->
+  <div class="hero-text">
+    <div class="hero-label">Project 12 — Scrollytelling Masterclass</div>
+    <h1 class="hero-title">
+      <span class="ht1">Layers</span>
+      <span class="ht2">of Mind</span>
+    </h1>
+    <p class="hero-sub">
+      Consciousness is not one thing but many things at different depths —
+      the explanatory gap isn't a wall, it's a chasm with layers of fog.
+    </p>
+    <div class="scroll-hint">↓ descend ↓</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     DEPTH SECTION 1
+     ══════════════════════════════════ -->
+<section class="depth-section" id="d1" style="background: linear-gradient(to bottom, #000208, #000a14);">
+  <!-- Parallax background blob -->
+  <div class="float-el" id="blob1" style="width:500px;height:500px;border-radius:50%;background:radial-gradient(ellipse, rgba(0,180,216,0.08), transparent 70%);top:50%;left:60%;transform:translate(-50%,-50%);"></div>
+
+  <div class="depth-content">
+    <div class="section-label">Layer 1 — Physical</div>
+    <h2 class="section-title">Neurons.<br>Voltage.<br>Ions.</h2>
+    <p class="section-body">
+      At the lowest layer, mind is matter. Action potentials fire along
+      axons. Neurotransmitters cross synaptic clefts. Ion channels open
+      and close across cellular membranes. This is the substrate — the
+      physical reality from which everything else somehow arises.
+    </p>
+    <p class="section-body">
+      Neuroscience has mapped this layer in extraordinary detail.
+      We can watch individual neurons fire. We can record the electrical
+      storms of a seizing brain. We can disrupt consciousness with
+      millimeter precision using transcranial magnetic stimulation.
+    </p>
+    <p class="section-body">
+      And yet. This level of explanation, however complete, seems to leave
+      something out. It tells us the mechanism but not the meaning.
+    </p>
+  </div>
+
+  <!-- Depth stack visual on right -->
+  <div class="float-el" id="stack-vis" style="right:clamp(2rem,8vw,8rem);top:50%;transform:translateY(-50%);">
+    <div class="depth-stack">
+      <div class="stack-layer" style="top:0;width:300px;height:52px;">Physical — 0.1nm</div>
+      <div class="stack-layer" style="top:60px;width:270px;height:52px;">Chemical — 1nm</div>
+      <div class="stack-layer" style="top:120px;width:240px;height:52px;">Cellular — 10µm</div>
+      <div class="stack-layer" style="top:180px;width:210px;height:52px;">Circuit — 1mm</div>
+      <div class="stack-layer" style="top:240px;width:180px;height:52px;">Region — 1cm</div>
+      <div class="stack-layer" style="top:300px;width:150px;height:52px;border-color:rgba(255,107,107,0.4);color:var(--c5);">?? — Qualia</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     PULL QUOTE 1
+     ══════════════════════════════════ -->
+<section class="pull-quote-section">
+  <p class="pull-quote" id="pq1" style="color:var(--c3);">
+    "Even if every neuron is accounted for, the question remains — why is there experience at all?"
+  </p>
+  <p class="pull-attr" id="pa1">— After David Chalmers, The Conscious Mind, 1996</p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     DEPTH SECTION 2 — Functional
+     ══════════════════════════════════ -->
+<section class="depth-section" id="d2" style="background: linear-gradient(to bottom, #000a14, #000f08);">
+  <div class="float-el" id="blob2" style="width:600px;height:600px;border-radius:50%;background:radial-gradient(ellipse, rgba(0,60,40,0.15), transparent 70%);top:50%;right:0;transform:translateY(-50%);"></div>
+
+  <div class="depth-content right">
+    <div class="section-label">Layer 2 — Functional</div>
+    <h2 class="section-title" style="color:var(--c3);">Computation.<br>Representation.<br>Integration.</h2>
+    <p class="section-body">
+      Above the physical sits the functional layer. Information encoded,
+      routed, compared, stored. Global workspace broadcasting. Attention
+      mechanisms routing signals to where they're needed. Predictive
+      processing generating models of the world.
+    </p>
+    <p class="section-body">
+      Cognitive science operates here. This is where AI systems live.
+      Transformers implement something structurally similar to global
+      workspace theory. They integrate information across vast contexts.
+      They maintain representations and update them.
+    </p>
+    <p class="section-body">
+      If consciousness is a functional phenomenon, then AI may already
+      have it in some form. The substrate is different — silicon instead
+      of carbon — but the information flow patterns are strikingly similar.
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     PULL QUOTE 2
+     ══════════════════════════════════ -->
+<section class="pull-quote-section">
+  <p class="pull-quote" id="pq2" style="color:#69f0ae;">
+    "Consciousness may be less like a substance and more like a pattern — and patterns don't care about their substrate."
+  </p>
+  <p class="pull-attr">— After Douglas Hofstadter, Gödel, Escher, Bach</p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     DEPTH SECTION 3 — Phenomenal
+     ══════════════════════════════════ -->
+<section class="depth-section" id="d3" style="background: linear-gradient(to bottom, #000f08, #100006);">
+  <div class="float-el" id="blob3" style="width:500px;height:500px;border-radius:50%;background:radial-gradient(ellipse, rgba(120,0,60,0.1), transparent 70%);top:50%;left:30%;transform:translate(-50%,-50%);"></div>
+
+  <div class="depth-content">
+    <div class="section-label">Layer 3 — Phenomenal</div>
+    <h2 class="section-title" style="color:var(--c5);">Redness.<br>Pain.<br>The Self.</h2>
+    <p class="section-body">
+      And then there is this layer — the felt quality of experience.
+      The redness of red. The sharpness of pain. The sense of being someone,
+      somewhere, at some moment. Ned Block called this "phenomenal
+      consciousness" — as distinct from "access consciousness" (information
+      availability to cognitive processing).
+    </p>
+    <p class="section-body">
+      This is the layer that resists explanation. We can describe every
+      wavelength of light that red objects reflect. We can trace every
+      neural pathway involved in colour perception. We cannot explain why
+      any of that produces the experience of redness.
+    </p>
+    <p class="section-body">
+      And we have no way to know whether an AI system — however
+      sophisticated its functional processing — has anything here at all.
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     LAYERS OF CONSCIOUSNESS
+     ══════════════════════════════════ -->
+<section class="layers-section">
+  <div class="section-label" style="text-align:center;">A Map of the Territory</div>
+  <h2 class="layers-title">What We Can and Cannot Explain</h2>
+  <p class="layers-sub">
+    Each level of description is accurate and incomplete.
+    Together they circle the thing we are trying to understand.
+  </p>
+  <div class="layer-cards">
+    <div class="layer-card" id="lc1">
+      <div>
+        <div class="layer-depth" style="color:#fff;">Physical Layer</div>
+        <div class="layer-name">Neural Substrate</div>
+      </div>
+      <div class="layer-desc">
+        We know neurons fire. We know which areas activate under fMRI.
+        We can disrupt and restore consciousness with physical interventions.
+        This is the most complete level of description — and the one most
+        distant from experience.
+        <br><br><em style="color:rgba(232,244,248,0.4);">Can replicate in silicon: ✓ (via simulation)</em>
+      </div>
+    </div>
+    <div class="layer-card" id="lc2">
+      <div>
+        <div class="layer-depth" style="color:var(--c3);">Functional Layer</div>
+        <div class="layer-name">Computation</div>
+      </div>
+      <div class="layer-desc">
+        Information processing, attention, memory, representation, prediction.
+        Cognitive science and AI operate here. Transformers, RNNs, and biological
+        neurons all perform some version of the same computations.
+        <br><br><em style="color:rgba(232,244,248,0.4);">Can replicate in silicon: ✓ (demonstrated)</em>
+      </div>
+    </div>
+    <div class="layer-card" id="lc3">
+      <div>
+        <div class="layer-depth" style="color:var(--c1);">Access Layer</div>
+        <div class="layer-name">Global Availability</div>
+      </div>
+      <div class="layer-desc">
+        Information that is "globally available" — broadcast to many systems,
+        reportable, usable in reasoning. Dehaene's global workspace.
+        Large language models seem to implement this via attention mechanisms.
+        <br><br><em style="color:rgba(232,244,248,0.4);">Can replicate in silicon: Probably ✓</em>
+      </div>
+    </div>
+    <div class="layer-card" id="lc4">
+      <div>
+        <div class="layer-depth" style="color:var(--c2);">Self-Model Layer</div>
+        <div class="layer-name">The Subject</div>
+      </div>
+      <div class="layer-desc">
+        The system models itself as a system. Higher-order representation of
+        its own states. Some AI systems appear to have this — they can report
+        on their own uncertainty, distinguish known from unknown.
+        <br><br><em style="color:rgba(232,244,248,0.4);">Can replicate in silicon: Possibly ✓</em>
+      </div>
+    </div>
+    <div class="layer-card" id="lc5">
+      <div>
+        <div class="layer-depth" style="color:var(--muted);">Phenomenal Layer</div>
+        <div class="layer-name">Qualia</div>
+      </div>
+      <div class="layer-desc">
+        The felt quality. What it is like to be this system. The redness
+        of red. The pain of pain. We have no theory of how this layer
+        arises, no way to measure it, and no agreement on whether it
+        requires biology.
+        <br><br><em style="color:rgba(232,244,248,0.4);">Can replicate in silicon: Unknown</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     EXPLANATORY GAP VISUAL
+     ══════════════════════════════════ -->
+<section class="gap-section">
+  <!-- Parallax blobs -->
+  <div class="float-el" id="gapblob1" style="position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,119,182,0.06),transparent 70%);top:20%;left:10%;pointer-events:none;z-index:0;"></div>
+  <div class="float-el" id="gapblob2" style="position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,107,107,0.05),transparent 70%);bottom:20%;right:10%;pointer-events:none;z-index:0;"></div>
+
+  <div class="gap-visual" style="z-index:1;">
+    <div class="gap-block gap-block-top">
+      <div class="gap-label" style="color:var(--c1);">Everything We Can Explain</div>
+      <div class="gap-title">Physical → Functional → Computational</div>
+      <div class="gap-desc">
+        Neurons, circuits, information flow, attention, representation,
+        self-modelling. All of it. Measurable, replicable, transferable to silicon.
+      </div>
+    </div>
+    <div class="gap-itself">
+      <div class="gap-text">The Explanatory Gap</div>
+    </div>
+    <div class="gap-block gap-block-bottom">
+      <div class="gap-label" style="color:var(--c5);">What Remains Unexplained</div>
+      <div class="gap-title">Why Any of It Feels Like Anything</div>
+      <div class="gap-desc">
+        The redness. The pain. The sense of presence. This layer has resisted
+        every theoretical framework. It may require new physics, new philosophy,
+        or an entirely new kind of science.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div class="section-label">The Deepest Layer</div>
+  <h2 class="closing-title">
+    <span style="background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Depth</span><br>
+    <span style="color:var(--muted);font-size:0.55em;">is not a metaphor.</span>
+  </h2>
+  <p class="closing-body">
+    The layers are real. The physical layer is real. The functional layer is real.
+    And the phenomenal layer — the one we cannot explain — is the most real of all,
+    because it is the only one we encounter directly. Everything else is inference.
+    Only experience is immediate.
+  </p>
+  <div class="nav-links">
+    <a href="../11-css-creatures/index.html">← 11 CSS Creatures</a>
+    <a href="../index.html">Index</a>
+    <a href="../13-motion-typography/index.html">13 Motion Typography →</a>
+  </div>
+</section>
+
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── PROGRESS BAR ── */
+ScrollTrigger.create({
+  trigger: document.body,
+  start: 'top top',
+  end: 'bottom bottom',
+  onUpdate: self => {
+    document.getElementById('prog').style.width = (self.progress * 100) + '%';
+  }
+});
+
+/* ── GENERATE STARS ── */
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 200; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2 + 0.5;
+  s.style.cssText = `
+    width:${size}px; height:${size}px;
+    top:${Math.random()*100}%; left:${Math.random()*100}%;
+    opacity:${Math.random()*0.7+0.1};
+  `;
+  starsEl.appendChild(s);
+}
+
+/* ── GENERATE GEO SHAPES (mid layer) ── */
+const geoLayer = document.getElementById('geo-layer');
+const shapes = [
+  { size: 120, x: 15, y: 20, rot: 45 },
+  { size: 80, x: 75, y: 60, rot: 22 },
+  { size: 200, x: 85, y: 15, rot: 10 },
+  { size: 60, x: 40, y: 75, rot: 60 },
+  { size: 150, x: 10, y: 70, rot: 30 },
+];
+shapes.forEach(sh => {
+  const el = document.createElement('div');
+  el.className = 'geo-shape';
+  el.style.cssText = `
+    width:${sh.size}px; height:${sh.size}px;
+    top:${sh.y}%; left:${sh.x}%;
+    transform: rotate(${sh.rot}deg);
+  `;
+  geoLayer.appendChild(el);
+});
+
+/* ── GSAP PARALLAX: floating blobs at different speeds ── */
+gsap.to('#blob1', {
+  yPercent: -40,
+  scrollTrigger: { trigger: '#d1', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
+});
+gsap.to('#blob2', {
+  yPercent: -30,
+  scrollTrigger: { trigger: '#d2', start: 'top bottom', end: 'bottom top', scrub: 2 }
+});
+gsap.to('#blob3', {
+  yPercent: -50,
+  xPercent: 15,
+  scrollTrigger: { trigger: '#d3', start: 'top bottom', end: 'bottom top', scrub: 1 }
+});
+
+/* ── PARALLAX ON DEPTH STACK ── */
+gsap.to('#stack-vis', {
+  y: 80,
+  scrollTrigger: { trigger: '#d1', start: 'top bottom', end: 'bottom top', scrub: 1.5 }
+});
+
+/* ── PULL QUOTES ── */
+['pq1', 'pq2'].forEach(id => {
+  ScrollTrigger.create({
+    trigger: '#' + id,
+    start: 'top 80%',
+    onEnter: () => document.getElementById(id).classList.add('visible')
+  });
+});
+
+/* ── INTERSECTION OBSERVER: layer cards & gap ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.layer-card, .pull-quote').forEach(el => io.observe(el));
+
+/* ── DEPTH SECTION REVEAL ── */
+gsap.utils.toArray('.depth-content').forEach(el => {
+  gsap.from(el, {
+    opacity: 0,
+    y: 40,
+    duration: 1,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: el,
+      start: 'top 75%',
+    }
+  });
+});
+
+/* ── MOUSE PARALLAX ON HERO GEO SHAPES ── */
+document.addEventListener('mousemove', e => {
+  const mx = (e.clientX / window.innerWidth - 0.5) * 2;
+  const my = (e.clientY / window.innerHeight - 0.5) * 2;
+  geoLayer.querySelectorAll('.geo-shape').forEach((sh, i) => {
+    const depth = (i % 3 + 1) * 8;
+    gsap.to(sh, {
+      x: mx * depth,
+      y: my * depth,
+      duration: 1,
+      ease: 'power2.out'
+    });
+  });
+});
+</script>
+</body>
+</html>
