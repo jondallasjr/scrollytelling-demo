@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Staging — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0c0d10;
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --white: #FFFFFF;
+  --gray: #7a8494;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--teal), var(--amber)); z-index: 200; width: 0%;
+}
+.back {
+  position: fixed; top: 1.5rem; left: 1.5rem;
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); text-decoration: none; z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--teal); }
+
+/* ── INTRO ── */
+.intro {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 6rem 2rem;
+}
+
+.intro-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--teal); border: 1px solid rgba(0,212,170,0.3);
+  padding: 0.3rem 1rem; border-radius: 3px; margin-bottom: 2.5rem;
+  display: inline-block;
+}
+
+.intro-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: 1.08;
+  max-width: 800px;
+}
+.intro-headline em { font-style: normal; color: var(--teal); }
+
+.intro-sub {
+  margin-top: 1.5rem; font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--gray); max-width: 560px; line-height: 1.65;
+}
+
+.price-compare {
+  margin-top: 2.5rem; display: flex; align-items: center;
+  gap: 1rem; flex-wrap: wrap; justify-content: center;
+}
+
+.pc-item {
+  padding: 1rem 1.5rem; border-radius: 8px; text-align: center;
+}
+
+.pc-item--old {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+}
+.pc-item--new {
+  background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.25);
+}
+
+.pc-price {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.3rem, 3.5vw, 2rem); line-height: 1;
+}
+.pc-item--old .pc-price { color: rgba(255,255,255,0.3); text-decoration: line-through; }
+.pc-item--new .pc-price { color: var(--teal); }
+.pc-label { font-size: 0.75rem; color: var(--gray); margin-top: 0.4rem; }
+
+.pc-arrow {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.5rem; color: var(--amber);
+}
+
+.scroll-cue {
+  margin-top: 3.5rem; color: rgba(255,255,255,0.15);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  animation: pls 2s ease-in-out infinite;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+}
+@keyframes pls { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* ── BEFORE/AFTER WIPE SCENE ── */
+.wipe-section {
+  min-height: 350vh;
+  position: relative;
+}
+
+.wipe-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; padding: 2rem;
+  overflow: hidden;
+}
+
+.wipe-label-row {
+  display: flex; justify-content: space-between;
+  width: min(95vw, 780px); margin-bottom: 0.8rem;
+  flex-shrink: 0;
+}
+
+.wipe-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.wipe-label--before { color: var(--gray); }
+.wipe-label--after { color: var(--teal); }
+
+/* Container for before/after */
+.wipe-container {
+  position: relative;
+  width: min(95vw, 780px);
+  height: min(52vw, 430px);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  flex-shrink: 0;
+}
+
+/* BEFORE: empty/bare room using CSS gradients */
+.room-before {
+  position: absolute; inset: 0;
+  /* Empty room: bare concrete tones */
+  background:
+    /* floor */
+    linear-gradient(180deg,
+      transparent 65%,
+      rgba(140,120,100,0.3) 65%,
+      rgba(140,120,100,0.5) 100%
+    ),
+    /* walls */
+    linear-gradient(135deg,
+      #2a2520 0%,
+      #3a322a 40%,
+      #2e2820 100%
+    );
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Bare room elements */
+.bare-room {
+  width: 100%; height: 100%; position: relative; overflow: hidden;
+}
+
+/* floor line */
+.bare-room::after {
+  content: '';
+  position: absolute; bottom: 35%; left: 0; right: 0;
+  height: 1px; background: rgba(255,255,255,0.07);
+}
+
+/* window outline */
+.bare-window {
+  position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
+  width: 30%; height: 35%;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(200,220,240,0.04);
+}
+
+.bare-window::before {
+  content: ''; position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background: rgba(255,255,255,0.05);
+}
+.bare-window::after {
+  content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 1px; background: rgba(255,255,255,0.05);
+}
+
+/* cracks in wall */
+.bare-crack {
+  position: absolute;
+  background: rgba(0,0,0,0.25);
+  transform-origin: top left;
+}
+
+.before-tag {
+  position: absolute; bottom: 1.2rem; left: 1.2rem;
+  background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.3rem 0.7rem; border-radius: 4px;
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+
+/* AFTER: staged room using CSS gradients */
+.room-after {
+  position: absolute; inset: 0;
+  clip-path: inset(0 100% 0 0); /* starts hidden, reveals left to right */
+  transition: none; /* controlled by JS */
+  background:
+    /* warm light from window */
+    radial-gradient(ellipse 50% 60% at 50% 10%, rgba(255,220,160,0.15) 0%, transparent 70%),
+    /* rich walls */
+    linear-gradient(135deg,
+      #1e2832 0%,
+      #243040 45%,
+      #1a2028 100%
+    );
+  display: flex; align-items: center; justify-content: center;
+}
+
+.staged-room {
+  width: 100%; height: 100%; position: relative; overflow: hidden;
+}
+
+/* Warm floor */
+.staged-room::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; top: 62%;
+  background: linear-gradient(180deg, rgba(160,120,80,0.2) 0%, rgba(140,100,60,0.35) 100%);
+  border-top: 1px solid rgba(200,160,100,0.15);
+}
+
+/* staged window with light */
+.staged-window {
+  position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+  width: 32%; height: 38%;
+  border: 2px solid rgba(200,180,140,0.2);
+  background: linear-gradient(135deg, rgba(200,230,255,0.12), rgba(255,240,200,0.08));
+  box-shadow: 0 0 40px rgba(255,220,160,0.12) inset;
+}
+
+/* sofa CSS art */
+.staged-sofa {
+  position: absolute; bottom: 37%; left: 50%; transform: translateX(-50%);
+  width: 45%; height: 10%;
+  background: linear-gradient(180deg, #3d4a5c 0%, #2d3a4c 100%);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 -3px 0 rgba(255,255,255,0.05) inset;
+}
+.staged-sofa::before {
+  content: ''; position: absolute; top: -60%; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, #4a5a6e 0%, #3d4a5c 100%);
+  border-radius: 4px 4px 0 0;
+}
+.staged-sofa::after {
+  content: ''; position: absolute; top: -100%; left: -8%; right: -8%; height: 80%;
+  background: linear-gradient(180deg, #556070 0%, #445060 100%);
+  border-radius: 4px;
+}
+
+/* plant CSS art */
+.staged-plant {
+  position: absolute; bottom: 37%; right: 18%;
+  width: 4%; padding-bottom: 14%;
+  background: linear-gradient(180deg, #3a4030 0%, #2a3020 100%);
+  border-radius: 1px;
+}
+.staged-plant::before {
+  content: '';
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  width: 280%; height: 200%;
+  background: radial-gradient(ellipse, rgba(60,120,60,0.7) 30%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* lamp */
+.staged-lamp {
+  position: absolute; bottom: 37%; left: 18%;
+  width: 2%; padding-bottom: 18%;
+  background: rgba(200,180,140,0.3);
+  border-radius: 1px;
+}
+.staged-lamp::before {
+  content: '';
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid rgba(200,180,140,0.4);
+}
+.staged-lamp::after {
+  content: '';
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(10px);
+  width: 400%; height: 200%;
+  background: radial-gradient(ellipse, rgba(255,220,150,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* art on wall */
+.staged-art {
+  position: absolute; top: 18%; left: 20%;
+  width: 15%; height: 22%;
+  border: 1px solid rgba(200,180,140,0.2);
+  background: linear-gradient(135deg, rgba(100,120,80,0.3), rgba(80,100,130,0.2));
+}
+
+.after-tag {
+  position: absolute; bottom: 1.2rem; right: 1.2rem;
+  background: rgba(0,212,170,0.2); border: 1px solid rgba(0,212,170,0.4);
+  padding: 0.3rem 0.7rem; border-radius: 4px;
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--teal);
+}
+
+/* Divider handle */
+.wipe-handle {
+  position: absolute; top: 0; bottom: 0;
+  width: 2px; background: rgba(255,255,255,0.6);
+  transform: translateX(-50%);
+  transition: none;
+  z-index: 10;
+  cursor: ew-resize;
+}
+
+.wipe-handle::before {
+  content: '⟺';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--white);
+  color: var(--bg); font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  line-height: 1;
+}
+
+/* Stats below wipe */
+.wipe-stats {
+  display: flex; gap: 2rem; margin-top: 1.5rem;
+  flex-wrap: wrap; justify-content: center; flex-shrink: 0;
+}
+
+.ws-item {
+  text-align: center;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.ws-item.shown { opacity: 1; transform: translateY(0); }
+
+.ws-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.4rem, 3.5vw, 2rem); color: var(--teal);
+  line-height: 1;
+}
+
+.ws-label {
+  font-size: 0.75rem; color: var(--gray); margin-top: 0.3rem; line-height: 1.4;
+}
+
+/* ── COST COMPARISON ── */
+.cost-section {
+  padding: 8rem 2rem;
+  text-align: center;
+}
+
+.cost-inner { max-width: 860px; margin: 0 auto; }
+
+.cost-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 3rem;
+}
+
+.cost-headline em { font-style: normal; color: var(--teal); }
+
+.cost-comparison {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  background: rgba(255,255,255,0.04); margin-bottom: 3rem;
+}
+
+@media (max-width: 600px) { .cost-comparison { grid-template-columns: 1fr; } }
+
+.cost-col {
+  padding: 2.5rem;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.cost-col.visible { opacity: 1; transform: translateY(0); }
+
+.cost-col--old { background: rgba(255,255,255,0.02); }
+.cost-col--new {
+  background: rgba(0,212,170,0.05);
+  border: 1px solid rgba(0,212,170,0.15);
+}
+
+.cc-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+.cost-col--old .cc-label { color: var(--gray); }
+.cost-col--new .cc-label { color: var(--teal); }
+
+.cc-price {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1; margin-bottom: 0.5rem;
+}
+.cost-col--old .cc-price { color: rgba(255,255,255,0.25); }
+.cost-col--new .cc-price { color: var(--teal); }
+
+.cc-desc { font-size: 0.85rem; color: var(--gray); line-height: 1.55; }
+
+.cost-note {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem); color: var(--gray);
+  line-height: 1.7; max-width: 600px; margin: 0 auto;
+}
+.cost-note strong { color: var(--white); }
+
+.reveal-up {
+  opacity: 0; transform: translateY(25px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-up.visible { opacity: 1; transform: translateY(0); }
+
+.source {
+  text-align: center; padding: 3rem 2rem;
+  font-size: 0.7rem; color: rgba(255,255,255,0.08); letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- INTRO -->
+<section class="intro">
+  <span class="intro-label">RETS 2026 &bull; Virtual Staging</span>
+  <h1 class="intro-headline">
+    AI stages your properties<br>for <em>almost nothing.</em>
+  </h1>
+  <p class="intro-sub">
+    Traditional staging: thousands of dollars, weeks of logistics, rental furniture.
+    AI staging: upload a photo, wait 30 seconds, choose your style.
+  </p>
+
+  <div class="price-compare">
+    <div class="pc-item pc-item--old">
+      <div class="pc-price">$3,000+</div>
+      <div class="pc-label">Traditional staging</div>
+    </div>
+    <div class="pc-arrow">→</div>
+    <div class="pc-item pc-item--new">
+      <div class="pc-price">$29–99</div>
+      <div class="pc-label">AI virtual staging</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue"><span>scroll to see the difference</span><span>↓</span></div>
+</section>
+
+<!-- WIPE SCENE -->
+<section class="wipe-section" id="wipeSection">
+  <div class="wipe-sticky">
+    <div class="wipe-label-row">
+      <span class="wipe-label wipe-label--before">Before — empty property</span>
+      <span class="wipe-label wipe-label--after">After — AI staged</span>
+    </div>
+
+    <div class="wipe-container" id="wipeContainer">
+      <!-- BEFORE room -->
+      <div class="room-before">
+        <div class="bare-room">
+          <div class="bare-window"></div>
+          <div class="bare-crack" style="top:30%;left:15%;width:40px;height:1px;transform:rotate(-15deg);"></div>
+          <div class="bare-crack" style="top:45%;right:25%;width:25px;height:1px;transform:rotate(8deg);"></div>
+          <div class="before-tag">EMPTY / UNSTAGED</div>
+        </div>
+      </div>
+
+      <!-- AFTER room -->
+      <div class="room-after" id="roomAfter">
+        <div class="staged-room">
+          <div class="staged-window"></div>
+          <div class="staged-art"></div>
+          <div class="staged-lamp"></div>
+          <div class="staged-sofa"></div>
+          <div class="staged-plant"></div>
+          <div class="after-tag">AI STAGED</div>
+        </div>
+      </div>
+
+      <!-- Handle -->
+      <div class="wipe-handle" id="wipeHandle" style="left: 0%;"></div>
+    </div>
+
+    <div class="wipe-stats">
+      <div class="ws-item" id="ws0">
+        <div class="ws-num">+200%</div>
+        <div class="ws-label">more enquiries</div>
+      </div>
+      <div class="ws-item" id="ws1">
+        <div class="ws-num">97%</div>
+        <div class="ws-label">cost reduction</div>
+      </div>
+      <div class="ws-item" id="ws2">
+        <div class="ws-num">73%</div>
+        <div class="ws-label">faster to market</div>
+      </div>
+      <div class="ws-item" id="ws3">
+        <div class="ws-num">+25%</div>
+        <div class="ws-label">higher sale prices</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COST COMPARISON -->
+<section class="cost-section">
+  <div class="cost-inner">
+    <h2 class="cost-headline reveal-up" data-reveal>
+      The numbers aren't even<br><em>close.</em>
+    </h2>
+
+    <div class="cost-comparison">
+      <div class="cost-col cost-col--old" data-reveal-col>
+        <div class="cc-label">Traditional Staging</div>
+        <div class="cc-price">$3,500</div>
+        <div class="cc-desc">Average staging cost. Furniture rental, delivery, setup, and photography — on a property that might not sell for months.</div>
+      </div>
+      <div class="cost-col cost-col--new" data-reveal-col>
+        <div class="cc-label">AI Virtual Staging</div>
+        <div class="cc-price">$29</div>
+        <div class="cc-desc">Per image. Choose modern, colonial, minimalist, or Scandinavian style. Done in minutes. Used on every listing, every time.</div>
+      </div>
+    </div>
+
+    <p class="cost-note reveal-up" data-reveal>
+      <strong>For Zimbabwe's agents:</strong> traditional staging was never practical.
+      But AI staging is. The same tool that gives a New York penthouse a magazine cover —
+      you can apply it to a Borrowdale 3-bedroom for the price of a lunch.
+    </p>
+  </div>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 06</div>
+
+<script>
+(function() {
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    pb.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  });
+
+  const section = document.getElementById('wipeSection');
+  const after = document.getElementById('roomAfter');
+  const handle = document.getElementById('wipeHandle');
+  const stats = ['ws0','ws1','ws2','ws3'];
+  let statsShown = [false,false,false,false];
+  let prevPct = 0;
+
+  function onScroll() {
+    const rect = section.getBoundingClientRect();
+    const sectionH = section.offsetHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+
+    // Wipe: progress 0 → 0.75 reveals the "after" image left to right
+    const wipePct = Math.min(progress / 0.75 * 100, 100);
+    after.style.clipPath = `inset(0 ${100 - wipePct}% 0 0)`;
+    handle.style.left = wipePct + '%';
+
+    // Reveal stats at thresholds
+    const statThresholds = [0.2, 0.4, 0.6, 0.78];
+    statThresholds.forEach((t, i) => {
+      if (progress >= t && !statsShown[i]) {
+        statsShown[i] = true;
+        const el = document.getElementById(stats[i]);
+        el.style.transitionDelay = '0s';
+        el.classList.add('shown');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // General reveals
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+
+  const colIO = new IntersectionObserver(entries => {
+    entries.forEach((e, idx) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = (Array.from(document.querySelectorAll('[data-reveal-col]')).indexOf(e.target) * 0.15) + 's';
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[data-reveal-col]').forEach(el => colIO.observe(el));
+})();
+</script>
+</body>
+</html>

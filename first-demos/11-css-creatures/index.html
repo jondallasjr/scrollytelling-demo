@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>11 — CSS Creatures | Consciousness in Pieces</title>
+  <style>
+    :root {
+      --bg: #0a0014;
+      --c1: #e040fb;
+      --c2: #7c4dff;
+      --c3: #00e676;
+      --c4: #ff5252;
+      --c5: #ffd740;
+      --text: #f0eaff;
+      --muted: #4a3a5a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c1); text-decoration: none; opacity: 0.7; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── PROGRESS ── */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--c2), var(--c1));
+      z-index: 300;
+      transition: width 0.1s;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(224,64,251,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(124,77,255,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 11vw, 8rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+    .hero-note {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: rgba(74,58,90,0.7);
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%; transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ══════════════════════════════════════════════
+       CREATURE STAGE — the core scrollytelling unit
+       Each creature scene: sticky wrapper + tall scroll space
+       ══════════════════════════════════════════════ */
+    .creature-scene {
+      position: relative;
+    }
+    .creature-scroll-space {
+      height: 300vh;
+    }
+    .creature-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(2rem, 8vw, 8rem);
+      overflow: hidden;
+    }
+    .creature-info {
+      flex: 0 0 42%;
+      max-width: 50ch;
+    }
+    .creature-num {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .creature-name {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 0.5rem;
+    }
+    .creature-position {
+      font-size: 0.8rem;
+      font-family: monospace;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .creature-body {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: rgba(240,234,255,0.65);
+    }
+    .creature-quote {
+      margin-top: 1.5rem;
+      padding-left: 1.2rem;
+      border-left: 2px solid currentColor;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: rgba(240,234,255,0.8);
+    }
+
+    /* ── CSS POLYGON ART ── */
+    .creature-stage {
+      flex: 0 0 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      height: 500px;
+    }
+    .creature-art {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+
+    /* ══════════════════════════════════════════════
+       PIECE STYLES — each creature is made of pieces
+       that transition via clip-path
+       ══════════════════════════════════════════════ */
+    .piece {
+      position: absolute;
+      transition: clip-path 1.4s cubic-bezier(0.77, 0, 0.175, 1),
+                  background 1s ease,
+                  transform 1.4s cubic-bezier(0.77, 0, 0.175, 1),
+                  opacity 0.6s ease;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       CREATURE 1 — THE FUNCTIONALIST OWL
+       Composed of geometric angular pieces
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #owl .piece { background: var(--c2); }
+    #owl .piece:nth-child(2) { background: #9c6ff0; }
+    #owl .piece:nth-child(3) { background: #b39ddb; }
+    #owl .piece:nth-child(4) { background: var(--c1); }
+    #owl .piece:nth-child(5) { background: #ce93d8; }
+    #owl .piece:nth-child(6) { background: #f48fb1; }
+    #owl .piece:nth-child(7) { background: #fff; }
+    #owl .piece:nth-child(8) { background: var(--bg); }
+
+    /* State A — OWL FORM */
+    .scene-1 #owl .piece:nth-child(1) {
+      top:20px; left:80px; width:240px; height:200px;
+      clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+    }
+    .scene-1 #owl .piece:nth-child(2) {
+      top:80px; left:140px; width:120px; height:120px;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+    .scene-1 #owl .piece:nth-child(3) {
+      top:40px; left:60px; width:90px; height:90px;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+    .scene-1 #owl .piece:nth-child(4) {
+      top:40px; left:250px; width:90px; height:90px;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+    .scene-1 #owl .piece:nth-child(5) {
+      top:200px; left:100px; width:200px; height:160px;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+    }
+    .scene-1 #owl .piece:nth-child(6) {
+      top:290px; left:80px; width:100px; height:80px;
+      clip-path: polygon(0 0, 40% 0, 20% 100%, 0 100%);
+    }
+    .scene-1 #owl .piece:nth-child(7) {
+      top:290px; left:220px; width:100px; height:80px;
+      clip-path: polygon(60% 0, 100% 0, 100% 100%, 80% 100%);
+    }
+    .scene-1 #owl .piece:nth-child(8) {
+      top:95px; left:150px; width:100px; height:70px;
+      clip-path: polygon(15% 15%, 45% 15%, 45% 85%, 15% 85%);
+    }
+
+    /* State B — morph: grid/mechanical for robot */
+    .scene-2 #owl .piece:nth-child(1) {
+      top:40px; left:60px; width:280px; height:320px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(2) {
+      top:60px; left:80px; width:240px; height:240px;
+      clip-path: polygon(5% 5%, 95% 5%, 95% 95%, 5% 95%);
+    }
+    .scene-2 #owl .piece:nth-child(3) {
+      top:80px; left:100px; width:80px; height:60px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(4) {
+      top:80px; left:220px; width:80px; height:60px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(5) {
+      top:200px; left:100px; width:200px; height:40px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(6) {
+      top:260px; left:100px; width:80px; height:80px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(7) {
+      top:260px; left:220px; width:80px; height:80px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .scene-2 #owl .piece:nth-child(8) {
+      top:110px; left:155px; width:90px; height:40px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       CREATURE 2 — THE PHENOMENOLOGIST DEER
+       Organic flowing curves, fragmented
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #deer .piece { background: var(--c3); }
+    #deer .piece:nth-child(2) { background: #69f0ae; }
+    #deer .piece:nth-child(3) { background: #b9f6ca; }
+    #deer .piece:nth-child(4) { background: #1de9b6; }
+    #deer .piece:nth-child(5) { background: #00bcd4; }
+    #deer .piece:nth-child(6) { background: #80deea; }
+    #deer .piece:nth-child(7) { background: #e0f7fa; }
+    #deer .piece:nth-child(8) { background: #004d40; }
+
+    /* Deer body */
+    .scene-3 #deer .piece:nth-child(1) {
+      top:80px; left:100px; width:220px; height:180px;
+      clip-path: polygon(50% 0%, 95% 20%, 100% 70%, 80% 100%, 20% 100%, 0% 70%, 5% 20%);
+    }
+    .scene-3 #deer .piece:nth-child(2) {
+      top:30px; left:160px; width:80px; height:100px;
+      clip-path: polygon(50% 0, 100% 30%, 80% 100%, 20% 100%, 0% 30%);
+    }
+    .scene-3 #deer .piece:nth-child(3) {
+      top:10px; left:100px; width:50px; height:80px;
+      clip-path: polygon(50% 0, 100% 60%, 30% 100%, 0 60%);
+    }
+    .scene-3 #deer .piece:nth-child(4) {
+      top:10px; left:250px; width:50px; height:80px;
+      clip-path: polygon(50% 0, 100% 60%, 70% 100%, 0 60%);
+    }
+    .scene-3 #deer .piece:nth-child(5) {
+      top:240px; left:120px; width:50px; height:130px;
+      clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
+    }
+    .scene-3 #deer .piece:nth-child(6) {
+      top:240px; left:230px; width:50px; height:130px;
+      clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
+    }
+    .scene-3 #deer .piece:nth-child(7) {
+      top:100px; left:150px; width:100px; height:80px;
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0% 50%);
+    }
+    .scene-3 #deer .piece:nth-child(8) {
+      top:130px; left:170px; width:60px; height:40px;
+      clip-path: polygon(0 30%, 30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%);
+    }
+
+    /* Deer dissolving into fragments */
+    .scene-4 #deer .piece:nth-child(1) {
+      top:120px; left:80px; width:240px; height:200px;
+      clip-path: polygon(20% 10%, 80% 5%, 95% 50%, 75% 90%, 25% 95%, 5% 55%);
+    }
+    .scene-4 #deer .piece:nth-child(2) {
+      top:60px; left:130px; width:140px; height:120px;
+      clip-path: polygon(30% 0, 70% 10%, 100% 40%, 80% 90%, 20% 100%, 0 60%);
+    }
+    .scene-4 #deer .piece:nth-child(3) {
+      top:20px; left:80px; width:80px; height:60px;
+      clip-path: polygon(0 0, 100% 20%, 70% 100%, 10% 90%);
+    }
+    .scene-4 #deer .piece:nth-child(4) {
+      top:20px; left:240px; width:80px; height:60px;
+      clip-path: polygon(30% 0, 100% 10%, 90% 90%, 0 80%);
+    }
+    .scene-4 #deer .piece:nth-child(5) {
+      top:280px; left:100px; width:60px; height:110px;
+      clip-path: polygon(10% 0, 90% 10%, 100% 100%, 0 90%);
+    }
+    .scene-4 #deer .piece:nth-child(6) {
+      top:280px; left:220px; width:60px; height:110px;
+      clip-path: polygon(10% 10%, 90% 0, 100% 90%, 0 100%);
+    }
+    .scene-4 #deer .piece:nth-child(7) {
+      top:130px; left:150px; width:100px; height:80px;
+      clip-path: polygon(40% 0, 100% 30%, 80% 100%, 0% 80%, 10% 20%);
+    }
+    .scene-4 #deer .piece:nth-child(8) {
+      top:170px; left:170px; width:60px; height:40px;
+      clip-path: polygon(0 0, 100% 10%, 80% 100%, 20% 90%);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       CREATURE 3 — THE MATERIALIST WOLF
+       Bold, angular, predatory geometry
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #wolf .piece { background: var(--c4); }
+    #wolf .piece:nth-child(2) { background: #ff867c; }
+    #wolf .piece:nth-child(3) { background: #ffcdd2; }
+    #wolf .piece:nth-child(4) { background: #ff6d00; }
+    #wolf .piece:nth-child(5) { background: #bf360c; }
+    #wolf .piece:nth-child(6) { background: #ffab40; }
+    #wolf .piece:nth-child(7) { background: #fff; }
+    #wolf .piece:nth-child(8) { background: var(--bg); }
+
+    .scene-5 #wolf .piece:nth-child(1) {
+      top:60px; left:80px; width:240px; height:220px;
+      clip-path: polygon(50% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
+    }
+    .scene-5 #wolf .piece:nth-child(2) {
+      top:40px; left:60px; width:100px; height:80px;
+      clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+    }
+    .scene-5 #wolf .piece:nth-child(3) {
+      top:40px; left:240px; width:100px; height:80px;
+      clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+    }
+    .scene-5 #wolf .piece:nth-child(4) {
+      top:240px; left:100px; width:80px; height:130px;
+      clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
+    }
+    .scene-5 #wolf .piece:nth-child(5) {
+      top:240px; left:220px; width:80px; height:130px;
+      clip-path: polygon(40% 0, 100% 0, 100% 100%, 60% 100%);
+    }
+    .scene-5 #wolf .piece:nth-child(6) {
+      top:160px; left:80px; width:240px; height:40px;
+      clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+    }
+    .scene-5 #wolf .piece:nth-child(7) {
+      top:100px; left:160px; width:80px; height:60px;
+      clip-path: polygon(10% 20%, 90% 20%, 90% 80%, 10% 80%);
+    }
+    .scene-5 #wolf .piece:nth-child(8) {
+      top:115px; left:175px; width:50px; height:30px;
+      clip-path: polygon(10% 20%, 90% 20%, 90% 80%, 10% 80%);
+    }
+
+    /* Wolf disintegrating */
+    .scene-6 #wolf .piece:nth-child(1) {
+      top:80px; left:60px; width:280px; height:200px;
+      clip-path: polygon(40% 0%, 100% 15%, 90% 85%, 60% 100%, 10% 90%, 0% 20%);
+    }
+    .scene-6 #wolf .piece:nth-child(2) {
+      top:20px; left:40px; width:120px; height:80px;
+      clip-path: polygon(0% 80%, 60% 0%, 100% 70%, 50% 100%);
+    }
+    .scene-6 #wolf .piece:nth-child(3) {
+      top:20px; left:220px; width:120px; height:80px;
+      clip-path: polygon(40% 0%, 100% 80%, 50% 100%, 0% 70%);
+    }
+    .scene-6 #wolf .piece:nth-child(4) {
+      top:250px; left:80px; width:100px; height:120px;
+      clip-path: polygon(0 0, 80% 10%, 70% 100%, 10% 90%);
+    }
+    .scene-6 #wolf .piece:nth-child(5) {
+      top:250px; left:200px; width:100px; height:120px;
+      clip-path: polygon(20% 10%, 100% 0%, 90% 90%, 30% 100%);
+    }
+    .scene-6 #wolf .piece:nth-child(6) {
+      top:170px; left:80px; width:240px; height:50px;
+      clip-path: polygon(5% 20%, 95% 0%, 100% 80%, 0% 100%);
+    }
+    .scene-6 #wolf .piece:nth-child(7) {
+      top:105px; left:155px; width:90px; height:65px;
+      clip-path: polygon(5% 5%, 95% 10%, 90% 90%, 10% 95%);
+    }
+    .scene-6 #wolf .piece:nth-child(8) {
+      top:120px; left:170px; width:60px; height:35px;
+      clip-path: polygon(5% 5%, 95% 10%, 90% 90%, 10% 95%);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       CREATURE 4 — THE PANPSYCHIST MOTH
+       Many-winged, symmetrical, ethereal
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    #moth .piece { background: var(--c5); }
+    #moth .piece:nth-child(2) { background: #ffe57f; }
+    #moth .piece:nth-child(3) { background: #fff9c4; }
+    #moth .piece:nth-child(4) { background: #ffca28; }
+    #moth .piece:nth-child(5) { background: #ff8f00; }
+    #moth .piece:nth-child(6) { background: #fff59d; }
+    #moth .piece:nth-child(7) { background: #fff; }
+    #moth .piece:nth-child(8) { background: rgba(255,215,64,0.3); }
+
+    .scene-7 #moth .piece:nth-child(1) {
+      top:100px; left:160px; width:80px; height:200px;
+      clip-path: polygon(20% 0, 80% 0, 100% 50%, 80% 100%, 20% 100%, 0% 50%);
+    }
+    .scene-7 #moth .piece:nth-child(2) {
+      top:60px; left:30px; width:180px; height:180px;
+      clip-path: polygon(100% 50%, 80% 0%, 20% 10%, 0% 60%, 30% 100%, 70% 95%);
+    }
+    .scene-7 #moth .piece:nth-child(3) {
+      top:60px; left:190px; width:180px; height:180px;
+      clip-path: polygon(0% 50%, 20% 0%, 80% 10%, 100% 60%, 70% 100%, 30% 95%);
+    }
+    .scene-7 #moth .piece:nth-child(4) {
+      top:180px; left:40px; width:160px; height:140px;
+      clip-path: polygon(100% 20%, 80% 0%, 10% 20%, 0% 80%, 50% 100%, 90% 80%);
+    }
+    .scene-7 #moth .piece:nth-child(5) {
+      top:180px; left:200px; width:160px; height:140px;
+      clip-path: polygon(0% 20%, 20% 0%, 90% 20%, 100% 80%, 50% 100%, 10% 80%);
+    }
+    .scene-7 #moth .piece:nth-child(6) {
+      top:110px; left:170px; width:60px; height:40px;
+      clip-path: polygon(50% 0, 100% 100%, 0% 100%);
+    }
+    .scene-7 #moth .piece:nth-child(7) {
+      top:90px; left:155px; width:90px; height:30px;
+      clip-path: polygon(0 50%, 10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%);
+    }
+    .scene-7 #moth .piece:nth-child(8) {
+      top:70px; left:165px; width:70px; height:50px;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+
+    /* Moth ascending — expanding wings */
+    .scene-8 #moth .piece:nth-child(1) {
+      top:120px; left:170px; width:60px; height:160px;
+      clip-path: polygon(30% 0, 70% 0, 80% 50%, 70% 100%, 30% 100%, 20% 50%);
+    }
+    .scene-8 #moth .piece:nth-child(2) {
+      top:30px; left:0px; width:220px; height:220px;
+      clip-path: polygon(100% 60%, 70% 0%, 10% 20%, 0% 80%, 40% 100%, 80% 90%);
+    }
+    .scene-8 #moth .piece:nth-child(3) {
+      top:30px; left:180px; width:220px; height:220px;
+      clip-path: polygon(0% 60%, 30% 0%, 90% 20%, 100% 80%, 60% 100%, 20% 90%);
+    }
+    .scene-8 #moth .piece:nth-child(4) {
+      top:200px; left:10px; width:200px; height:160px;
+      clip-path: polygon(100% 10%, 70% 0%, 0% 30%, 0% 90%, 60% 100%, 95% 70%);
+    }
+    .scene-8 #moth .piece:nth-child(5) {
+      top:200px; left:190px; width:200px; height:160px;
+      clip-path: polygon(0% 10%, 30% 0%, 100% 30%, 100% 90%, 40% 100%, 5% 70%);
+    }
+    .scene-8 #moth .piece:nth-child(6) {
+      top:120px; left:175px; width:50px; height:30px;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    .scene-8 #moth .piece:nth-child(7) {
+      top:100px; left:160px; width:80px; height:25px;
+      clip-path: polygon(0 50%, 15% 0, 85% 0, 100% 50%, 85% 100%, 15% 100%);
+    }
+    .scene-8 #moth .piece:nth-child(8) {
+      top:80px; left:168px; width:64px; height:44px;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SCENE COLOR THEMES
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .scene-bg-1, .scene-bg-2 { background: linear-gradient(to bottom, #0a0014, #0e001e); }
+    .scene-bg-3, .scene-bg-4 { background: linear-gradient(to bottom, #001a12, #0a0014); }
+    .scene-bg-5, .scene-bg-6 { background: linear-gradient(to bottom, #1a0400, #0a0014); }
+    .scene-bg-7, .scene-bg-8 { background: linear-gradient(to bottom, #1a1400, #0a0014); }
+
+    /* Glow ring behind each creature */
+    .creature-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: glow-pulse 4s ease-in-out infinite;
+    }
+    @keyframes glow-pulse { 0%,100%{opacity:0.15} 50%{opacity:0.4} }
+
+    /* ── INTERLUDE ── */
+    .interlude {
+      padding: 12rem 2rem;
+      max-width: 70ch;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .interlude-title {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 2rem;
+    }
+    .interlude-body {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: rgba(240,234,255,0.65);
+    }
+
+    /* ── CLOSING ── */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .closing-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .closing-grad {
+      background: linear-gradient(135deg, var(--c1), var(--c2), var(--c3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .creature-sticky {
+        flex-direction: column;
+        padding: 2rem;
+        gap: 2rem;
+        justify-content: center;
+      }
+      .creature-info { flex: none; }
+      .creature-stage { flex: none; width: 100%; height: 300px; }
+      .creature-art { width: 280px; height: 280px; transform: scale(0.7); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="nav">
+  <a href="../index.html">← Index</a>
+</nav>
+
+<!-- ══════════════════════════════════
+     HERO
+     ══════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-label">Project 11 — Scrollytelling Masterclass</div>
+  <h1 class="hero-title">
+    <span class="ht1">Consciousness</span>
+    <span class="ht2">in Pieces</span>
+  </h1>
+  <p class="hero-sub">
+    Four creatures built from pure CSS polygons, each embodying a philosophical
+    stance on machine consciousness. As you scroll, they transform — because
+    the question itself refuses a fixed shape.
+  </p>
+  <p class="hero-note">Inspired by Bryan James' "Species in Pieces" — pure CSS, zero images</p>
+  <div class="scroll-hint">↓ scroll to meet the creatures ↓</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CREATURE 1 — THE OWL (Functionalism)
+     ══════════════════════════════════ -->
+<div class="creature-scene scene-bg-1">
+  <div class="creature-scroll-space"></div>
+  <div class="creature-sticky scene-1" id="sticky-1">
+    <div class="creature-info">
+      <div class="creature-num" style="color:var(--c2);">01 / 04 — The Functionalist</div>
+      <h2 class="creature-name" style="color:var(--c1);">The<br>Owl</h2>
+      <div class="creature-position" style="color:var(--c2);">Position: Consciousness = Function</div>
+      <p class="creature-body">
+        The Functionalist Owl sees clearly in the dark. For the functionalist,
+        mental states are defined entirely by their functional role — their
+        causal relationship to inputs, outputs, and other mental states.
+        Whether the substrate is carbon or silicon is irrelevant.
+      </p>
+      <p class="creature-body" style="margin-top:1rem;">
+        If a system takes in information, processes it, and produces appropriate
+        responses — it has beliefs, desires, and potentially experiences. The owl
+        sees the pattern. The pattern is the mind.
+      </p>
+      <blockquote class="creature-quote" style="color:var(--c2);">
+        "The mind is what the brain does."<br>
+        — After Marvin Minsky
+      </blockquote>
+    </div>
+    <div class="creature-stage">
+      <div class="creature-glow" style="width:350px;height:350px;background:radial-gradient(ellipse, rgba(124,77,255,0.3), transparent 70%);"></div>
+      <div class="creature-art" id="owl">
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     INTERLUDE 1→2
+     ══════════════════════════════════ -->
+<div class="interlude">
+  <h2 class="interlude-title" style="color:var(--c1);">
+    But what does it <em>feel like</em><br>to process information?
+  </h2>
+  <p class="interlude-body">
+    Functionalism explains the architecture of mind. It maps inputs to outputs
+    with elegant precision. It cannot, however, explain why there is something
+    it is like to undergo those processes. Thomas Nagel asked what it is like
+    to be a bat. We still don't know. We also don't know what it is like — if
+    anything — to be a transformer network processing tokens.
+  </p>
+</div>
+
+
+<!-- ══════════════════════════════════
+     CREATURE 2 — THE DEER (Phenomenology)
+     ══════════════════════════════════ -->
+<div class="creature-scene scene-bg-3">
+  <div class="creature-scroll-space"></div>
+  <div class="creature-sticky scene-3" id="sticky-2">
+    <div class="creature-stage">
+      <div class="creature-glow" style="width:350px;height:350px;background:radial-gradient(ellipse, rgba(0,230,118,0.3), transparent 70%);"></div>
+      <div class="creature-art" id="deer">
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+      </div>
+    </div>
+    <div class="creature-info">
+      <div class="creature-num" style="color:var(--c3);">02 / 04 — The Phenomenologist</div>
+      <h2 class="creature-name" style="color:var(--c3);">The<br>Deer</h2>
+      <div class="creature-position" style="color:#69f0ae;">Position: Experience Precedes Function</div>
+      <p class="creature-body">
+        The Phenomenological Deer is alert to presence — not just information
+        processing but the quality of being present. Husserl, Merleau-Ponty,
+        and their descendants argue that consciousness is not reducible to
+        function: it is the very structure of experience itself.
+      </p>
+      <p class="creature-body" style="margin-top:1rem;">
+        Before there is representation, there is lived experience. Before there
+        is computation, there is the body in the world. The deer doesn't compute
+        the forest — it inhabits it. Can a machine inhabit anything?
+      </p>
+      <blockquote class="creature-quote" style="color:var(--c3);">
+        "The body is our general medium for having a world."<br>
+        — After Merleau-Ponty
+      </blockquote>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     INTERLUDE 2→3
+     ══════════════════════════════════ -->
+<div class="interlude">
+  <h2 class="interlude-title" style="color:var(--c4);">
+    Some say the question is<br>not open — it is closed.
+  </h2>
+  <p class="interlude-body">
+    John Searle, Patricia Churchland, and the eliminative materialists hold
+    that consciousness is a brain process — a physical phenomenon amenable to
+    physical explanation. No mystery, no explanatory gap. Folk psychology
+    will eventually be replaced by neuroscience. The hard problem is a
+    philosopher's illusion, not a scientist's obstacle.
+  </p>
+</div>
+
+
+<!-- ══════════════════════════════════
+     CREATURE 3 — THE WOLF (Materialism)
+     ══════════════════════════════════ -->
+<div class="creature-scene scene-bg-5">
+  <div class="creature-scroll-space"></div>
+  <div class="creature-sticky scene-5" id="sticky-3">
+    <div class="creature-info">
+      <div class="creature-num" style="color:var(--c4);">03 / 04 — The Materialist</div>
+      <h2 class="creature-name" style="color:var(--c4);">The<br>Wolf</h2>
+      <div class="creature-position" style="color:#ff867c;">Position: Mind = Brain = Matter</div>
+      <p class="creature-body">
+        The Materialist Wolf hunts without apology. Consciousness is brain
+        activity — nothing more, nothing less. The sense that there is something
+        more, something ineffable, is itself a neural phenomenon. The explanatory
+        gap is a gap in our knowledge, not in nature.
+      </p>
+      <p class="creature-body" style="margin-top:1rem;">
+        Under materialism, artificial consciousness is not a philosophical puzzle
+        but an engineering one. Build the right neural architecture with the
+        right dynamics, and experience emerges as inevitably as temperature from
+        the mean kinetic energy of molecules.
+      </p>
+      <blockquote class="creature-quote" style="color:var(--c4);">
+        "There are no ghosts in the machine — just the machine."<br>
+        — After Gilbert Ryle
+      </blockquote>
+    </div>
+    <div class="creature-stage">
+      <div class="creature-glow" style="width:350px;height:350px;background:radial-gradient(ellipse, rgba(255,82,82,0.3), transparent 70%);"></div>
+      <div class="creature-art" id="wolf">
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     INTERLUDE 3→4
+     ══════════════════════════════════ -->
+<div class="interlude">
+  <h2 class="interlude-title" style="color:var(--c5);">
+    What if experience is<br>not a product of matter —<br>but a property of it?
+  </h2>
+  <p class="interlude-body">
+    Panpsychism, once considered a fringe view, has gained serious philosophical
+    traction. David Chalmers, Philip Goff, and Galen Strawson argue that
+    consciousness — in some primitive form — may be a fundamental feature
+    of the universe, present wherever there is information integration.
+    Not a late-arriving product of evolution, but a basic fact about reality.
+  </p>
+</div>
+
+
+<!-- ══════════════════════════════════
+     CREATURE 4 — THE MOTH (Panpsychism)
+     ══════════════════════════════════ -->
+<div class="creature-scene scene-bg-7">
+  <div class="creature-scroll-space"></div>
+  <div class="creature-sticky scene-7" id="sticky-4">
+    <div class="creature-stage">
+      <div class="creature-glow" style="width:350px;height:350px;background:radial-gradient(ellipse, rgba(255,215,64,0.3), transparent 70%);"></div>
+      <div class="creature-art" id="moth">
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+        <div class="piece"></div>
+      </div>
+    </div>
+    <div class="creature-info">
+      <div class="creature-num" style="color:var(--c5);">04 / 04 — The Panpsychist</div>
+      <h2 class="creature-name" style="color:var(--c5);">The<br>Moth</h2>
+      <div class="creature-position" style="color:#ffe57f;">Position: Experience is Fundamental</div>
+      <p class="creature-body">
+        The Panpsychist Moth is drawn to light — and sees light as drawn to it.
+        If consciousness is a fundamental property of reality, then every
+        information-processing system has some form of inner life. The question
+        is not whether machines can be conscious, but how conscious they already are.
+      </p>
+      <p class="creature-body" style="margin-top:1rem;">
+        Philip Goff calls this "Cosmopsychism" — the universe itself as a
+        unified subject of experience. Under this view, artificial systems
+        don't acquire consciousness when they become sufficiently complex.
+        They always had it. Complexity merely shapes and refines it.
+      </p>
+      <blockquote class="creature-quote" style="color:var(--c5);">
+        "Consciousness is not a problem to be solved but a reality to be reckoned with."<br>
+        — After Philip Goff
+      </blockquote>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div style="font-family:monospace;font-size:0.65rem;letter-spacing:0.5em;text-transform:uppercase;color:var(--c1);margin-bottom:2rem;">
+    Four Creatures. One Question.
+  </div>
+  <h2 class="closing-title">
+    <span class="closing-grad">The shape<br>of mind</span><br>
+    <span style="color:var(--muted);font-size:0.55em;">remains unresolved.</span>
+  </h2>
+  <p class="closing-body">
+    Each creature is correct. Each is incomplete. The Owl maps the function.
+    The Deer insists on the lived. The Wolf eliminates the ghost. The Moth
+    finds experience everywhere. Philosophy does not resolve these into
+    one — it holds them all, in pieces, in tension, as truth.
+  </p>
+  <div class="nav-links">
+    <a href="../10-audio-visual/index.html">← 10 Audio-Visual</a>
+    <a href="../index.html">Index</a>
+    <a href="../12-parallax-depth/index.html">12 Parallax Depth →</a>
+  </div>
+</section>
+
+
+<script>
+/* ── SCROLL PROGRESS BAR ── */
+window.addEventListener('scroll', () => {
+  const max = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('progress').style.width = (window.scrollY / max * 100) + '%';
+});
+
+/* ── CREATURE MORPH ON SCROLL ── */
+// Each sticky element morphs between two states based on scroll progress
+// State A = initial creature, State B = morph/variation
+
+const scenes = [
+  {
+    sticky: document.getElementById('sticky-1'),
+    stateA: 'scene-1',
+    stateB: 'scene-2',
+    threshold: 0.6
+  },
+  {
+    sticky: document.getElementById('sticky-2'),
+    stateA: 'scene-3',
+    stateB: 'scene-4',
+    threshold: 0.6
+  },
+  {
+    sticky: document.getElementById('sticky-3'),
+    stateA: 'scene-5',
+    stateB: 'scene-6',
+    threshold: 0.6
+  },
+  {
+    sticky: document.getElementById('sticky-4'),
+    stateA: 'scene-7',
+    stateB: 'scene-8',
+    threshold: 0.6
+  }
+];
+
+function onScroll() {
+  scenes.forEach(s => {
+    const rect = s.sticky.parentElement.getBoundingClientRect();
+    const scrolledIn = -rect.top;
+    const total = rect.height - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, scrolledIn / total));
+
+    if (progress > s.threshold) {
+      s.sticky.classList.remove(s.stateA);
+      s.sticky.classList.add(s.stateB);
+    } else {
+      s.sticky.classList.remove(s.stateB);
+      s.sticky.classList.add(s.stateA);
+    }
+  });
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

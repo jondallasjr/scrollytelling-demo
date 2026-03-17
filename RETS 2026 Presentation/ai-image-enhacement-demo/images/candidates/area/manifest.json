@@ -1,0 +1,68 @@
+{
+  "query": "Waterfalls Shopping Centre Harare Zimbabwe",
+  "num_requested": 5,
+  "num_found": 5,
+  "num_downloaded": 4,
+  "images": [
+    {
+      "index": 1,
+      "filename": "01.jpg",
+      "title": "Waterfalls Shopping Mall (Zambia) - BCHOD Zimbabwe ...",
+      "source": "BCHOD Zimbabwe",
+      "domain": "bchodzimbabwe.co.zw",
+      "imageUrl": "https://bchodzimbabwe.co.zw/wp-content/uploads/2021/05/Waterfall.jpg",
+      "width": 1000,
+      "height": 510,
+      "downloaded": true,
+      "filesize_kb": 206.3
+    },
+    {
+      "index": 2,
+      "filename": "02.jpg",
+      "title": "Waterfalls Shopping Centre in Harare is deserted as the 21 ...",
+      "source": "Facebook",
+      "domain": "www.facebook.com",
+      "imageUrl": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=3211274575549884",
+      "width": 1389,
+      "height": 640,
+      "downloaded": true,
+      "filesize_kb": 0.4
+    },
+    {
+      "index": 3,
+      "filename": "03.jpg",
+      "title": "Waterfalls Mall - Terrace Africa",
+      "source": "Terrace Africa",
+      "domain": "terraceafrica.com",
+      "imageUrl": "https://terraceafrica.com/wp-content/uploads/2022/07/Waterfalls-Mall_G4.jpg",
+      "width": 2136,
+      "height": 1200,
+      "downloaded": true,
+      "filesize_kb": 909.7
+    },
+    {
+      "index": 4,
+      "filename": "04.jpg",
+      "title": "Exploring Phillip Chiyangwa's 160 Shopping Mall in Harare",
+      "source": "TikTok",
+      "domain": "www.tiktok.com",
+      "imageUrl": "https://www.tiktok.com/api/img/?itemId=7457661114663308549&location=0&aid=1988",
+      "width": 568,
+      "height": 1024,
+      "downloaded": false,
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "index": 5,
+      "filename": "05.jpg",
+      "title": "Businessman Phillip Chiyangwa's shopping mall along Masotsha ...",
+      "source": "Facebook",
+      "domain": "www.facebook.com",
+      "imageUrl": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=122177565824121921",
+      "width": 2048,
+      "height": 1286,
+      "downloaded": true,
+      "filesize_kb": 0.4
+    }
+  ]
+}

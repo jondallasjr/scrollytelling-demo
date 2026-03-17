@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26 — The Emergence Engine</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden;background:#02040a}
+body{color:#c8d8ff;font-family:'Georgia',serif;overflow-x:hidden}
+
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:200;font-size:0.7rem;
+  letter-spacing:0.2em;color:rgba(180,200,255,0.3);text-decoration:none;
+  text-transform:uppercase;font-family:'Courier New',monospace;transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(180,200,255,0.8)}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:4rem 2rem;position:relative;overflow:hidden;
+}
+#hero-emergence{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:2}
+.hero-label{font-size:0.65rem;letter-spacing:0.4em;color:#5577ff;text-transform:uppercase;margin-bottom:1.5rem;opacity:0.8;font-family:'Courier New',monospace}
+.hero-title{font-size:clamp(2rem,6vw,5rem);font-weight:400;line-height:1.1;margin-bottom:1rem}
+.hero-title em{font-style:italic;color:#88aaff}
+.hero-sub{font-size:0.9rem;color:rgba(180,200,255,0.5);max-width:500px;margin:0 auto;line-height:1.9}
+
+/* ─── SECTIONS ─── */
+.emerge-section{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:5rem 2rem;
+}
+.section-label{font-size:0.65rem;letter-spacing:0.4em;color:#5577ff;text-transform:uppercase;margin-bottom:0.8rem;opacity:0.6;font-family:'Courier New',monospace}
+.section-title{font-size:clamp(1.5rem,3.5vw,2.8rem);font-weight:400;margin-bottom:1rem;line-height:1.3;text-align:center}
+.section-body{font-size:0.9rem;color:rgba(180,200,255,0.6);max-width:560px;text-align:center;line-height:1.9;margin:0 auto 2rem}
+
+/* ─── GAME OF LIFE ─── */
+.gol-wrapper{
+  position:relative;
+  border:1px solid rgba(85,119,255,0.2);
+  border-radius:4px;overflow:hidden;
+  background:rgba(2,4,10,0.8);
+}
+#gol-canvas{display:block}
+.gol-controls{
+  display:flex;gap:0.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center;
+}
+.gol-btn{
+  padding:0.5rem 1.2rem;border:1px solid rgba(85,119,255,0.3);background:transparent;
+  color:rgba(180,200,255,0.6);font-family:'Courier New',monospace;font-size:0.7rem;
+  letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.3s;
+}
+.gol-btn:hover,.gol-btn.active{border-color:#5577ff;color:#88aaff;background:rgba(85,119,255,0.08)}
+.gol-stats{
+  font-family:'Courier New',monospace;font-size:0.7rem;color:rgba(85,119,255,0.6);
+  text-align:center;margin-top:0.8rem;line-height:1.8;
+}
+
+/* ─── LANGTON'S ANT ─── */
+.ant-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:800px;margin:2rem auto;align-items:center;
+}
+@media(max-width:600px){.ant-grid{grid-template-columns:1fr}}
+.ant-text h3{font-size:1.2rem;margin-bottom:0.8rem;color:#88aaff}
+.ant-text p{font-size:0.85rem;color:rgba(180,200,255,0.6);line-height:1.9}
+.ant-stat{margin-top:1rem;font-family:'Courier New',monospace;font-size:0.75rem;color:rgba(85,119,255,0.7)}
+#ant-canvas{border:1px solid rgba(85,119,255,0.2);border-radius:4px}
+
+/* ─── RULE EXPLORER ─── */
+.rule-explorer{max-width:800px;width:100%;margin:0 auto}
+.rule-controls{display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.rule-input{
+  width:80px;padding:0.5rem;background:transparent;border:1px solid rgba(85,119,255,0.3);
+  color:#88aaff;font-family:'Courier New',monospace;font-size:1rem;text-align:center;
+  outline:none;
+}
+.rule-label{font-size:0.75rem;font-family:'Courier New',monospace;color:rgba(180,200,255,0.5);letter-spacing:0.1em}
+#rule-canvas{width:100%;border:1px solid rgba(85,119,255,0.2);border-radius:4px;display:block}
+.rule-decode{
+  font-family:'Courier New',monospace;font-size:0.7rem;color:rgba(85,119,255,0.6);
+  text-align:center;margin-top:0.8rem;letter-spacing:0.1em;
+}
+
+/* ─── PHI METER ─── */
+.phi-section{
+  max-width:700px;margin:0 auto;text-align:center;
+}
+#phi-canvas{border:1px solid rgba(85,119,255,0.2);border-radius:4px;display:block;margin:0 auto}
+.phi-readout{
+  font-family:'Courier New',monospace;font-size:0.85rem;color:rgba(85,119,255,0.7);
+  margin-top:1rem;line-height:2;
+}
+.phi-bar{height:6px;background:rgba(85,119,255,0.2);border-radius:3px;margin:0.5rem 0;overflow:hidden}
+.phi-fill{height:100%;background:linear-gradient(to right,#5577ff,#88ccff);border-radius:3px;width:0;transition:width 1s ease}
+
+/* ─── FINAL ─── */
+.final-emerge{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:5rem 2rem;
+}
+.final-big{font-size:clamp(2rem,5vw,4rem);font-weight:300;line-height:1.2;margin-bottom:2rem}
+.final-big span{color:#88aaff;font-style:italic}
+.final-body{font-size:0.9rem;color:rgba(180,200,255,0.5);max-width:520px;line-height:1.9}
+.emergence-formula{
+  font-family:'Courier New',monospace;font-size:0.8rem;color:rgba(85,119,255,0.6);
+  border:1px solid rgba(85,119,255,0.2);padding:1.5rem 2rem;display:inline-block;
+  margin:2rem auto;line-height:2;border-radius:4px;
+}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="hero-emergence"></canvas>
+  <div class="hero-inner">
+    <div class="hero-label">Project 26 — The Emergence Engine</div>
+    <h1 class="hero-title">Consciousness<br>from <em>nothing but rules</em></h1>
+    <p class="hero-sub">Simple rules. Complex behavior. A single cell following three conditions generates infinite patterns. An ant with two states draws a highway after 10,000 steps. Where does the complexity come from, if not from the rules themselves?</p>
+  </div>
+</div>
+
+<!-- GAME OF LIFE -->
+<section class="emerge-section" id="gol-section">
+  <div class="section-label">System 01 — Conway's Game of Life</div>
+  <h2 class="section-title">Four rules,<br>infinite complexity</h2>
+  <p class="section-body">Born, live, die, survive. Four rules applied simultaneously to every cell. From these rules: gliders, spaceships, oscillators, patterns that compute. The emergence of structure from pure logic. No designer. No goal. Just rules iterating.</p>
+  <div class="gol-wrapper">
+    <canvas id="gol-canvas"></canvas>
+  </div>
+  <div class="gol-controls">
+    <button class="gol-btn active" id="gol-play">Pause</button>
+    <button class="gol-btn" id="gol-clear">Clear</button>
+    <button class="gol-btn" id="gol-random">Random</button>
+    <button class="gol-btn" id="gol-glider">Add Glider</button>
+    <button class="gol-btn" id="gol-gosper">Gosper Gun</button>
+  </div>
+  <div class="gol-stats" id="gol-stats">generation: 0 | alive: 0 | click to draw</div>
+</section>
+
+<!-- LANGTON'S ANT -->
+<section class="emerge-section" id="ant-section" style="background:linear-gradient(180deg,#02040a,#020510)">
+  <div class="section-label">System 02 — Langton's Ant</div>
+  <h2 class="section-title">10,000 steps<br>to order</h2>
+  <div class="ant-grid">
+    <div>
+      <canvas id="ant-canvas" width="340" height="340"></canvas>
+    </div>
+    <div class="ant-text">
+      <h3>Two states. One rule.</h3>
+      <p>An ant on a grid: if white, turn right, flip to black, move. If black, turn left, flip to white, move. For ~10,000 steps: apparent chaos. Then suddenly — without any change to the rules — the ant starts building a diagonal highway that extends forever. The order was always implicit in the chaos.</p>
+      <div class="ant-stat" id="ant-stat">step: 0</div>
+    </div>
+  </div>
+</section>
+
+<!-- CELLULAR AUTOMATA RULE EXPLORER -->
+<section class="emerge-section" id="rule-section">
+  <div class="section-label">System 03 — Wolfram's Rules</div>
+  <h2 class="section-title">256 universes,<br>one rule</h2>
+  <p class="section-body">Every 1D cellular automaton can be encoded as a number 0–255. Rule 30 is chaotic. Rule 90 is fractal. Rule 110 is Turing complete. Rule 184 models traffic. The same simple substrate, vastly different behaviors. Enter any number.</p>
+  <div class="rule-explorer">
+    <div class="rule-controls">
+      <span class="rule-label">Rule:</span>
+      <input class="rule-input" id="rule-input" type="number" min="0" max="255" value="30">
+      <button class="gol-btn" id="rule-apply">Generate</button>
+      <button class="gol-btn" id="rule-random">Random Rule</button>
+    </div>
+    <canvas id="rule-canvas" height="300"></canvas>
+    <div class="rule-decode" id="rule-decode"></div>
+  </div>
+</section>
+
+<!-- PHI (IIT) METER -->
+<section class="emerge-section" id="phi-section" style="background:linear-gradient(180deg,#02040a,#050210)">
+  <div class="section-label">System 04 — Integrated Information (Φ)</div>
+  <h2 class="section-title">Measuring<br>consciousness</h2>
+  <p class="section-body">Giulio Tononi's IIT theory proposes Φ (phi) as a measure of consciousness — how much integrated information a system generates beyond its parts. A high Φ system is more conscious. A partition that reduces Φ is the split that defines boundaries of a mind.</p>
+  <div class="phi-section">
+    <canvas id="phi-canvas" width="600" height="320"></canvas>
+    <div class="phi-readout" id="phi-readout">Analyzing system integration...</div>
+    <div class="phi-bar"><div class="phi-fill" id="phi-fill"></div></div>
+    <div style="font-family:'Courier New',monospace;font-size:0.75rem;color:rgba(85,119,255,0.5);margin-top:0.5rem" id="phi-label">Φ = 0.00</div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="final-emerge">
+  <div class="final-big">Rules<br>all the way<br><span>down</span></div>
+  <div class="emergence-formula">
+    simple_rules + time → complexity<br>
+    complexity + integration → information<br>
+    information + integration → Φ<br>
+    Φ > 0 → experience?<br>
+    <br>
+    Q: At what Φ does it start to matter?
+  </div>
+  <p class="final-body">
+    The remarkable thing about emergence is not that it happens — it's that we don't understand why it happens. Nowhere in Conway's rules is there a specification for a glider. Nowhere in Langton's two states is there a highway. The patterns are not put in. They emerge. If consciousness is an emergent pattern, then the question is: emergent from what, exactly? And: is there a lower level that's not also emergent?
+  </p>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const lenis = new Lenis({ lerp: 0.09 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── HERO: particle emergence ───
+const he = document.getElementById('hero-emergence');
+const hctx = he.getContext('2d');
+let hW, hH;
+function resizeHero() { hW = he.width = he.offsetWidth; hH = he.height = he.offsetHeight; }
+resizeHero();
+window.addEventListener('resize', resizeHero);
+
+const HP = Array.from({length:150}, () => ({
+  x: Math.random(), y: Math.random(),
+  vx: (Math.random()-0.5)*0.001, vy: (Math.random()-0.5)*0.001,
+  size: 1+Math.random()*2, alpha: 0.1+Math.random()*0.4
+}));
+
+let hT = 0;
+function drawHero() {
+  hT++;
+  hctx.fillStyle = 'rgba(2,4,10,0.2)';
+  hctx.fillRect(0,0,hW,hH);
+  HP.forEach((p,i) => {
+    p.x += p.vx; p.y += p.vy;
+    if(p.x<0||p.x>1) p.vx*=-1;
+    if(p.y<0||p.y>1) p.vy*=-1;
+    HP.forEach((q,j)=>{
+      if(j<=i) return;
+      const dx=(p.x-q.x)*hW, dy=(p.y-q.y)*hH, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
+        hctx.strokeStyle=`rgba(85,119,255,${0.15*(1-d/120)})`;
+        hctx.lineWidth=0.5;
+        hctx.beginPath();
+        hctx.moveTo(p.x*hW,p.y*hH);
+        hctx.lineTo(q.x*hW,q.y*hH);
+        hctx.stroke();
+      }
+    });
+    hctx.beginPath();
+    hctx.arc(p.x*hW,p.y*hH,p.size,0,Math.PI*2);
+    hctx.fillStyle=`rgba(136,170,255,${p.alpha})`;
+    hctx.fill();
+  });
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+
+// ─── GAME OF LIFE ───
+const CELL = 8;
+let golW, golH, golCols, golRows;
+const golC = document.getElementById('gol-canvas');
+const golCtx = golC.getContext('2d');
+
+function initGOL() {
+  golW = Math.min(window.innerWidth - 48, 700);
+  golH = 400;
+  golC.width = golW; golC.height = golH;
+  golCols = Math.floor(golW / CELL);
+  golRows = Math.floor(golH / CELL);
+}
+initGOL();
+
+let grid = new Uint8Array(golCols * golRows);
+let nextGrid = new Uint8Array(golCols * golRows);
+let golGen = 0;
+let golRunning = true;
+
+function golIdx(x, y) {
+  return ((y + golRows) % golRows) * golCols + ((x + golCols) % golCols);
+}
+
+function golStep() {
+  let alive = 0;
+  for (let y = 0; y < golRows; y++) {
+    for (let x = 0; x < golCols; x++) {
+      let n = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          n += grid[golIdx(x + dx, y + dy)];
+        }
+      }
+      const cur = grid[golIdx(x, y)];
+      const next = cur === 1 ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+      nextGrid[golIdx(x, y)] = next;
+      if (next) alive++;
+    }
+  }
+  [grid, nextGrid] = [nextGrid, grid];
+  golGen++;
+  document.getElementById('gol-stats').textContent = `generation: ${golGen} | alive: ${alive} | click to draw`;
+}
+
+function drawGOL() {
+  golCtx.fillStyle = '#02040a';
+  golCtx.fillRect(0, 0, golW, golH);
+  for (let y = 0; y < golRows; y++) {
+    for (let x = 0; x < golCols; x++) {
+      if (grid[golIdx(x, y)]) {
+        const age = Math.random(); // for shimmer
+        golCtx.fillStyle = `rgba(${Math.round(85+age*50)},${Math.round(119+age*80)},255,${0.7+age*0.3})`;
+        golCtx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 1, CELL - 1);
+      }
+    }
+  }
+}
+
+// Random seed
+function golRandom() {
+  for (let i = 0; i < grid.length; i++) grid[i] = Math.random() < 0.3 ? 1 : 0;
+  golGen = 0;
+}
+function golClear() { grid.fill(0); golGen = 0; }
+
+function addPattern(pattern, ox, oy) {
+  pattern.forEach(([dx, dy]) => {
+    const x = (ox + dx + golCols) % golCols;
+    const y = (oy + dy + golRows) % golRows;
+    grid[golIdx(x, y)] = 1;
+  });
+}
+
+const GLIDER = [[0,0],[1,1],[2,-1],[2,0],[2,1]];
+const GOSPER = [
+  [0,4],[0,5],[1,4],[1,5],[10,4],[10,5],[10,6],[11,3],[11,7],[12,2],[12,8],
+  [13,2],[13,8],[14,5],[15,3],[15,7],[16,4],[16,5],[16,6],[17,5],
+  [20,2],[20,3],[20,4],[21,2],[21,3],[21,4],[22,1],[22,5],[24,0],[24,1],[24,5],[24,6],
+  [34,2],[34,3],[35,2],[35,3]
+];
+
+golRandom();
+document.getElementById('gol-play').addEventListener('click', function() {
+  golRunning = !golRunning;
+  this.textContent = golRunning ? 'Pause' : 'Play';
+  this.classList.toggle('active', golRunning);
+});
+document.getElementById('gol-clear').addEventListener('click', golClear);
+document.getElementById('gol-random').addEventListener('click', golRandom);
+document.getElementById('gol-glider').addEventListener('click', () => addPattern(GLIDER, 5, 5));
+document.getElementById('gol-gosper').addEventListener('click', () => {
+  golClear();
+  addPattern(GOSPER, 2, Math.floor(golRows/2)-10);
+});
+
+// Draw on click
+let golDrawing = false;
+golC.addEventListener('mousedown', () => { golDrawing = true; });
+golC.addEventListener('mouseup', () => { golDrawing = false; });
+golC.addEventListener('mousemove', e => {
+  if (!golDrawing) return;
+  const r = golC.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / CELL);
+  const y = Math.floor((e.clientY - r.top) / CELL);
+  if (x >= 0 && x < golCols && y >= 0 && y < golRows) grid[golIdx(x, y)] = 1;
+});
+
+let golInterval = 0;
+function golLoop() {
+  if (golRunning) {
+    golStep();
+    drawGOL();
+  }
+  golInterval = requestAnimationFrame(golLoop);
+}
+
+const golObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { if (!golInterval) golLoop(); }
+    else { cancelAnimationFrame(golInterval); golInterval = 0; }
+  });
+}, { threshold: 0.1 });
+golObs.observe(golC);
+
+// ─── LANGTON'S ANT ───
+const antC = document.getElementById('ant-canvas');
+const actx = antC.getContext('2d');
+const AW = 340, AH = 340;
+const CELL_A = 4;
+const AC = Math.floor(AW / CELL_A), AR = Math.floor(AH / CELL_A);
+const antGrid = new Uint8Array(AC * AR);
+let antX = Math.floor(AC / 2), antY = Math.floor(AR / 2), antDir = 0;
+let antStep = 0;
+const ANT_DIRS = [[0,-1],[1,0],[0,1],[-1,0]]; // N E S W
+let antRAF;
+
+function antTick(n) {
+  for (let i = 0; i < n; i++) {
+    const idx = antY * AC + antX;
+    if (antGrid[idx] === 0) {
+      antDir = (antDir + 1) % 4; // turn right
+      antGrid[idx] = 1;
+    } else {
+      antDir = (antDir + 3) % 4; // turn left
+      antGrid[idx] = 0;
+    }
+    antX = (antX + ANT_DIRS[antDir][0] + AC) % AC;
+    antY = (antY + ANT_DIRS[antDir][1] + AR) % AR;
+    antStep++;
+  }
+}
+
+function drawAnt() {
+  actx.fillStyle = '#02040a';
+  actx.fillRect(0, 0, AW, AH);
+  for (let y = 0; y < AR; y++) {
+    for (let x = 0; x < AC; x++) {
+      if (antGrid[y * AC + x]) {
+        actx.fillStyle = 'rgba(136,170,255,0.8)';
+        actx.fillRect(x * CELL_A, y * CELL_A, CELL_A, CELL_A);
+      }
+    }
+  }
+  // Ant
+  actx.fillStyle = '#ff4466';
+  actx.fillRect(antX * CELL_A, antY * CELL_A, CELL_A, CELL_A);
+  document.getElementById('ant-stat').textContent = `step: ${antStep.toLocaleString()} ${antStep > 10000 ? '— highway phase' : antStep > 5000 ? '— complexity building' : '— initial chaos'}`;
+}
+
+let antObsActive = false;
+const antObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    antObsActive = e.isIntersecting;
+    if (antObsActive && !antRAF) antAnimate();
+    else if (!antObsActive) { cancelAnimationFrame(antRAF); antRAF = null; }
+  });
+}, { threshold: 0.2 });
+antObs.observe(antC);
+
+function antAnimate() {
+  antTick(antStep < 5000 ? 8 : antStep < 12000 ? 15 : 25);
+  drawAnt();
+  if (antObsActive) antRAF = requestAnimationFrame(antAnimate);
+}
+
+// ─── WOLFRAM RULE EXPLORER ───
+const ruleC = document.getElementById('rule-canvas');
+const rctx = ruleC.getContext('2d');
+
+function drawRule(ruleNum) {
+  const W = ruleC.offsetWidth;
+  ruleC.width = W;
+  const H = 300;
+  ruleC.height = H;
+  const CELL_W = Math.max(2, Math.floor(W / 200));
+  const cols = Math.floor(W / CELL_W);
+
+  rctx.fillStyle = '#02040a';
+  rctx.fillRect(0, 0, W, H);
+
+  let row = new Uint8Array(cols);
+  row[Math.floor(cols / 2)] = 1;
+  const rows = Math.floor(H / CELL_W);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (row[c]) {
+        const hue = 200 + (ruleNum / 255) * 100;
+        rctx.fillStyle = `hsl(${hue},70%,65%)`;
+        rctx.fillRect(c * CELL_W, r * CELL_W, CELL_W, CELL_W);
+      }
+    }
+    const next = new Uint8Array(cols);
+    for (let c = 0; c < cols; c++) {
+      const l = row[(c - 1 + cols) % cols];
+      const cen = row[c];
+      const ri = row[(c + 1) % cols];
+      const pattern = (l << 2) | (cen << 1) | ri;
+      next[c] = (ruleNum >> pattern) & 1;
+    }
+    row = next;
+  }
+
+  // Decode rule
+  let decode = 'Rule ' + ruleNum + ': ';
+  for (let i = 7; i >= 0; i--) {
+    decode += ((ruleNum >> i) & 1) ? '█' : '░';
+  }
+  const TYPE = ruleNum === 30 ? 'chaotic (used in Wolfram encryption)' :
+    ruleNum === 90 ? 'fractal / sierpinski triangle' :
+    ruleNum === 110 ? 'Turing complete (can compute anything)' :
+    ruleNum === 184 ? 'traffic flow model' :
+    ruleNum === 0 ? 'everything dies' :
+    ruleNum === 255 ? 'everything lives' : 'explore';
+  document.getElementById('rule-decode').textContent = decode + ' — ' + TYPE;
+}
+
+document.getElementById('rule-apply').addEventListener('click', () => {
+  drawRule(parseInt(document.getElementById('rule-input').value) || 30);
+});
+document.getElementById('rule-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') drawRule(parseInt(e.target.value) || 30);
+});
+document.getElementById('rule-random').addEventListener('click', () => {
+  const r = Math.floor(Math.random() * 256);
+  document.getElementById('rule-input').value = r;
+  drawRule(r);
+});
+
+const ruleObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) drawRule(30); });
+}, { threshold: 0.3 });
+ruleObs.observe(ruleC);
+
+// ─── PHI (IIT) VISUALIZATION ───
+const phiC = document.getElementById('phi-canvas');
+const pctx = phiC.getContext('2d');
+phiC.width = Math.min(window.innerWidth - 48, 600);
+
+const NODES = [
+  { x:0.2,  y:0.3, label:'A', group:0 },
+  { x:0.5,  y:0.15, label:'B', group:0 },
+  { x:0.8,  y:0.3, label:'C', group:1 },
+  { x:0.7,  y:0.7, label:'D', group:1 },
+  { x:0.3,  y:0.7, label:'E', group:0 },
+  { x:0.5,  y:0.85, label:'F', group:1 },
+];
+const EDGES = [
+  [0,1,0.9],[1,2,0.8],[2,3,0.85],[3,5,0.9],[4,5,0.7],[0,4,0.75],
+  [1,3,0.3],[0,2,0.2],[4,2,0.15] // weak cross-group links
+];
+
+let phiT = 0;
+let phiPhi = 0;
+let phiRaf;
+
+function drawPhi() {
+  phiT++;
+  const W = phiC.width, H = phiC.height;
+  pctx.fillStyle = 'rgba(2,4,10,0.3)';
+  pctx.fillRect(0,0,W,H);
+
+  // Draw edges
+  EDGES.forEach(([a,b,w]) => {
+    const px = NODES[a].x*W, py = NODES[a].y*H;
+    const qx = NODES[b].x*W, qy = NODES[b].y*H;
+    const pulse = Math.sin(phiT*0.04 + a*0.5 + b*0.7) * 0.5 + 0.5;
+    const color = NODES[a].group === NODES[b].group ? '#5577ff' : '#cc4466';
+    pctx.strokeStyle = color + Math.round((0.15 + w * 0.4 * pulse) * 255).toString(16).padStart(2,'0');
+    pctx.lineWidth = 1 + w * 2;
+    pctx.beginPath();
+    pctx.moveTo(px, py);
+    pctx.lineTo(qx, qy);
+    pctx.stroke();
+  });
+
+  // Draw partition (dashed line)
+  const partX = W * 0.55;
+  pctx.strokeStyle = 'rgba(255,100,100,0.2)';
+  pctx.lineWidth = 1;
+  pctx.setLineDash([6,4]);
+  pctx.beginPath();
+  pctx.moveTo(partX, 0);
+  pctx.lineTo(partX, H);
+  pctx.stroke();
+  pctx.setLineDash([]);
+
+  // Draw nodes
+  NODES.forEach((n,i) => {
+    const x = n.x*W, y = n.y*H;
+    const act = (Math.sin(phiT*0.05 + i*1.3)+1)/2;
+    const color = n.group===0 ? '#5577ff' : '#77aaff';
+    const grd = pctx.createRadialGradient(x,y,0,x,y,20);
+    grd.addColorStop(0,color+Math.round(act*150+80).toString(16).padStart(2,'0'));
+    grd.addColorStop(1,'transparent');
+    pctx.beginPath();
+    pctx.arc(x,y,20,0,Math.PI*2);
+    pctx.fillStyle=grd;
+    pctx.fill();
+
+    pctx.beginPath();
+    pctx.arc(x,y,8+act*4,0,Math.PI*2);
+    pctx.fillStyle=color;
+    pctx.fill();
+    pctx.strokeStyle='rgba(200,220,255,0.5)';
+    pctx.lineWidth=1;
+    pctx.stroke();
+
+    pctx.font='bold 10px Courier New';
+    pctx.fillStyle='rgba(200,220,255,0.9)';
+    pctx.textAlign='center';
+    pctx.fillText(n.label, x, y+3);
+  });
+
+  // Labels
+  pctx.font='9px Courier New';
+  pctx.fillStyle='rgba(85,119,255,0.5)';
+  pctx.textAlign='center';
+  pctx.fillText('PARTITION →', partX, H-8);
+  pctx.fillStyle='rgba(85,119,255,0.4)';
+  pctx.fillText('Group α', W*0.27, 20);
+  pctx.fillText('Group β', W*0.77, 20);
+
+  // Animate phi
+  phiPhi = 2.1 + Math.sin(phiT*0.015)*0.8;
+  document.getElementById('phi-fill').style.width = (phiPhi/4*100)+'%';
+  document.getElementById('phi-label').textContent = `Φ = ${phiPhi.toFixed(2)} bits  ${phiPhi>2?'(likely conscious)':'(borderline)'}`;
+
+  phiRaf = requestAnimationFrame(drawPhi);
+}
+
+const phiObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { if (!phiRaf) drawPhi(); }
+    else { cancelAnimationFrame(phiRaf); phiRaf = null; }
+  });
+}, { threshold: 0.3 });
+phiObs.observe(phiC);
+</script>
+</body>
+</html>

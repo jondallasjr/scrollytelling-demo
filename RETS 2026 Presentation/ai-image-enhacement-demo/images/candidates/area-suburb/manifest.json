@@ -1,0 +1,44 @@
+{
+  "query": "Waterfalls Harare suburb residential street Zimbabwe",
+  "num_requested": 3,
+  "num_found": 3,
+  "num_downloaded": 3,
+  "images": [
+    {
+      "index": 1,
+      "filename": "01.webp",
+      "title": "Waterfalls, Harare Neighbourhood Alert",
+      "source": "Property.co.zw",
+      "domain": "www.property.co.zw",
+      "imageUrl": "https://www.property.co.zw/uploadedfiles/4d/a4/ee/4da4eea6-0d38-43ec-964f-bc1ae0952abd.webp",
+      "width": 763,
+      "height": 572,
+      "downloaded": true,
+      "filesize_kb": 107.3
+    },
+    {
+      "index": 2,
+      "filename": "02.jpg",
+      "title": "Discovering Waterfalls: Harare\u2019s Oldest Suburb With a Modern Vibe",
+      "source": "YouTube",
+      "domain": "www.youtube.com",
+      "imageUrl": "https://i.ytimg.com/vi/GPGa_5rl4Gc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDLwrnNq4CiUWhY82GAJACZyK_IMA",
+      "width": 686,
+      "height": 386,
+      "downloaded": true,
+      "filesize_kb": 98.6
+    },
+    {
+      "index": 3,
+      "filename": "03.jpg",
+      "title": "Waterfalls on of the oldest suburb in Harare Zimbabwe. #zimbabwe ##harare  #africa #suburb",
+      "source": "YouTube",
+      "domain": "www.youtube.com",
+      "imageUrl": "https://i.ytimg.com/vi/zkqRGsBgL_U/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBa79XnchfcVAnu9ZSUNUaEAexYlg",
+      "width": 686,
+      "height": 386,
+      "downloaded": true,
+      "filesize_kb": 63.8
+    }
+  ]
+}

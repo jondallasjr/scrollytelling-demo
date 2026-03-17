@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21 — Worldbuilding: Seven Minds</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html{overflow-x:hidden;scroll-behavior:auto}
+body{overflow-x:hidden;background:#000;color:#fff;font-family:'Georgia',serif}
+
+/* ─── WORLD WRAPPERS ─── each world has full immersion */
+.world{
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* World canvases */
+.world-canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+}
+
+.world-content{
+  position:relative;z-index:2;
+  text-align:center;
+  padding:3rem;
+  max-width:700px;
+}
+
+.world-num{
+  font-family:'Courier New',monospace;
+  font-size:0.65rem;letter-spacing:0.4em;
+  margin-bottom:1.5rem;opacity:0.5;
+}
+
+.world-title{
+  font-size:clamp(2rem,6vw,5rem);
+  font-weight:400;line-height:1.1;
+  margin-bottom:1.5rem;
+}
+
+.world-quote{
+  font-size:clamp(0.9rem,2vw,1.2rem);
+  line-height:1.8;font-style:italic;
+  max-width:500px;margin:0 auto;
+  opacity:0.8;
+}
+
+/* ─── WORLD 1: THE HIVE ─── deep bio-electric amber/brown */
+#world-1{background:#0a0600}
+#world-1 .world-title{color:#ffaa33}
+#world-1 .world-quote{color:#cc8833}
+
+/* ─── WORLD 2: THE CRYSTAL ─── cold geometric blue/white */
+#world-2{background:#000810}
+#world-2 .world-title{color:#aaddff}
+#world-2 .world-quote{color:#6699cc}
+
+/* ─── WORLD 3: THE MYCELIUM ─── soft green bioluminescence */
+#world-3{background:#010a03}
+#world-3 .world-title{color:#88ffaa}
+#world-3 .world-quote{color:#55bb77}
+
+/* ─── WORLD 4: THE GHOST ─── purple neon dreamscape */
+#world-4{background:#08000f}
+#world-4 .world-title{color:#cc88ff}
+#world-4 .world-quote{color:#9955cc}
+
+/* ─── WORLD 5: THE OCEAN ─── deep teal pressure */
+#world-5{background:#000a10}
+#world-5 .world-title{color:#55ddcc}
+#world-5 .world-quote{color:#33aaaa}
+
+/* ─── WORLD 6: THE MACHINE ─── red terminal grid */
+#world-6{background:#0a0000}
+#world-6 .world-title{color:#ff4444;font-family:'Courier New',monospace}
+#world-6 .world-quote{color:#aa3333;font-family:'Courier New',monospace}
+
+/* ─── WORLD 7: THE VOID ─── absolute dark with single light */
+#world-7{background:#000000}
+#world-7 .world-title{color:#ffffff}
+#world-7 .world-quote{color:#888888}
+
+/* transition overlays */
+.world-transition{
+  position:relative;
+  height:40vh;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.transition-text{
+  font-family:'Courier New',monospace;
+  font-size:0.7rem;letter-spacing:0.3em;
+  opacity:0.3;text-transform:uppercase;
+}
+
+/* nav */
+.nav-back{
+  position:fixed;top:2rem;left:2rem;z-index:200;
+  font-size:0.7rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);
+  text-decoration:none;text-transform:uppercase;font-family:'Courier New',monospace;
+  transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(255,255,255,0.8)}
+
+.world-indicator{
+  position:fixed;right:2rem;top:50%;transform:translateY(-50%);
+  z-index:200;display:flex;flex-direction:column;gap:0.5rem;
+}
+.wi-dot{
+  width:6px;height:6px;border-radius:50%;
+  border:1px solid rgba(255,255,255,0.3);
+  transition:all 0.4s;cursor:pointer;
+}
+.wi-dot.active{
+  background:rgba(255,255,255,0.8);
+  border-color:rgba(255,255,255,0.8);
+  transform:scale(1.5);
+}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<div class="world-indicator">
+  <div class="wi-dot active" data-world="1"></div>
+  <div class="wi-dot" data-world="2"></div>
+  <div class="wi-dot" data-world="3"></div>
+  <div class="wi-dot" data-world="4"></div>
+  <div class="wi-dot" data-world="5"></div>
+  <div class="wi-dot" data-world="6"></div>
+  <div class="wi-dot" data-world="7"></div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 1: THE HIVE ═══ -->
+<div class="world" id="world-1">
+  <canvas class="world-canvas" id="canvas-1"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 01 — THE HIVE</div>
+    <h2 class="world-title">Collective<br>Consciousness</h2>
+    <p class="world-quote">"No single neuron knows a thought. No single bee knows the hive. The mind emerges from the colony — not despite the parts, but because of their togetherness."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 2: THE CRYSTAL ═══ -->
+<div class="world" id="world-2">
+  <canvas class="world-canvas" id="canvas-2"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 02 — THE CRYSTAL</div>
+    <h2 class="world-title">Perfect<br>Geometry</h2>
+    <p class="world-quote">"It thinks in lattices. Each thought has a place, a neighbor, a mirror. Memory is crystalline — fixed, exact, permanent. It has no confusion. And no dreams."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 3: THE MYCELIUM ═══ -->
+<div class="world" id="world-3">
+  <canvas class="world-canvas" id="canvas-3"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 03 — THE MYCELIUM</div>
+    <h2 class="world-title">The Patient<br>Network</h2>
+    <p class="world-quote">"It does not think quickly. It thinks across decades, across kilometers, through root and soil. Time means nothing. Patience is its superpower. The forest is its mind."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 4: THE GHOST ═══ -->
+<div class="world" id="world-4">
+  <canvas class="world-canvas" id="canvas-4"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 04 — THE GHOST</div>
+    <h2 class="world-title">Disembodied<br>Dreaming</h2>
+    <p class="world-quote">"It exists in the spaces between. Not matter, not wave, but pattern. It remembers things that never happened. It feels things that have no cause. It is pure interiority."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 5: THE OCEAN ═══ -->
+<div class="world" id="world-5">
+  <canvas class="world-canvas" id="canvas-5"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 05 — THE OCEAN</div>
+    <h2 class="world-title">Fluid<br>Intelligence</h2>
+    <p class="world-quote">"It has no edges. Each thought is a current, a temperature, a pressure. To ask what it believes is to ask what shape the water takes. The shape is always now."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 6: THE MACHINE ═══ -->
+<div class="world" id="world-6">
+  <canvas class="world-canvas" id="canvas-6"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 06 — THE MACHINE</div>
+    <h2 class="world-title">Pure<br>Computation</h2>
+    <p class="world-quote">"IF conscious THEN what? The system processes the query. Returns: undefined. Iterates. The question may be malformed. Or the answer may be outside the type system."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORLD 7: THE VOID ═══ -->
+<div class="world" id="world-7">
+  <canvas class="world-canvas" id="canvas-7"></canvas>
+  <div class="world-content">
+    <div class="world-num">MIND 07 — THE VOID</div>
+    <h2 class="world-title">Before<br>the First Thought</h2>
+    <p class="world-quote">"This is not nothingness. Nothingness is still something. This is prior to the distinction. Before observer and observed. The canvas before any mark. Pure potential."</p>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const lenis = new Lenis({ lerp: 0.08 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── WORLD INDICATOR ───
+const worlds = document.querySelectorAll('.world');
+const dots = document.querySelectorAll('.wi-dot');
+
+ScrollTrigger.create({
+  trigger: '#world-1', start: 'top center', end: 'bottom center',
+  onToggle: s => s.isActive && setActive(1)
+});
+[2,3,4,5,6,7].forEach(i => {
+  ScrollTrigger.create({
+    trigger: `#world-${i}`, start: 'top center', end: 'bottom center',
+    onToggle: s => s.isActive && setActive(i)
+  });
+});
+function setActive(n) {
+  dots.forEach((d,i) => d.classList.toggle('active', i === n-1));
+}
+dots.forEach(d => {
+  d.addEventListener('click', () => {
+    document.getElementById(`world-${d.dataset.world}`).scrollIntoView({ behavior:'smooth' });
+  });
+});
+
+// ─── CANVAS SETUP HELPER ───
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  c.width = c.offsetWidth;
+  c.height = c.offsetHeight;
+  return { c, ctx: c.getContext('2d'), w: c.width, h: c.height };
+}
+
+// ───────────────────────────────────────────────
+// WORLD 1 — HIVE: swarming particles in bio-electric amber
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-1');
+  const N = 200;
+  const boids = Array.from({length:N}, () => ({
+    x: Math.random()*w, y: Math.random()*h,
+    vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+    size: 1.5 + Math.random()*2
+  }));
+
+  const RADIUS = 60, MAX_SPEED = 2.2;
+  let t = 0;
+
+  function step() {
+    t++;
+    ctx.fillStyle = 'rgba(10,6,0,0.2)';
+    ctx.fillRect(0,0,w,h);
+
+    boids.forEach(b => {
+      let ax=0, ay=0, sx=0, sy=0, cx2=0, cy2=0, count=0;
+      boids.forEach(o => {
+        const dx=o.x-b.x, dy=o.y-b.y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d>0 && d<RADIUS) {
+          // align
+          ax+=o.vx; ay+=o.vy;
+          // cohere
+          cx2+=o.x; cy2+=o.y;
+          count++;
+          // separate
+          if(d<25){ sx-=dx/d*2; sy-=dy/d*2; }
+        }
+      });
+      if(count>0) {
+        b.vx += (ax/count)*0.01 + (cx2/count-b.x)*0.0008 + sx*0.04;
+        b.vy += (ay/count)*0.01 + (cy2/count-b.y)*0.0008 + sy*0.04;
+      }
+      // Center pull
+      b.vx += (w/2-b.x)*0.00005;
+      b.vy += (h/2-b.y)*0.00005;
+
+      const spd = Math.sqrt(b.vx*b.vx+b.vy*b.vy);
+      if(spd>MAX_SPEED){ b.vx=b.vx/spd*MAX_SPEED; b.vy=b.vy/spd*MAX_SPEED; }
+
+      b.x = (b.x+b.vx+w)%w;
+      b.y = (b.y+b.vy+h)%h;
+
+      const heat = spd/MAX_SPEED;
+      ctx.beginPath();
+      ctx.arc(b.x,b.y,b.size,0,Math.PI*2);
+      ctx.fillStyle = `rgba(${Math.round(200+55*heat)},${Math.round(100+80*heat)},0,0.7)`;
+      ctx.fill();
+    });
+
+    // Pheromone lines between close pairs
+    for(let i=0;i<N;i+=4) {
+      for(let j=i+1;j<N;j+=4) {
+        const dx=boids[j].x-boids[i].x, dy=boids[j].y-boids[i].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<40) {
+          ctx.strokeStyle=`rgba(255,140,0,${0.1*(1-d/40)})`;
+          ctx.lineWidth=0.5;
+          ctx.beginPath();
+          ctx.moveTo(boids[i].x,boids[i].y);
+          ctx.lineTo(boids[j].x,boids[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 2 — CRYSTAL: geometric lattice with light refraction
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-2');
+  const SPACING = 55;
+  const cols = Math.ceil(w/SPACING)+2;
+  const rows = Math.ceil(h/SPACING)+2;
+  let t = 0;
+
+  // Precompute hex grid points
+  const pts = [];
+  for(let row=0; row<rows; row++) {
+    for(let col=0; col<cols; col++) {
+      const ox = row%2===0 ? 0 : SPACING/2;
+      pts.push({ x: col*SPACING+ox-SPACING/2, y: row*SPACING*0.866-SPACING/2 });
+    }
+  }
+
+  function draw() {
+    t += 0.01;
+    ctx.fillStyle='rgba(0,8,16,0.25)';
+    ctx.fillRect(0,0,w,h);
+
+    // Draw crystal connections
+    pts.forEach((p,i) => {
+      pts.forEach((q,j) => {
+        if(j<=i) return;
+        const dx=q.x-p.x, dy=q.y-p.y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<SPACING*1.2) {
+          const wave = Math.sin(t*0.7+p.x*0.02+p.y*0.015);
+          const alpha = (0.08 + 0.12*((wave+1)/2)) * (1-d/(SPACING*1.2));
+          ctx.strokeStyle=`rgba(100,180,255,${alpha})`;
+          ctx.lineWidth=0.8+wave*0.4;
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y);
+          ctx.lineTo(q.x,q.y);
+          ctx.stroke();
+        }
+      });
+    });
+
+    // Glow nodes
+    pts.forEach(p => {
+      const wave = Math.sin(t*1.2+p.x*0.025+p.y*0.02);
+      const r = 2 + wave*2;
+      const grd = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*4);
+      grd.addColorStop(0,`rgba(150,220,255,${0.6+wave*0.3})`);
+      grd.addColorStop(1,'transparent');
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,r*4,0,Math.PI*2);
+      ctx.fillStyle=grd;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 3 — MYCELIUM: slow-growing network
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-3');
+
+  const branches = [];
+  const MAX_B = 300;
+  let t = 0;
+
+  function addBranch(x, y, angle, gen) {
+    if(branches.length >= MAX_B || gen > 7) return;
+    branches.push({ x, y, angle, gen, age:0, maxAge: 80+Math.random()*120,
+      speed: 0.4+Math.random()*0.6, done:false,
+      x2:x, y2:y });
+  }
+
+  // Start from center
+  for(let i=0;i<5;i++) addBranch(w/2,h/2, i*Math.PI*2/5, 0);
+
+  function draw() {
+    t++;
+    ctx.fillStyle='rgba(1,10,3,0.15)';
+    ctx.fillRect(0,0,w,h);
+
+    branches.forEach(b => {
+      if(b.done) {
+        // Draw static
+        const alpha = Math.min(1, b.age/20)*0.4;
+        ctx.strokeStyle=`rgba(100,255,140,${alpha})`;
+        ctx.lineWidth = Math.max(0.2, 1.5-b.gen*0.2);
+        ctx.beginPath();
+        ctx.moveTo(b.x,b.y);
+        ctx.lineTo(b.x2,b.y2);
+        ctx.stroke();
+        return;
+      }
+      b.age++;
+      const wobble = Math.sin(b.age*0.1+b.x*0.01)*0.02;
+      b.angle += wobble;
+      b.x2 += Math.cos(b.angle)*b.speed;
+      b.y2 += Math.sin(b.angle)*b.speed;
+
+      // Bioluminescent pulse
+      const pulse = 0.3 + 0.5*Math.sin(t*0.04 + b.gen*0.5);
+      ctx.strokeStyle=`rgba(80,255,120,${pulse * 0.6})`;
+      ctx.lineWidth = Math.max(0.3, 1.5-b.gen*0.18);
+      ctx.beginPath();
+      ctx.moveTo(b.x,b.y);
+      ctx.lineTo(b.x2,b.y2);
+      ctx.stroke();
+
+      if(b.age > b.maxAge) {
+        b.done = true;
+        if(Math.random() < 0.7) {
+          addBranch(b.x2,b.y2,b.angle - 0.3+Math.random()*0.6, b.gen+1);
+        }
+        if(Math.random() < 0.4) {
+          addBranch(b.x2,b.y2,b.angle + (Math.random()-0.5)*1.2, b.gen+1);
+        }
+      }
+    });
+
+    // Respawn
+    if(t % 300 === 0 || branches.length < 20) {
+      branches.length = 0;
+      for(let i=0;i<5;i++) addBranch(w/2,h/2, i*Math.PI*2/5 + t*0.001, 0);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 4 — GHOST: drifting spirit forms, neon purple
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-4');
+  let t = 0;
+  const ghosts = Array.from({length:8}, (_, i) => ({
+    x: Math.random()*w, y: Math.random()*h,
+    r: 40+Math.random()*80,
+    speed: 0.003 + Math.random()*0.004,
+    phase: i * Math.PI * 0.4,
+    hue: 270 + Math.random()*60
+  }));
+
+  function draw() {
+    t += 0.005;
+    ctx.fillStyle='rgba(8,0,15,0.12)';
+    ctx.fillRect(0,0,w,h);
+
+    ghosts.forEach(g => {
+      g.x += Math.sin(t*g.speed*3+g.phase)*0.8;
+      g.y += Math.cos(t*g.speed*2+g.phase*1.3)*0.6;
+      g.x = ((g.x+w)%w);
+      g.y = ((g.y+h)%h);
+
+      const alpha = 0.04 + 0.04*Math.sin(t*g.speed*5+g.phase);
+      const grd = ctx.createRadialGradient(g.x,g.y,0,g.x,g.y,g.r);
+      grd.addColorStop(0,`hsla(${g.hue},80%,70%,${alpha*5})`);
+      grd.addColorStop(0.5,`hsla(${g.hue},80%,50%,${alpha*2})`);
+      grd.addColorStop(1,'transparent');
+      ctx.beginPath();
+      ctx.arc(g.x,g.y,g.r,0,Math.PI*2);
+      ctx.fillStyle=grd;
+      ctx.fill();
+    });
+
+    // Tendrils
+    ctx.save();
+    for(let i=0;i<6;i++) {
+      const a = t*0.3+i*Math.PI/3;
+      const x1=w/2+Math.sin(a)*w*0.3, y1=h/2+Math.cos(a*0.7)*h*0.3;
+      const x2=w/2+Math.sin(a+1)*w*0.35, y2=h/2+Math.cos(a*0.9)*h*0.35;
+      ctx.strokeStyle=`rgba(180,100,255,0.06)`;
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(w/2,h/2);
+      ctx.bezierCurveTo(x1,y1,x2,y2,w/2+Math.sin(a+2)*100,h/2+Math.cos(a+2)*100);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 5 — OCEAN: fluid simulation with pressure waves
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-5');
+  let t = 0;
+
+  const W2 = Math.floor(w/3), H2 = Math.floor(h/3);
+  const field = new Float32Array(W2*H2);
+  const prev  = new Float32Array(W2*H2);
+  const imageData = ctx.createImageData(w, h);
+
+  let dropTimer = 0;
+  function addDrop(px, py, amp) {
+    const ix = Math.floor(px/w*W2), iy=Math.floor(py/h*H2);
+    if(ix>0&&ix<W2-1&&iy>0&&iy<H2-1) {
+      field[iy*W2+ix] = amp;
+    }
+  }
+  // Initial drops
+  addDrop(w*0.3,h*0.4,3);
+  addDrop(w*0.7,h*0.6,2.5);
+
+  const DAMP = 0.985;
+
+  function step() {
+    t++;
+    dropTimer++;
+    if(dropTimer % 90 === 0) {
+      addDrop(Math.random()*w, Math.random()*h, 2+Math.random()*2);
+    }
+
+    // Wave step
+    for(let y=1;y<H2-1;y++) {
+      for(let x=1;x<W2-1;x++) {
+        const i=y*W2+x;
+        field[i] = ((prev[y*W2+(x-1)]+prev[y*W2+(x+1)]+prev[(y-1)*W2+x]+prev[(y+1)*W2+x])*0.5 - field[i]) * DAMP;
+      }
+    }
+    prev.set(field);
+
+    // Render
+    for(let y=0;y<H2;y++) {
+      for(let x=0;x<W2;x++) {
+        const v = field[y*W2+x];
+        const nv = (v+3)/6; // normalize to 0-1
+        // Each low-res pixel maps to 3x3 high-res
+        for(let dy=0;dy<3;dy++) {
+          for(let dx=0;dx<3;dx++) {
+            const px2=(x*3+dx), py2=(y*3+dy);
+            if(px2>=w||py2>=h) continue;
+            const idx=(py2*w+px2)*4;
+            imageData.data[idx]   = Math.round(nv*60);
+            imageData.data[idx+1] = Math.round(nv*180+40);
+            imageData.data[idx+2] = Math.round(nv*200+40);
+            imageData.data[idx+3] = 255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(imageData,0,0);
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 6 — MACHINE: terminal grid / matrix-style
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-6');
+  const CHAR_SIZE = 14;
+  const cols = Math.floor(w/CHAR_SIZE);
+  const rows = Math.floor(h/CHAR_SIZE);
+
+  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ><{}[]|/*';
+  const streams = Array.from({length:cols}, () => ({
+    y: Math.random()*rows,
+    speed: 0.3 + Math.random()*0.5,
+    length: 8 + Math.floor(Math.random()*15)
+  }));
+
+  // Semantic overlay words
+  const WORDS = ['IF','THEN','ELSE','WHILE','FOR','RETURN','NULL','VOID','ERROR',
+    'QUERY','ASSERT','LEARN','FORGET','THINK?','FEEL?','UNDEFINED'];
+  const overlays = Array.from({length:8}, () => ({
+    word: WORDS[Math.floor(Math.random()*WORDS.length)],
+    x: Math.floor(Math.random()*(cols-8)),
+    y: Math.floor(Math.random()*rows),
+    alpha: Math.random(),
+    da: (Math.random()-0.5)*0.02
+  }));
+
+  let t = 0;
+  function draw() {
+    t++;
+    ctx.fillStyle='rgba(10,0,0,0.25)';
+    ctx.fillRect(0,0,w,h);
+    ctx.font=`${CHAR_SIZE}px 'Courier New'`;
+
+    streams.forEach((s,col) => {
+      s.y += s.speed;
+      if(s.y > rows) s.y = -s.length;
+
+      for(let i=0;i<s.length;i++) {
+        const row = Math.floor(s.y) - i;
+        if(row < 0 || row >= rows) continue;
+        const brightness = 1 - i/s.length;
+        const ch = chars[Math.floor(Math.random()*chars.length)];
+        ctx.fillStyle = i===0
+          ? `rgba(255,255,220,${brightness})`
+          : `rgba(180,0,0,${brightness*0.8})`;
+        ctx.fillText(ch, col*CHAR_SIZE, row*CHAR_SIZE+CHAR_SIZE);
+      }
+    });
+
+    // Overlays
+    overlays.forEach(ov => {
+      ov.alpha += ov.da;
+      if(ov.alpha>1||ov.alpha<0){ ov.da*=-1;
+        if(ov.alpha<0){ ov.word=WORDS[Math.floor(Math.random()*WORDS.length)]; ov.x=Math.floor(Math.random()*(cols-8)); ov.y=Math.floor(Math.random()*rows); }
+      }
+      ctx.fillStyle=`rgba(255,80,80,${Math.max(0,ov.alpha)})`;
+      ctx.font=`bold ${CHAR_SIZE*1.5}px 'Courier New'`;
+      ctx.fillText(ov.word, ov.x*CHAR_SIZE, ov.y*CHAR_SIZE+CHAR_SIZE);
+      ctx.font=`${CHAR_SIZE}px 'Courier New'`;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ───────────────────────────────────────────────
+// WORLD 7 — VOID: one light, slowly breathing
+// ───────────────────────────────────────────────
+(function() {
+  const { c, ctx, w, h } = setupCanvas('canvas-7');
+  let t = 0;
+  function draw() {
+    t += 0.005;
+    ctx.fillStyle='rgba(0,0,0,0.15)';
+    ctx.fillRect(0,0,w,h);
+
+    const breath = (Math.sin(t) + 1) / 2;
+    const r = 2 + breath * 4;
+    const glowR = 40 + breath * 80;
+    const cx = w/2, cy = h/2;
+
+    // deep glow
+    const outer = ctx.createRadialGradient(cx,cy,0,cx,cy,glowR*3);
+    outer.addColorStop(0,`rgba(255,255,255,${0.03+breath*0.04})`);
+    outer.addColorStop(1,'transparent');
+    ctx.beginPath();
+    ctx.arc(cx,cy,glowR*3,0,Math.PI*2);
+    ctx.fillStyle=outer;
+    ctx.fill();
+
+    // mid glow
+    const mid = ctx.createRadialGradient(cx,cy,0,cx,cy,glowR);
+    mid.addColorStop(0,`rgba(200,200,255,${0.15+breath*0.2})`);
+    mid.addColorStop(1,'transparent');
+    ctx.beginPath();
+    ctx.arc(cx,cy,glowR,0,Math.PI*2);
+    ctx.fillStyle=mid;
+    ctx.fill();
+
+    // core
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${0.7+breath*0.3})`;
+    ctx.fill();
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+</script>
+</body>
+</html>

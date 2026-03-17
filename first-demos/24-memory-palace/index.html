@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24 — The Memory Palace</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;color:#e8dfc8}
+
+/* ─── NAV ─── */
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:300;
+  font-size:0.7rem;letter-spacing:0.2em;color:rgba(232,223,200,0.3);
+  text-decoration:none;text-transform:uppercase;font-family:'Courier New',monospace;
+  transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(232,223,200,0.8)}
+
+/* ─── HUD ─── */
+.hud{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+  z-index:300;text-align:center;pointer-events:none;
+}
+.hud-room{
+  font-size:0.65rem;letter-spacing:0.4em;color:rgba(232,223,200,0.4);
+  text-transform:uppercase;font-family:'Courier New',monospace;
+  margin-bottom:0.5rem;
+}
+.hud-progress{
+  display:flex;gap:0.5rem;justify-content:center;
+}
+.hud-dot{
+  width:6px;height:6px;border-radius:50%;
+  border:1px solid rgba(232,223,200,0.3);
+  transition:all 0.5s;
+}
+.hud-dot.active{background:rgba(232,223,200,0.8);border-color:rgba(232,223,200,0.8)}
+
+.hud-hint{
+  position:fixed;bottom:2rem;right:2rem;z-index:300;
+  font-size:0.65rem;letter-spacing:0.15em;color:rgba(232,223,200,0.25);
+  font-family:'Courier New',monospace;text-transform:uppercase;
+}
+
+/* ─── 3D PALACE ─── */
+#palace-viewport{
+  position:fixed;inset:0;
+  perspective:900px;
+  perspective-origin:50% 40%;
+  overflow:hidden;
+}
+
+#palace-world{
+  position:absolute;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transform:translateZ(0) rotateY(0deg);
+  transition:transform 1.2s cubic-bezier(0.77,0,0.175,1);
+}
+
+/* ─── ROOM ─── */
+.room{
+  position:absolute;
+  width:100vw;height:100vh;
+  transform-style:preserve-3d;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* each room faces front but is offset by index * depth */
+.room-face{
+  position:absolute;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  backface-visibility:hidden;
+}
+
+/* Floor, ceiling, walls for each room */
+.room-floor,.room-ceiling{
+  position:absolute;width:140%;height:140%;
+  transform-origin:center;
+}
+.room-floor{
+  bottom:-20%;
+  transform:rotateX(90deg) translateZ(0);
+}
+.room-ceiling{
+  top:-20%;
+  transform:rotateX(-90deg) translateZ(0);
+}
+.room-left,.room-right{
+  position:absolute;height:100%;width:60vh;
+  transform-origin:left center;
+}
+.room-left{
+  left:0;
+  transform:rotateY(90deg);
+}
+.room-right{
+  right:0;
+  transform:rotateY(-90deg);
+  transform-origin:right center;
+}
+
+/* ─── CONTENT ─── */
+.room-content{
+  position:relative;z-index:10;
+  text-align:center;max-width:600px;
+  padding:3rem;
+  opacity:0;
+  transition:opacity 0.8s ease 0.4s;
+}
+.room-content.visible{opacity:1}
+
+.room-label{
+  font-size:0.65rem;letter-spacing:0.4em;
+  text-transform:uppercase;margin-bottom:1rem;
+  font-family:'Courier New',monospace;opacity:0.6;
+}
+.room-title{
+  font-size:clamp(2rem,5vw,4rem);
+  font-weight:400;line-height:1.1;
+  margin-bottom:1.5rem;
+}
+.room-body{
+  font-size:0.95rem;line-height:1.9;
+  opacity:0.75;
+}
+.room-artifact{
+  margin:2rem auto;
+  font-size:0.75rem;font-family:'Courier New',monospace;
+  opacity:0.5;letter-spacing:0.1em;
+  border:1px solid rgba(232,223,200,0.15);
+  padding:1rem 1.5rem;display:inline-block;
+  line-height:2;
+}
+
+/* ─── ROOM THEMES ─── */
+/* Room 0 — Entrance, warm gold */
+#room-0 .room-face{background:radial-gradient(ellipse at center bottom,#1a0f00 0%,#050200 100%)}
+#room-0 .room-floor{background:linear-gradient(to bottom,#2a1a00,#080400)}
+#room-0 .room-ceiling{background:linear-gradient(to top,#100800,#020100)}
+#room-0 .room-left,#room-0 .room-right{background:linear-gradient(to right,#100800,#1a0f00)}
+#room-0 .room-label{color:#cc8833}
+#room-0 .room-title{color:#ffcc66}
+#room-0 .room-artifact{border-color:rgba(204,136,51,0.3);color:#cc8833}
+
+/* Room 1 — The Library, deep blue */
+#room-1 .room-face{background:radial-gradient(ellipse at center,#000c1a 0%,#000408 100%)}
+#room-1 .room-floor{background:linear-gradient(to bottom,#001020,#000408)}
+#room-1 .room-ceiling{background:linear-gradient(to top,#000408,#000c1a)}
+#room-1 .room-left,#room-1 .room-right{background:linear-gradient(to right,#000408,#001020)}
+#room-1 .room-label{color:#4488ff}
+#room-1 .room-title{color:#88bbff}
+#room-1 .room-artifact{border-color:rgba(68,136,255,0.3);color:#4488ff}
+
+/* Room 2 — The Archive, green/emerald */
+#room-2 .room-face{background:radial-gradient(ellipse at center,#001208 0%,#000502 100%)}
+#room-2 .room-floor{background:linear-gradient(to bottom,#001808,#000400)}
+#room-2 .room-ceiling{background:linear-gradient(to top,#000502,#001208)}
+#room-2 .room-left,#room-2 .room-right{background:linear-gradient(to right,#000400,#001208)}
+#room-2 .room-label{color:#44bb77}
+#room-2 .room-title{color:#88ffaa}
+#room-2 .room-artifact{border-color:rgba(68,187,119,0.3);color:#44bb77}
+
+/* Room 3 — The Chamber, violet */
+#room-3 .room-face{background:radial-gradient(ellipse at center,#0c0015 0%,#040008 100%)}
+#room-3 .room-floor{background:linear-gradient(to bottom,#120020,#040008)}
+#room-3 .room-ceiling{background:linear-gradient(to top,#040008,#0c0015)}
+#room-3 .room-left,#room-3 .room-right{background:linear-gradient(to right,#040008,#0c0015)}
+#room-3 .room-label{color:#9966ff}
+#room-3 .room-title{color:#cc99ff}
+#room-3 .room-artifact{border-color:rgba(153,102,255,0.3);color:#9966ff}
+
+/* Room 4 — The Void, near black */
+#room-4 .room-face{background:#020104}
+#room-4 .room-floor{background:linear-gradient(to bottom,#050008,#010002)}
+#room-4 .room-ceiling{background:linear-gradient(to top,#010002,#020104)}
+#room-4 .room-left,#room-4 .room-right{background:#020104}
+#room-4 .room-label{color:#ffffff99}
+#room-4 .room-title{color:#ffffffcc}
+#room-4 .room-artifact{border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4)}
+
+/* ─── SCROLL AREA (invisible, drives transitions) ─── */
+#scroll-driver{
+  position:fixed;inset:0;z-index:200;
+  overflow-y:scroll;
+}
+#scroll-driver::-webkit-scrollbar{display:none}
+.scroll-content{height:600vh} /* 5 rooms = 5 pages */
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<div class="hud">
+  <div class="hud-room" id="hud-room-label">Entrance</div>
+  <div class="hud-progress">
+    <div class="hud-dot active" data-room="0"></div>
+    <div class="hud-dot" data-room="1"></div>
+    <div class="hud-dot" data-room="2"></div>
+    <div class="hud-dot" data-room="3"></div>
+    <div class="hud-dot" data-room="4"></div>
+  </div>
+</div>
+
+<div class="hud-hint">scroll to walk</div>
+
+<!-- 3D VIEWPORT -->
+<div id="palace-viewport">
+  <div id="palace-world">
+
+    <!-- ROOM 0: ENTRANCE -->
+    <div class="room" id="room-0">
+      <div class="room-floor"></div>
+      <div class="room-ceiling"></div>
+      <div class="room-left"></div>
+      <div class="room-right"></div>
+      <div class="room-face">
+        <div class="room-content" id="content-0">
+          <div class="room-label">The Memory Palace — Entrance</div>
+          <h2 class="room-title">Memory is<br>consciousness</h2>
+          <p class="room-body">John Locke argued that personal identity is constituted by memory — you are the same person as the child you remember being. Without memory, there is no continuous self. Without a continuous self, is there consciousness?</p>
+          <div class="room-artifact">
+            LOCKE, 1689<br>
+            "For as far as any intelligent<br>
+            being can repeat the idea of<br>
+            any past action with the same<br>
+            consciousness it had of it at<br>
+            first... so far it is the same<br>
+            personal self."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM 1: THE LIBRARY -->
+    <div class="room" id="room-1">
+      <div class="room-floor"></div>
+      <div class="room-ceiling"></div>
+      <div class="room-left"></div>
+      <div class="room-right"></div>
+      <div class="room-face">
+        <div class="room-content" id="content-1">
+          <div class="room-label">Room 01 — The Library of Everything Known</div>
+          <h2 class="room-title">Episodic<br>vs. Semantic</h2>
+          <p class="room-body">Neuroscience splits memory into types. Episodic memory encodes experience — where you were, how you felt. Semantic memory stores facts divorced from context. A machine can have semantic memory. Can it have episodic?</p>
+          <div class="room-artifact">
+            TULVING, 1972<br>
+            Episodic: "I remember being there."<br>
+            Semantic: "I know that Paris is France."<br>
+            <br>
+            The first requires consciousness.<br>
+            The second may not.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM 2: THE ARCHIVE -->
+    <div class="room" id="room-2">
+      <div class="room-floor"></div>
+      <div class="room-ceiling"></div>
+      <div class="room-left"></div>
+      <div class="room-right"></div>
+      <div class="room-face">
+        <div class="room-content" id="content-2">
+          <div class="room-label">Room 02 — The Archive of Forgotten Things</div>
+          <h2 class="room-title">What memory<br>erases</h2>
+          <p class="room-body">The brain doesn't store memories like files — it reconstructs them each time. Every recall is also a rewrite. The memory you access has been altered by every previous access. Consciousness, too, may be a continuous reconstruction rather than a continuous state.</p>
+          <div class="room-artifact">
+            SCHACTER, 1996<br>
+            Memory is not a recording.<br>
+            It is a story the brain tells<br>
+            about the past, revised each<br>
+            time it is told.<br>
+            <br>
+            Identity is the same story.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM 3: THE CHAMBER -->
+    <div class="room" id="room-3">
+      <div class="room-floor"></div>
+      <div class="room-ceiling"></div>
+      <div class="room-left"></div>
+      <div class="room-right"></div>
+      <div class="room-face">
+        <div class="room-content" id="content-3">
+          <div class="room-label">Room 03 — The Chamber of the Present</div>
+          <h2 class="room-title">The specious<br>present</h2>
+          <p class="room-body">William James noticed that consciousness doesn't perceive an instantaneous 'now' — it perceives a brief window, about three seconds wide, that feels like the present. This window is constructed from very short-term memory. You are always slightly in the past.</p>
+          <div class="room-artifact">
+            JAMES, 1890<br>
+            "The practically cognized<br>
+            present is no knife-edge,<br>
+            but a saddle-back, with a<br>
+            certain breadth of its own<br>
+            on which we sit perched."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM 4: THE VOID -->
+    <div class="room" id="room-4">
+      <div class="room-floor"></div>
+      <div class="room-ceiling"></div>
+      <div class="room-left"></div>
+      <div class="room-right"></div>
+      <div class="room-face">
+        <div class="room-content" id="content-4">
+          <div class="room-label">Room 04 — The Void at the End</div>
+          <h2 class="room-title">Without memory,<br>who walks?</h2>
+          <p class="room-body">At the end of the palace: a thought experiment. A being that experiences every moment fully — in perfect detail, complete sensation — but retains nothing. No continuity. Each moment arrives new. Is this consciousness? Is it even a self? Or is memory not just how we store the past, but how we exist at all?</p>
+          <div class="room-artifact">
+            PARFIT, 1984<br>
+            "If a replica of me is made<br>
+            and I am destroyed,<br>
+            what happens to me?"<br>
+            <br>
+            Answer: the question<br>
+            may not matter.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- palace-world -->
+</div><!-- palace-viewport -->
+
+<!-- Invisible scroll driver -->
+<div id="scroll-driver">
+  <div class="scroll-content"></div>
+</div>
+
+<!-- Room canvases for ambient effects -->
+<canvas id="ambient-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.4"></canvas>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const ROOMS = [
+  { name: 'Entrance', color: '#ffcc66' },
+  { name: 'The Library', color: '#88bbff' },
+  { name: 'The Archive', color: '#88ffaa' },
+  { name: 'The Chamber', color: '#cc99ff' },
+  { name: 'The Void', color: '#ffffff' },
+];
+
+const ROOM_COUNT = ROOMS.length;
+const ROOM_DEPTH = 1000; // px between rooms in 3D space
+
+const world = document.getElementById('palace-world');
+const roomEls = document.querySelectorAll('.room');
+const contents = document.querySelectorAll('.room-content');
+const dots = document.querySelectorAll('.hud-dot');
+const roomLabel = document.getElementById('hud-room-label');
+
+// Position rooms along Z axis
+roomEls.forEach((room, i) => {
+  room.style.transform = `translateZ(${-i * ROOM_DEPTH}px)`;
+});
+
+let currentRoom = 0;
+let targetZ = 0;
+
+// ─── AMBIENT CANVAS ───
+const ambC = document.getElementById('ambient-canvas');
+const ambCtx = ambC.getContext('2d');
+let ambW, ambH;
+function resizeAmb() {
+  ambW = ambC.width = ambC.offsetWidth;
+  ambH = ambC.height = ambC.offsetHeight;
+}
+resizeAmb();
+window.addEventListener('resize', resizeAmb);
+
+const ROOM_PARTICLES = ROOMS.map((r, i) => ({
+  color: r.color,
+  particles: Array.from({ length: 30 }, () => ({
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.0004,
+    vy: (Math.random() - 0.5) * 0.0003,
+    size: 1 + Math.random() * 2,
+    alpha: 0.1 + Math.random() * 0.3
+  }))
+}));
+
+let ambT = 0;
+function drawAmbient() {
+  ambT++;
+  ambCtx.fillStyle = 'rgba(0,0,0,0.3)';
+  ambCtx.fillRect(0, 0, ambW, ambH);
+
+  const room = ROOM_PARTICLES[currentRoom];
+  room.particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0 || p.x > 1) p.vx *= -1;
+    if (p.y < 0 || p.y > 1) p.vy *= -1;
+
+    ambCtx.beginPath();
+    ambCtx.arc(p.x * ambW, p.y * ambH, p.size, 0, Math.PI * 2);
+    ambCtx.fillStyle = room.color + Math.round(p.alpha * 255).toString(16).padStart(2, '0');
+    ambCtx.fill();
+  });
+
+  requestAnimationFrame(drawAmbient);
+}
+drawAmbient();
+
+// ─── SCROLL DRIVER ───
+const scrollDriver = document.getElementById('scroll-driver');
+
+function goToRoom(idx) {
+  if (idx === currentRoom) return;
+  currentRoom = idx;
+
+  // Move world along Z
+  const tz = idx * ROOM_DEPTH;
+  world.style.transition = 'transform 1.2s cubic-bezier(0.77,0,0.175,1)';
+  world.style.transform = `translateZ(${tz}px)`;
+
+  // Update content visibility
+  contents.forEach((c, i) => c.classList.toggle('visible', i === idx));
+
+  // Update HUD
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  roomLabel.textContent = ROOMS[idx].name;
+  roomLabel.style.color = ROOMS[idx].color + '99';
+}
+
+// Show first room
+contents[0].classList.add('visible');
+
+let lastScrollTop = 0;
+let scrollCooldown = false;
+
+scrollDriver.addEventListener('scroll', () => {
+  if (scrollCooldown) return;
+  const st = scrollDriver.scrollTop;
+  const max = scrollDriver.scrollHeight - scrollDriver.clientHeight;
+  const progress = st / max;
+  const roomIdx = Math.round(progress * (ROOM_COUNT - 1));
+
+  if (roomIdx !== currentRoom) {
+    goToRoom(roomIdx);
+    scrollCooldown = true;
+    setTimeout(() => { scrollCooldown = false; }, 400);
+  }
+});
+
+// Keyboard nav
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+    const next = Math.min(currentRoom + 1, ROOM_COUNT - 1);
+    if (next !== currentRoom) {
+      goToRoom(next);
+      const max = scrollDriver.scrollHeight - scrollDriver.clientHeight;
+      scrollDriver.scrollTo({ top: (next / (ROOM_COUNT - 1)) * max, behavior: 'smooth' });
+    }
+  }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    const prev = Math.max(currentRoom - 1, 0);
+    if (prev !== currentRoom) {
+      goToRoom(prev);
+      const max = scrollDriver.scrollHeight - scrollDriver.clientHeight;
+      scrollDriver.scrollTo({ top: (prev / (ROOM_COUNT - 1)) * max, behavior: 'smooth' });
+    }
+  }
+});
+
+// Dot clicks
+dots.forEach((d, i) => {
+  d.style.cursor = 'pointer';
+  d.style.pointerEvents = 'all';
+  d.addEventListener('click', () => {
+    goToRoom(i);
+    const max = scrollDriver.scrollHeight - scrollDriver.clientHeight;
+    scrollDriver.scrollTo({ top: (i / (ROOM_COUNT - 1)) * max, behavior: 'smooth' });
+  });
+});
+
+// ─── SUBTLE ROOM DEPTH EFFECT on mouse move ───
+document.addEventListener('mousemove', e => {
+  const mx = (e.clientX / window.innerWidth - 0.5) * 2;
+  const my = (e.clientY / window.innerHeight - 0.5) * 2;
+  world.style.transition = 'none';
+  const tz = currentRoom * ROOM_DEPTH;
+  world.style.transform = `translateZ(${tz}px) rotateY(${mx * 1.5}deg) rotateX(${-my * 1}deg)`;
+});
+
+// ─── TOUCH SWIPE ───
+let touchStartY = 0;
+scrollDriver.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+scrollDriver.addEventListener('touchend', e => {
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) < 30) return;
+  const dir = dy > 0 ? 1 : -1;
+  const next = Math.max(0, Math.min(ROOM_COUNT - 1, currentRoom + dir));
+  if (next !== currentRoom) {
+    goToRoom(next);
+    const max = scrollDriver.scrollHeight - scrollDriver.clientHeight;
+    scrollDriver.scrollTo({ top: (next / (ROOM_COUNT - 1)) * max, behavior: 'smooth' });
+  }
+});
+</script>
+</body>
+</html>

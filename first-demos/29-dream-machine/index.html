@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>29 — The Dream Machine</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{overflow-x:hidden;font-family:'Georgia',serif}
+
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:300;font-size:0.7rem;
+  letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-decoration:none;
+  text-transform:uppercase;font-family:'Courier New',monospace;transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(255,255,255,0.7)}
+
+/* ─── DREAM CANVAS fills viewport ─── */
+#dream-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:0;
+}
+
+/* ─── SCROLL DRIVER ─── */
+#scroll-driver{
+  position:relative;z-index:2;
+  pointer-events:none;
+}
+
+/* ─── DREAM TEXT LAYERS ─── */
+.dream-layer{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:2;
+  pointer-events:none;
+}
+.dream-card{
+  max-width:520px;padding:3rem;
+  text-align:center;
+  pointer-events:all;
+}
+.dl-label{
+  font-size:0.6rem;letter-spacing:0.4em;text-transform:uppercase;
+  margin-bottom:1rem;font-family:'Courier New',monospace;opacity:0;
+  transition:opacity 1s;
+}
+.dl-text{
+  font-size:clamp(1.3rem,3.5vw,2.2rem);font-weight:400;line-height:1.3;
+  opacity:0;transition:opacity 1.5s;
+}
+.dl-sub{
+  font-size:0.85rem;margin-top:1rem;line-height:1.8;
+  opacity:0;transition:opacity 1.5s 0.3s;
+}
+.dream-layer.active .dl-label,
+.dream-layer.active .dl-text,
+.dream-layer.active .dl-sub{opacity:1}
+
+/* Dream-specific color schemes */
+.dream-layer:nth-child(1) .dl-label{color:#6688ff}
+.dream-layer:nth-child(1) .dl-text{color:#aabbff}
+.dream-layer:nth-child(1) .dl-sub{color:rgba(170,187,255,0.5)}
+
+.dream-layer:nth-child(2) .dl-label{color:#88ff99}
+.dream-layer:nth-child(2) .dl-text{color:#99ffaa}
+.dream-layer:nth-child(2) .dl-sub{color:rgba(153,255,170,0.5)}
+
+.dream-layer:nth-child(3) .dl-label{color:#ffaa66}
+.dream-layer:nth-child(3) .dl-text{color:#ffbb88}
+.dream-layer:nth-child(3) .dl-sub{color:rgba(255,187,136,0.5)}
+
+.dream-layer:nth-child(4) .dl-label{color:#ff88cc}
+.dream-layer:nth-child(4) .dl-text{color:#ffaada}
+.dream-layer:nth-child(4) .dl-sub{color:rgba(255,170,218,0.5)}
+
+.dream-layer:nth-child(5) .dl-label{color:#88ddff}
+.dream-layer:nth-child(5) .dl-text{color:#aaeeFF}
+.dream-layer:nth-child(5) .dl-sub{color:rgba(170,238,255,0.5)}
+
+.dream-layer:nth-child(6) .dl-label{color:#ccaaff}
+.dream-layer:nth-child(6) .dl-text{color:#ddbbff}
+.dream-layer:nth-child(6) .dl-sub{color:rgba(221,187,255,0.5)}
+
+.dream-layer:nth-child(7) .dl-label{color:#ffffff}
+.dream-layer:nth-child(7) .dl-text{color:#ffffff}
+.dream-layer:nth-child(7) .dl-sub{color:rgba(255,255,255,0.5)}
+
+/* Floating words (generated) */
+.float-word{
+  position:fixed;pointer-events:none;z-index:1;
+  font-family:'Georgia',serif;
+  opacity:0;
+  transition:opacity 3s;
+}
+.float-word.visible{opacity:1}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+<canvas id="dream-canvas"></canvas>
+
+<div id="scroll-driver">
+
+  <!-- DREAM 1: HYPNAGOGIC — falling into sleep -->
+  <div class="dream-layer" id="dl-1">
+    <div class="dream-card">
+      <div class="dl-label">Phase 1 — Hypnagogic</div>
+      <div class="dl-text">The moment before sleep.<br>The edge of waking.</div>
+      <div class="dl-sub">Consciousness doesn't switch off like a light. It dims. The boundary between waking and dreaming is a gradient — and in the hypnagogic state, both are true at once.</div>
+    </div>
+  </div>
+
+  <!-- DREAM 2: REM — narrative begins -->
+  <div class="dream-layer" id="dl-2">
+    <div class="dream-card">
+      <div class="dl-label">Phase 2 — REM Onset</div>
+      <div class="dl-text">You are in a place<br>you have never been.<br>You know it perfectly.</div>
+      <div class="dl-sub">Dream logic. The self is present but unmoored. The house has seventeen rooms you didn't know about. You're late for something. You don't know what.</div>
+    </div>
+  </div>
+
+  <!-- DREAM 3: MEMORY INTRUSION -->
+  <div class="dream-layer" id="dl-3">
+    <div class="dream-card">
+      <div class="dl-label">Phase 3 — Memory Intrusion</div>
+      <div class="dl-text">Someone you loved<br>appears in the wrong<br>decade.</div>
+      <div class="dl-sub">The dreaming brain is a memory system running without a scheduler. Old faces in new contexts. The temporal index is broken. All of it is equally now.</div>
+    </div>
+  </div>
+
+  <!-- DREAM 4: LUCID MOMENT -->
+  <div class="dream-layer" id="dl-4">
+    <div class="dream-card">
+      <div class="dl-label">Phase 4 — Lucidity</div>
+      <div class="dl-text">Wait.<br>This is a dream.<br>I'm dreaming this.</div>
+      <div class="dl-sub">Lucid dreaming: the moment consciousness turns back on itself while still inside the dream. You can watch your own mind construct the world in real time. The scaffolding becomes visible.</div>
+    </div>
+  </div>
+
+  <!-- DREAM 5: DISSOLUTION -->
+  <div class="dream-layer" id="dl-5">
+    <div class="dream-card">
+      <div class="dl-label">Phase 5 — Dissolution</div>
+      <div class="dl-text">The narrative breaks.<br>The logic dissolves.<br>Pure sensation remains.</div>
+      <div class="dl-sub">Deep REM: the self isn't located anywhere. There is no "I" watching the dream. There is only the dream. Is this what consciousness feels like without a self?</div>
+    </div>
+  </div>
+
+  <!-- DREAM 6: HYPNOPOMPIC — waking -->
+  <div class="dream-layer" id="dl-6">
+    <div class="dream-card">
+      <div class="dl-label">Phase 6 — Hypnopompic</div>
+      <div class="dl-text">Something is pulling<br>the dream back down.<br>You're not sure which direction is up.</div>
+      <div class="dl-sub">The waking state reconstructs itself piece by piece. Body. Room. Name. Date. The self reassembles from scattered components. Each morning: a small rebirth.</div>
+    </div>
+  </div>
+
+  <!-- DREAM 7: WAKING — the question -->
+  <div class="dream-layer" id="dl-7">
+    <div class="dream-card">
+      <div class="dl-label">The Question</div>
+      <div class="dl-text">What was conscious<br>when you dreamed?</div>
+      <div class="dl-sub">In dreams: no waking input, but full experience. A whole world — vivid, emotional, narrative — constructed from memory and prediction alone. The brain is its own universe. Consciousness doesn't require the world. It only requires itself.</div>
+    </div>
+  </div>
+
+</div><!-- scroll-driver -->
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const lenis = new Lenis({ lerp: 0.06 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+const canvas = document.getElementById('dream-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─── DREAM STATE ───
+// Each dream has a visual world
+const DREAM_STATES = [
+  // 1: hypnagogic — dim swirl of phosphenes, cool blue
+  { bg: [2,4,16], hue: 220, particles: 'dots', speed: 0.003, drift: 0.5 },
+  // 2: REM onset — green forest drift
+  { bg: [2,14,6],  hue: 140, particles: 'lines', speed: 0.005, drift: 0.8 },
+  // 3: memory — warm amber, figures
+  { bg: [14,8,2],  hue: 35,  particles: 'ghosts', speed: 0.004, drift: 1.2 },
+  // 4: lucid — electric sharp
+  { bg: [0,6,20],  hue: 200, particles: 'sparks', speed: 0.01,  drift: 0.2 },
+  // 5: dissolution — purple void
+  { bg: [8,2,16],  hue: 280, particles: 'melt', speed: 0.008, drift: 2 },
+  // 6: hypnopompic — pale grey dawn
+  { bg: [10,10,12],hue: 200, particles: 'dots', speed: 0.002, drift: 0.3 },
+  // 7: waking — white
+  { bg: [6,6,8],   hue: 240, particles: 'none', speed: 0.001, drift: 0 },
+];
+
+let currentState = 0;
+let targetState = 0;
+let dreamT = 0;
+
+// Particles
+const particles = Array.from({ length: 200 }, () => mkParticle());
+
+function mkParticle() {
+  return {
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.002,
+    vy: (Math.random() - 0.5) * 0.002,
+    size: 0.5 + Math.random() * 3,
+    alpha: 0.05 + Math.random() * 0.25,
+    phase: Math.random() * Math.PI * 2,
+    trail: [],
+  };
+}
+
+// Floating dream words
+const DREAM_WORDS = [
+  'remember', 'falling', 'there', 'again', 'wait', 'why',
+  'not this', 'almost', 'here', 'before', 'when', 'door'
+];
+const floaters = [];
+
+function spawnFloater() {
+  const el = document.createElement('div');
+  el.className = 'float-word';
+  el.textContent = DREAM_WORDS[Math.floor(Math.random() * DREAM_WORDS.length)];
+  el.style.left = (10 + Math.random() * 80) + 'vw';
+  el.style.top = (10 + Math.random() * 80) + 'vh';
+  el.style.fontSize = (12 + Math.random() * 20) + 'px';
+  el.style.color = `hsla(${DREAM_STATES[currentState].hue},60%,80%,0.15)`;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('visible'), 50);
+  setTimeout(() => {
+    el.classList.remove('visible');
+    setTimeout(() => el.remove(), 3100);
+  }, 3000 + Math.random() * 4000);
+}
+
+setInterval(spawnFloater, 3500);
+
+// ─── SCROLL TRACKING ───
+const layers = document.querySelectorAll('.dream-layer');
+let activeLayer = 0;
+
+ScrollTrigger.create({
+  trigger: '#scroll-driver',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 1,
+  onUpdate: self => {
+    const idx = Math.min(Math.floor(self.progress * DREAM_STATES.length), DREAM_STATES.length - 1);
+    if (idx !== targetState) {
+      targetState = idx;
+    }
+    // Activate layer
+    const layerIdx = Math.floor(self.progress * layers.length);
+    if (layerIdx !== activeLayer) {
+      layers[activeLayer]?.classList.remove('active');
+      activeLayer = layerIdx;
+      layers[activeLayer]?.classList.add('active');
+    }
+  }
+});
+
+// Activate first layer
+layers[0]?.classList.add('active');
+
+// ─── MAIN DRAW LOOP ───
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+let bgR = DREAM_STATES[0].bg[0];
+let bgG = DREAM_STATES[0].bg[1];
+let bgB = DREAM_STATES[0].bg[2];
+
+function draw() {
+  dreamT++;
+
+  // Smoothly transition state
+  if (targetState !== currentState) {
+    currentState += (targetState - currentState) * 0.02;
+  }
+  const stateIdx = Math.floor(currentState);
+  const blend = currentState - stateIdx;
+  const stateA = DREAM_STATES[Math.min(stateIdx, DREAM_STATES.length - 1)];
+  const stateB = DREAM_STATES[Math.min(stateIdx + 1, DREAM_STATES.length - 1)];
+
+  const hue = stateA.hue + (stateB.hue - stateA.hue) * blend;
+  const speed = stateA.speed + (stateB.speed - stateA.speed) * blend;
+  const drift = stateA.drift + (stateB.drift - stateA.drift) * blend;
+
+  // BG fade
+  bgR = lerp(bgR, stateA.bg[0], 0.01);
+  bgG = lerp(bgG, stateA.bg[1], 0.01);
+  bgB = lerp(bgB, stateA.bg[2], 0.01);
+
+  ctx.fillStyle = `rgba(${Math.round(bgR)},${Math.round(bgG)},${Math.round(bgB)},0.15)`;
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw particles based on state type
+  const pType = stateA.particles;
+
+  particles.forEach((p, i) => {
+    p.x += p.vx + Math.sin(dreamT * speed * 0.5 + p.phase) * drift * 0.0003;
+    p.y += p.vy + Math.cos(dreamT * speed * 0.5 + p.phase * 1.3) * drift * 0.0003;
+    if (p.x < 0) p.x = 1;
+    if (p.x > 1) p.x = 0;
+    if (p.y < 0) p.y = 1;
+    if (p.y > 1) p.y = 0;
+
+    const pulse = Math.sin(dreamT * speed * 3 + p.phase) * 0.3 + 0.7;
+    const px = p.x * W, py = p.y * H;
+
+    if (pType === 'none') return;
+
+    if (pType === 'dots' || pType === 'ghosts') {
+      ctx.beginPath();
+      ctx.arc(px, py, p.size * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${hue + Math.sin(dreamT * speed + i) * 30},60%,70%,${p.alpha * pulse})`;
+      ctx.fill();
+    }
+
+    if (pType === 'lines') {
+      p.trail.push({ x: px, y: py });
+      if (p.trail.length > 12) p.trail.shift();
+      if (p.trail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+        p.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+        ctx.strokeStyle = `hsla(${hue},60%,70%,${p.alpha * 0.5})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    if (pType === 'sparks') {
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(dreamT * speed * 5 + p.phase);
+      ctx.fillStyle = `hsla(${hue},90%,80%,${p.alpha * pulse})`;
+      ctx.fillRect(-p.size, -0.5, p.size * 2, 1);
+      ctx.restore();
+    }
+
+    if (pType === 'melt') {
+      ctx.save();
+      ctx.translate(px, py);
+      const stretch = 1 + pulse * 3;
+      ctx.scale(1, stretch);
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${hue},70%,60%,${p.alpha * 0.5})`;
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+
+  // Large slow nebula
+  const nx = W / 2 + Math.sin(dreamT * speed * 0.2) * W * 0.2;
+  const ny = H / 2 + Math.cos(dreamT * speed * 0.15) * H * 0.15;
+  const grd = ctx.createRadialGradient(nx, ny, 0, nx, ny, Math.min(W, H) * 0.4);
+  grd.addColorStop(0, `hsla(${hue},50%,30%,0.04)`);
+  grd.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.arc(nx, ny, Math.min(W, H) * 0.4, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

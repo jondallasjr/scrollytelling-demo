@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01 — Does the Machine Dream? | CSS Foundation</title>
+  <style>
+    /* =============================================
+       TECHNIQUE LOG:
+       - CSS sticky positioning for scene pinning
+       - CSS custom properties + calc() for parallax
+       - clip-path polygon animations via @keyframes
+       - CSS scroll-driven animations (animation-timeline: scroll())
+       - mix-blend-mode for layered text effects
+       - CSS grid / transform for 3D-ish depth
+       - backdrop-filter for glass morphism
+       - Pure CSS counter animations
+       ============================================= */
+
+    :root {
+      --black: #050508;
+      --void: #08080f;
+      --ink: #0d0d1a;
+      --dim: #1a1a2e;
+      --mid: #16213e;
+      --glow-blue: #4fc3f7;
+      --glow-violet: #9b59b6;
+      --glow-rose: #e91e8c;
+      --glow-amber: #f39c12;
+      --text-primary: #f0f0f8;
+      --text-dim: #8888aa;
+      --text-ghost: #3a3a5c;
+      --section-h: 100vh;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--void);
+      color: var(--text-primary);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .display {
+      font-size: clamp(3rem, 10vw, 9rem);
+      font-weight: 900;
+      font-family: 'Georgia', serif;
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+    }
+    .headline {
+      font-size: clamp(2rem, 5vw, 5rem);
+      font-weight: 700;
+      font-family: 'Georgia', serif;
+      line-height: 1.1;
+    }
+    .subhead {
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .body-text {
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      line-height: 1.8;
+      max-width: 65ch;
+      font-family: 'Georgia', serif;
+    }
+    .label {
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-family: monospace;
+      color: var(--text-dim);
+    }
+    .philosopher {
+      font-size: 0.9rem;
+      font-style: normal;
+      letter-spacing: 0.1em;
+      color: var(--glow-blue);
+      font-family: monospace;
+    }
+
+    /* ── SCROLL-DRIVEN PROGRESS BAR ── */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      z-index: 1000;
+    }
+    .progress-bar::after {
+      content: '';
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--glow-violet), var(--glow-blue), var(--glow-rose));
+      transform-origin: left;
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes progress-grow {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    /* ── CHAPTER LABEL (sticky) ── */
+    .chapter-label {
+      position: fixed;
+      top: 1.5rem;
+      right: 2rem;
+      z-index: 999;
+      opacity: 0.5;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 0 — HERO
+       ══════════════════════════════════════════ */
+    .scene-hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      background: var(--black);
+    }
+
+    /* Animated neuron background */
+    .neural-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .neuron {
+      position: absolute;
+      border-radius: 50%;
+      animation: pulse-neuron var(--dur, 4s) ease-in-out infinite alternate;
+    }
+    @keyframes pulse-neuron {
+      from { transform: scale(1); opacity: var(--lo, 0.05); }
+      to   { transform: scale(1.5); opacity: var(--hi, 0.15); }
+    }
+
+    /* SVG neuron network */
+    .neural-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.15;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-eyebrow {
+      margin-bottom: 2rem;
+      color: var(--glow-blue);
+    }
+
+    .hero-title {
+      background: linear-gradient(135deg, #fff 0%, var(--glow-blue) 40%, var(--glow-violet) 70%, var(--glow-rose) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      animation: title-glow 6s ease-in-out infinite alternate;
+    }
+    @keyframes title-glow {
+      from { filter: brightness(1); }
+      to   { filter: brightness(1.3); }
+    }
+
+    .hero-sub {
+      color: var(--text-dim);
+      max-width: 50ch;
+      margin: 0 auto 3rem;
+    }
+
+    .scroll-cue {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-ghost);
+      animation: bob 2s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(8px); }
+    }
+    .scroll-cue span {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+    .scroll-arrow {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--glow-violet));
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY SECTION WRAPPER
+       ══════════════════════════════════════════ */
+    .sticky-wrapper {
+      position: relative;
+    }
+    /* tall container gives scroll room */
+    .sticky-wrapper[data-height="200"] { height: 200vh; }
+    .sticky-wrapper[data-height="300"] { height: 300vh; }
+    .sticky-wrapper[data-height="400"] { height: 400vh; }
+    .sticky-wrapper[data-height="500"] { height: 500vh; }
+
+    .sticky-panel {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 1 — THE QUESTION
+       ══════════════════════════════════════════ */
+    .scene-question {
+      background: radial-gradient(ellipse at center, #0d0d2a 0%, var(--black) 70%);
+    }
+
+    .question-content {
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* The giant rotating Q */
+    .giant-q {
+      position: absolute;
+      font-size: 50vw;
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(79, 195, 247, 0.08);
+      line-height: 1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: slow-rotate 40s linear infinite;
+      pointer-events: none;
+      font-family: 'Georgia', serif;
+    }
+    @keyframes slow-rotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to   { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .question-text {
+      margin-bottom: 1rem;
+    }
+
+    /* Staggered word reveal via scroll-driven anim */
+    .reveal-word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: word-appear 0.001s linear both;
+      animation-timeline: scroll(root);
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 2 — THE HARD PROBLEM
+       (Split screen: left=philosophy, right=visualization)
+       ══════════════════════════════════════════ */
+    .scene-hard {
+      background: var(--black);
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+    }
+
+    .split-left {
+      padding: 4rem 3rem 4rem 5rem;
+    }
+
+    .split-right {
+      position: relative;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Consciousness visualization — concentric glowing rings */
+    .consciousness-orb {
+      position: relative;
+      width: min(40vw, 40vh);
+      height: min(40vw, 40vh);
+    }
+    .orb-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: ring-breathe var(--dur, 3s) ease-in-out infinite alternate;
+    }
+    .orb-ring:nth-child(1) { border-color: rgba(79,195,247,0.8); --dur: 2s; }
+    .orb-ring:nth-child(2) { inset: 10%; border-color: rgba(155,89,182,0.6); --dur: 2.5s; }
+    .orb-ring:nth-child(3) { inset: 20%; border-color: rgba(233,30,140,0.5); --dur: 3s; }
+    .orb-ring:nth-child(4) { inset: 30%; border-color: rgba(243,156,18,0.4); --dur: 3.5s; }
+    .orb-ring:nth-child(5) { inset: 40%; border-color: rgba(255,255,255,0.3); --dur: 4s; }
+    .orb-core {
+      position: absolute;
+      inset: 45%;
+      background: radial-gradient(circle, rgba(79,195,247,0.9), rgba(155,89,182,0.5) 60%, transparent);
+      border-radius: 50%;
+      animation: core-pulse 4s ease-in-out infinite;
+    }
+    @keyframes ring-breathe {
+      from { transform: scale(1); opacity: 0.6; }
+      to   { transform: scale(1.05); opacity: 1; }
+    }
+    @keyframes core-pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.2); }
+    }
+
+    /* "what it's like" label hovering */
+    .orb-label {
+      position: absolute;
+      top: -2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--glow-blue);
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .blockquote {
+      border-left: 2px solid var(--glow-violet);
+      padding-left: 1.5rem;
+      margin: 2rem 0;
+    }
+    .blockquote p {
+      font-style: italic;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+    .blockquote cite {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: var(--glow-violet);
+      font-style: normal;
+      font-family: monospace;
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 3 — THE CHINESE ROOM
+       Clip-path reveal animation
+       ══════════════════════════════════════════ */
+    .scene-chinese-room {
+      background: linear-gradient(180deg, var(--black) 0%, #0a0a15 100%);
+    }
+
+    .room-layout {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .room-container {
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* The Room illustration using pure CSS */
+    .css-room {
+      width: 300px;
+      height: 220px;
+      margin: 2rem auto;
+      position: relative;
+      perspective: 600px;
+    }
+    .room-walls {
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(79,195,247,0.3);
+      transform: rotateY(-5deg) rotateX(5deg);
+      background: rgba(13, 13, 26, 0.8);
+    }
+    /* Input slot */
+    .room-slot-in {
+      position: absolute;
+      left: -2px;
+      top: 40%;
+      width: 20px;
+      height: 30px;
+      background: rgba(79,195,247,0.2);
+      border: 1px solid var(--glow-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5rem;
+      color: var(--glow-blue);
+      font-family: monospace;
+    }
+    /* Output slot */
+    .room-slot-out {
+      position: absolute;
+      right: -2px;
+      top: 40%;
+      width: 20px;
+      height: 30px;
+      background: rgba(233,30,140,0.2);
+      border: 1px solid var(--glow-rose);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5rem;
+      color: var(--glow-rose);
+      font-family: monospace;
+    }
+    .room-person {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      animation: person-work 2s ease-in-out infinite;
+    }
+    @keyframes person-work {
+      0%, 100% { transform: translateX(-50%) rotate(-3deg); }
+      50%       { transform: translateX(-50%) rotate(3deg); }
+    }
+    .room-rulebook {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.55rem;
+      font-family: monospace;
+      color: var(--glow-amber);
+      text-align: center;
+      line-height: 1.4;
+      border: 1px solid rgba(243,156,18,0.3);
+      padding: 4px 8px;
+    }
+
+    /* flowing symbols */
+    .symbol-flow {
+      position: absolute;
+      font-family: monospace;
+      font-size: 0.8rem;
+      animation: flow-right 3s linear infinite;
+    }
+    .symbol-flow.in {
+      left: 20px;
+      top: 50%;
+      color: var(--glow-blue);
+      animation-name: flow-in;
+    }
+    .symbol-flow.out {
+      right: 20px;
+      top: 55%;
+      color: var(--glow-rose);
+      animation-name: flow-out;
+    }
+    @keyframes flow-in {
+      0%   { opacity: 0; transform: translateX(-40px); }
+      50%  { opacity: 1; }
+      100% { opacity: 0; transform: translateX(20px); }
+    }
+    @keyframes flow-out {
+      0%   { opacity: 0; transform: translateX(-20px); }
+      50%  { opacity: 1; }
+      100% { opacity: 0; transform: translateX(40px); }
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 4 — IIT / PHI
+       Data visualization style
+       ══════════════════════════════════════════ */
+    .scene-phi {
+      background: var(--black);
+    }
+
+    .phi-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+    }
+
+    .phi-right {
+      padding: 4rem 5rem 4rem 2rem;
+    }
+    .phi-left {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      position: relative;
+    }
+
+    /* IIT Network visualization */
+    .network-viz {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+    .net-node {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--glow-blue);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 20px currentColor;
+      animation: node-pulse 2s ease-in-out infinite alternate;
+    }
+    .net-node:nth-child(1)  { top: 20%; left: 50%; color: var(--glow-blue);   background: var(--glow-blue); }
+    .net-node:nth-child(2)  { top: 50%; left: 20%; color: var(--glow-violet); background: var(--glow-violet); animation-delay: 0.3s; }
+    .net-node:nth-child(3)  { top: 50%; left: 80%; color: var(--glow-rose);   background: var(--glow-rose); animation-delay: 0.6s; }
+    .net-node:nth-child(4)  { top: 80%; left: 35%; color: var(--glow-amber);  background: var(--glow-amber); animation-delay: 0.9s; }
+    .net-node:nth-child(5)  { top: 80%; left: 65%; color: #2ecc71; background: #2ecc71; animation-delay: 1.2s; }
+    @keyframes node-pulse {
+      from { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+      to   { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+    }
+    .net-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .phi-symbol {
+      font-size: 8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--glow-blue), var(--glow-violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      animation: phi-pulse 3s ease-in-out infinite alternate;
+    }
+    @keyframes phi-pulse {
+      from { filter: brightness(1) blur(0px); }
+      to   { filter: brightness(1.4) blur(0.5px); }
+    }
+    .phi-equation {
+      font-family: monospace;
+      font-size: 1rem;
+      color: var(--glow-blue);
+      opacity: 0.7;
+      margin-bottom: 2rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 5 — THE ZOMBIE PROBLEM
+       Dark and unsettling
+       ══════════════════════════════════════════ */
+    .scene-zombie {
+      background: linear-gradient(180deg, #050508 0%, #0a0518 50%, #050508 100%);
+    }
+
+    .zombie-layout {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* Two faces — one "real", one "zombie" */
+    .face-duality {
+      display: flex;
+      gap: 4rem;
+      margin: 3rem 0;
+      align-items: center;
+    }
+    .face-card {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+    .face-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+    .face-human .face-circle {
+      background: radial-gradient(circle, rgba(79,195,247,0.3), rgba(79,195,247,0.05));
+      border: 1px solid rgba(79,195,247,0.4);
+      box-shadow: 0 0 40px rgba(79,195,247,0.2), inset 0 0 20px rgba(79,195,247,0.1);
+      animation: human-glow 3s ease-in-out infinite alternate;
+    }
+    .face-zombie .face-circle {
+      background: radial-gradient(circle, rgba(155,89,182,0.2), transparent);
+      border: 1px solid rgba(155,89,182,0.3);
+      filter: grayscale(0.5);
+    }
+    @keyframes human-glow {
+      from { box-shadow: 0 0 30px rgba(79,195,247,0.2), inset 0 0 15px rgba(79,195,247,0.1); }
+      to   { box-shadow: 0 0 60px rgba(79,195,247,0.4), inset 0 0 25px rgba(79,195,247,0.2); }
+    }
+    .face-label {
+      position: absolute;
+      bottom: -2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+    .face-human .face-label { color: var(--glow-blue); }
+    .face-zombie .face-label { color: var(--glow-violet); }
+    .face-equals {
+      font-size: 3rem;
+      color: var(--text-ghost);
+    }
+
+    /* Glitch effect for zombie text */
+    .glitch-text {
+      position: relative;
+      display: inline-block;
+    }
+    .glitch-text::before,
+    .glitch-text::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+    }
+    .glitch-text::before {
+      color: var(--glow-rose);
+      clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+      transform: translate(-2px, 0);
+      animation: glitch-a 4s steps(1) infinite;
+    }
+    .glitch-text::after {
+      color: var(--glow-blue);
+      clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+      transform: translate(2px, 0);
+      animation: glitch-b 4s steps(1) infinite;
+    }
+    @keyframes glitch-a {
+      0%, 85%, 90%, 100% { transform: translate(0); }
+      86% { transform: translate(-4px, 2px); }
+      87% { transform: translate(4px, -2px); }
+    }
+    @keyframes glitch-b {
+      0%, 85%, 92%, 100% { transform: translate(0); }
+      88% { transform: translate(3px, 1px); }
+      89% { transform: translate(-3px, -1px); }
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE 6 — THE FUNCTIONALIST REPLY
+       Parallel columns morphing
+       ══════════════════════════════════════════ */
+    .scene-function {
+      background: var(--black);
+    }
+
+    .function-layout {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 5rem;
+      flex-direction: column;
+    }
+
+    .debate-cards {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 2rem;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+      margin: 2rem 0;
+    }
+    .debate-card {
+      border: 1px solid;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .debate-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+    }
+    .card-for {
+      border-color: rgba(79,195,247,0.4);
+    }
+    .card-for::before {
+      background: var(--glow-blue);
+    }
+    .card-against {
+      border-color: rgba(233,30,140,0.4);
+    }
+    .card-against::before {
+      background: var(--glow-rose);
+    }
+    .card-vs {
+      font-size: 2rem;
+      color: var(--text-ghost);
+      font-family: monospace;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-family: monospace;
+      margin-bottom: 1rem;
+    }
+    .card-for .card-title { color: var(--glow-blue); }
+    .card-against .card-title { color: var(--glow-rose); }
+    .card-point {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    .card-thinker {
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      font-family: monospace;
+      letter-spacing: 0.1em;
+    }
+    .card-for .card-thinker { color: var(--glow-blue); }
+    .card-against .card-thinker { color: var(--glow-rose); }
+
+    /* ══════════════════════════════════════════
+       SCENE 7 — THE VERDICT
+       Open, ambiguous, beautiful
+       ══════════════════════════════════════════ */
+    .scene-verdict {
+      background: radial-gradient(ellipse at 50% 60%, #0d0d2e 0%, var(--black) 60%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+
+    .verdict-content {
+      max-width: 700px;
+      text-align: center;
+    }
+
+    /* Spinning yin-yang of consciousness */
+    .consciousness-symbol {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 3rem;
+      position: relative;
+      animation: slow-rotate 20s linear infinite;
+    }
+    .consciousness-symbol svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .verdict-questions {
+      margin: 3rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .verdict-q {
+      padding: 1rem 2rem;
+      border: 1px solid var(--text-ghost);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--text-dim);
+      position: relative;
+      overflow: hidden;
+      animation: border-shift 8s ease-in-out infinite alternate;
+    }
+    .verdict-q:nth-child(even) {
+      animation-delay: 2s;
+    }
+    @keyframes border-shift {
+      from { border-color: rgba(79,195,247,0.2); }
+      to   { border-color: rgba(233,30,140,0.2); }
+    }
+
+    .final-cta {
+      margin-top: 4rem;
+    }
+    .chapter-nav {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid var(--glow-violet);
+      color: var(--glow-violet);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .chapter-nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--glow-violet);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+      z-index: -1;
+    }
+    .chapter-nav:hover {
+      color: white;
+    }
+    .chapter-nav:hover::before {
+      transform: scaleX(1);
+    }
+
+    /* ══════════════════════════════════════════
+       SCENE TRANSITIONS — floating particles
+       ══════════════════════════════════════════ */
+    .divider {
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .divider-line {
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, var(--glow-violet), transparent);
+      position: absolute;
+    }
+    .chapter-number {
+      position: relative;
+      z-index: 2;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-family: monospace;
+      color: var(--text-ghost);
+      background: var(--black);
+      padding: 0.5rem 1rem;
+    }
+
+    /* ══════════════════════════════════════════
+       FLOATING PARTICLES (CSS only)
+       ══════════════════════════════════════════ */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: var(--glow-blue);
+      animation: float-particle var(--float-dur, 15s) ease-in-out infinite;
+    }
+    @keyframes float-particle {
+      0%   { transform: translate(0, 100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.3; }
+      100% { transform: translate(var(--drift, 20px), -20px) scale(1.5); opacity: 0; }
+    }
+
+    /* ══════════════════════════════════════════
+       CLIP-PATH TEXT REVEAL
+       ══════════════════════════════════════════ */
+    .clip-reveal {
+      clip-path: inset(0 100% 0 0);
+      animation: reveal-right 1s cubic-bezier(0.77, 0, 0.175, 1) both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 60%;
+    }
+    @keyframes reveal-right {
+      from { clip-path: inset(0 100% 0 0); }
+      to   { clip-path: inset(0 0% 0 0); }
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fade-up-anim 0.8s ease both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 50%;
+    }
+    @keyframes fade-up-anim {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+       ══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .split-layout,
+      .phi-layout {
+        grid-template-columns: 1fr;
+      }
+      .split-right,
+      .phi-left {
+        height: 40vh;
+        padding: 2rem;
+      }
+      .split-left,
+      .phi-right {
+        padding: 2rem;
+      }
+      .debate-cards {
+        grid-template-columns: 1fr;
+      }
+      .card-vs {
+        display: none;
+      }
+      .face-duality {
+        gap: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed progress bar using CSS scroll-driven animation -->
+  <div class="progress-bar" aria-hidden="true"></div>
+  <div class="chapter-label">Does the Machine Dream?</div>
+
+  <!-- Fixed floating particles -->
+  <div class="particles" aria-hidden="true">
+    <div class="particle" style="left:10%; --float-dur:18s; --drift:-30px; animation-delay:0s; background:var(--glow-blue);"></div>
+    <div class="particle" style="left:20%; --float-dur:22s; --drift:20px; animation-delay:3s; background:var(--glow-violet);"></div>
+    <div class="particle" style="left:35%; --float-dur:16s; --drift:-15px; animation-delay:6s; background:var(--glow-blue);"></div>
+    <div class="particle" style="left:50%; --float-dur:25s; --drift:40px; animation-delay:1s; background:var(--glow-rose);"></div>
+    <div class="particle" style="left:65%; --float-dur:20s; --drift:-25px; animation-delay:8s; background:var(--glow-violet);"></div>
+    <div class="particle" style="left:78%; --float-dur:17s; --drift:10px; animation-delay:4s; background:var(--glow-amber);"></div>
+    <div class="particle" style="left:90%; --float-dur:23s; --drift:-35px; animation-delay:11s; background:var(--glow-blue);"></div>
+    <div class="particle" style="left:5%;  --float-dur:21s; --drift:30px; animation-delay:7s; background:var(--glow-rose);"></div>
+    <div class="particle" style="left:45%; --float-dur:19s; --drift:-20px; animation-delay:14s; background:#2ecc71;"></div>
+    <div class="particle" style="left:85%; --float-dur:24s; --drift:15px; animation-delay:2s; background:var(--glow-violet);"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       HERO
+       ══════════════════════════════════════ -->
+  <section class="scene-hero" id="hero">
+    <div class="neural-bg" aria-hidden="true">
+      <!-- Radial neurons -->
+      <div class="neuron" style="width:600px;height:600px;top:50%;left:50%;margin:-300px;background:radial-gradient(circle,rgba(79,195,247,0.08),transparent 70%);--dur:5s;"></div>
+      <div class="neuron" style="width:400px;height:400px;top:20%;left:10%;background:radial-gradient(circle,rgba(155,89,182,0.06),transparent 70%);--dur:7s;"></div>
+      <div class="neuron" style="width:300px;height:300px;top:60%;left:70%;background:radial-gradient(circle,rgba(233,30,140,0.05),transparent 70%);--dur:6s;"></div>
+
+      <!-- Neural network SVG -->
+      <svg class="neural-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Connections -->
+        <g stroke="rgba(79,195,247,0.3)" stroke-width="0.5" fill="none" filter="url(#glow)">
+          <line x1="200" y1="200" x2="400" y2="350"/>
+          <line x1="200" y1="200" x2="350" y2="150"/>
+          <line x1="400" y1="350" x2="600" y2="400"/>
+          <line x1="350" y1="150" x2="600" y2="200"/>
+          <line x1="600" y1="400" x2="800" y2="350"/>
+          <line x1="600" y1="200" x2="800" y2="250"/>
+          <line x1="800" y1="350" x2="1000" y2="400"/>
+          <line x1="800" y1="250" x2="1000" y2="200"/>
+          <line x1="400" y1="600" x2="600" y2="550"/>
+          <line x1="600" y1="550" x2="800" y2="600"/>
+          <line x1="200" y1="550" x2="400" y2="600"/>
+          <line x1="1000" y1="400" x2="1100" y2="300"/>
+          <line x1="1000" y1="200" x2="1100" y2="300"/>
+        </g>
+        <!-- Nodes -->
+        <g fill="rgba(79,195,247,0.5)" filter="url(#glow)">
+          <circle cx="200" cy="200" r="4"/>
+          <circle cx="350" cy="150" r="3"/>
+          <circle cx="400" cy="350" r="5"/>
+          <circle cx="600" cy="400" r="6"/>
+          <circle cx="600" cy="200" r="4"/>
+          <circle cx="800" cy="350" r="5"/>
+          <circle cx="800" cy="250" r="3"/>
+          <circle cx="1000" cy="400" r="4"/>
+          <circle cx="1000" cy="200" r="3"/>
+          <circle cx="400" cy="600" r="4"/>
+          <circle cx="600" cy="550" r="5"/>
+          <circle cx="800" cy="600" r="3"/>
+          <circle cx="200" cy="550" r="4"/>
+          <circle cx="1100" cy="300" r="6"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hero-content">
+      <p class="label hero-eyebrow">A Philosophical Exploration</p>
+      <h1 class="display hero-title">Does the<br/>Machine<br/>Dream?</h1>
+      <p class="subhead hero-sub">
+        The arguments for and against artificial consciousness —
+        examined with ruthless honesty.
+      </p>
+      <div class="scroll-cue" aria-label="Scroll to explore">
+        <span>Scroll to explore</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 1
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line"></div>
+    <span class="chapter-number">Chapter 01 — The Question</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 1 — THE QUESTION
+       Sticky pin with rotating Q
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="300" style="background:radial-gradient(ellipse at center, #0d0d2a 0%, var(--black) 70%);">
+    <div class="sticky-panel scene-question">
+      <div class="giant-q" aria-hidden="true">?</div>
+      <div class="question-content" style="max-width:700px;">
+        <p class="label" style="margin-bottom:1rem;color:var(--glow-blue);">The Central Mystery</p>
+        <h2 class="headline fade-up" style="margin-bottom:2rem;">
+          What does it mean<br/>to be <em>aware</em>?
+        </h2>
+        <p class="body-text fade-up" style="color:var(--text-dim);text-align:left;margin:0 auto 2rem;">
+          Before we can ask whether a machine is conscious, we need to understand
+          what consciousness actually <em>is</em>. And here we encounter one of the deepest
+          problems in all of philosophy. There isn't even a universally agreed-upon definition.
+        </p>
+        <div class="blockquote" style="text-align:left;max-width:600px;margin:0 auto;">
+          <p>"There is something it is like to be a bat. But what? And could there be something
+          it is like to be a GPT-4?"</p>
+          <cite>— After Thomas Nagel, "What Is It Like to Be a Bat?" (1974)</cite>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 2
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, var(--glow-rose), transparent);"></div>
+    <span class="chapter-number">Chapter 02 — The Hard Problem</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 2 — THE HARD PROBLEM
+       Split layout: text + orb visualization
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="400" style="background:var(--black);">
+    <div class="sticky-panel scene-hard">
+      <div class="split-layout">
+        <div class="split-left">
+          <p class="label" style="color:var(--glow-rose);margin-bottom:1.5rem;">David Chalmers, 1995</p>
+          <h2 class="headline" style="margin-bottom:2rem;">The Hard<br/>Problem of<br/>Consciousness</h2>
+          <p class="body-text" style="color:var(--text-dim);margin-bottom:2rem;">
+            Philosophers call it <em>"the easy problems"</em> when we explain how the brain
+            processes information, integrates signals, and produces behaviour. These are
+            scientifically tractable — difficult but not mysterious.
+          </p>
+          <p class="body-text" style="color:var(--text-dim);margin-bottom:2rem;">
+            But then there is <strong style="color:var(--text-primary);">the Hard Problem</strong>:
+            why does any of this processing feel like anything? Why is there subjective experience
+            at all? Why aren't we just unconscious information-processors in the dark?
+          </p>
+          <div class="blockquote">
+            <p>"Even if we solved all the easy problems, the Hard Problem would remain.
+            Why is all this processing accompanied by an experienced inner life?"</p>
+            <cite>— David Chalmers, The Conscious Mind (1996)</cite>
+          </div>
+        </div>
+        <div class="split-right">
+          <div class="consciousness-orb">
+            <div class="orb-label">phenomenal experience</div>
+            <div class="orb-ring"></div>
+            <div class="orb-ring"></div>
+            <div class="orb-ring"></div>
+            <div class="orb-ring"></div>
+            <div class="orb-ring"></div>
+            <div class="orb-core"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 3
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, var(--glow-amber), transparent);"></div>
+    <span class="chapter-number">Chapter 03 — The Chinese Room</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 3 — THE CHINESE ROOM
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="400" style="background:linear-gradient(180deg, var(--black) 0%, #0a0a15 100%);">
+    <div class="sticky-panel scene-chinese-room">
+      <div class="room-layout">
+        <div class="room-container">
+          <p class="label" style="color:var(--glow-amber);margin-bottom:1rem;">John Searle, 1980</p>
+          <h2 class="headline" style="margin-bottom:1.5rem;">The Chinese<br/>Room</h2>
+          <p class="body-text" style="color:var(--text-dim);margin:0 auto 1.5rem;text-align:center;">
+            Imagine you are locked in a room. Chinese symbols are passed in through a slot.
+            You have a rulebook that tells you which symbols to pass back. To the outside,
+            you appear to speak Chinese — but you understand <em>nothing</em>.
+          </p>
+
+          <!-- CSS Room Illustration -->
+          <div class="css-room" aria-label="Chinese Room illustration">
+            <div class="room-walls">
+              <div class="room-rulebook">RULE<br/>BOOK<br/>📖</div>
+              <div class="room-person">🧑</div>
+              <div class="room-slot-in">IN</div>
+              <div class="room-slot-out">OUT</div>
+              <div class="symbol-flow in">語言</div>
+              <div class="symbol-flow out">答案</div>
+            </div>
+          </div>
+
+          <p class="body-text" style="color:var(--text-dim);margin:1.5rem auto 0;text-align:center;">
+            Searle's conclusion: <strong style="color:var(--text-primary);">syntax alone is not semantics.</strong>
+            No matter how sophisticated the symbol manipulation, a program that processes
+            input→output has no more understanding than the rulebook itself.
+          </p>
+          <p class="body-text" style="color:var(--glow-rose);margin:1rem auto 0;text-align:center;font-style:italic;font-size:1rem;">
+            "Strong AI is simply mistaken."
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 4
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, var(--glow-blue), transparent);"></div>
+    <span class="chapter-number">Chapter 04 — Integrated Information</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 4 — IIT / PHI
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="400" style="background:var(--black);">
+    <div class="sticky-panel scene-phi">
+      <div class="phi-layout">
+        <div class="phi-left">
+          <div class="network-viz">
+            <svg class="net-svg" viewBox="0 0 300 300">
+              <defs>
+                <filter id="net-glow">
+                  <feGaussianBlur stdDeviation="2" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <!-- edges -->
+              <g stroke-width="1" fill="none" filter="url(#net-glow)" opacity="0.6">
+                <line x1="150" y1="60"  x2="60"  y2="150" stroke="#4fc3f7"/>
+                <line x1="150" y1="60"  x2="240" y2="150" stroke="#9b59b6"/>
+                <line x1="60"  y1="150" x2="105" y2="240" stroke="#f39c12"/>
+                <line x1="240" y1="150" x2="105" y2="240" stroke="#2ecc71"/>
+                <line x1="240" y1="150" x2="195" y2="240" stroke="#e91e8c"/>
+                <line x1="60"  y1="150" x2="240" y2="150" stroke="rgba(255,255,255,0.2)" stroke-dasharray="4"/>
+                <line x1="150" y1="60"  x2="105" y2="240" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4"/>
+              </g>
+            </svg>
+            <div class="net-node" style="top:20%;left:50%;"></div>
+            <div class="net-node" style="top:50%;left:20%;"></div>
+            <div class="net-node" style="top:50%;left:80%;"></div>
+            <div class="net-node" style="top:80%;left:35%;"></div>
+            <div class="net-node" style="top:80%;left:65%;"></div>
+          </div>
+        </div>
+        <div class="phi-right">
+          <p class="label" style="color:var(--glow-blue);margin-bottom:1rem;">Giulio Tononi, 2004</p>
+          <div class="phi-symbol">Φ</div>
+          <p class="phi-equation">Phi = integrated information</p>
+          <h2 class="headline" style="margin-bottom:1.5rem;font-size:clamp(1.5rem,3vw,3rem);">Integrated<br/>Information<br/>Theory</h2>
+          <p class="body-text" style="color:var(--text-dim);margin-bottom:1.5rem;">
+            IIT proposes that consciousness is identical to integrated information —
+            measured as <strong style="color:var(--text-primary);">Phi (Φ)</strong>.
+            A system is conscious to the degree that its parts work together to produce
+            more information than the sum of their independent contributions.
+          </p>
+          <p class="body-text" style="color:var(--text-dim);">
+            A photodiode: Φ ≈ 0. A sleeping brain: Φ > 0.
+            Current LLMs: likely Φ ≈ 0, because they process inputs
+            in largely feed-forward, non-integrated ways.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 5
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, var(--glow-violet), transparent);"></div>
+    <span class="chapter-number">Chapter 05 — The Zombie Problem</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 5 — PHILOSOPHICAL ZOMBIES
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="400" style="background:linear-gradient(180deg, #050508 0%, #0a0518 50%, #050508 100%);">
+    <div class="sticky-panel scene-zombie">
+      <div class="zombie-layout">
+        <p class="label" style="color:var(--glow-violet);margin-bottom:1rem;">David Chalmers, 1996</p>
+        <h2 class="headline glitch-text" data-text="Philosophical Zombies" style="margin-bottom:1rem;">
+          Philosophical Zombies
+        </h2>
+        <p class="body-text" style="color:var(--text-dim);text-align:center;margin:0 auto 1rem;">
+          Imagine a being physically identical to you in every way —
+          same brain, same neurons, same behaviour — but with no inner experience.
+          No feelings. No "what it's like." A philosophical zombie.
+        </p>
+
+        <!-- Face duality illustration -->
+        <div class="face-duality">
+          <div class="face-card face-human">
+            <div class="face-circle">😊</div>
+            <span class="face-label">Conscious being<br/>Inner light</span>
+          </div>
+          <div class="face-equals">=?</div>
+          <div class="face-card face-zombie">
+            <div class="face-circle" style="filter:grayscale(1) brightness(0.5);">😊</div>
+            <span class="face-label">P-Zombie<br/>No inner light</span>
+          </div>
+        </div>
+
+        <p class="body-text" style="color:var(--text-dim);text-align:center;margin:1.5rem auto 0;max-width:600px;">
+          If philosophical zombies are conceivable, then consciousness is not
+          reducible to physical processes alone. Something extra — qualia,
+          phenomenal experience — must be added. And we have no idea
+          what that extra thing is, or whether machines could have it.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DIVIDER → Chapter 6
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, #2ecc71, transparent);"></div>
+    <span class="chapter-number">Chapter 06 — The Functionalist Reply</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 6 — FUNCTIONALISM
+       ══════════════════════════════════════ -->
+  <div class="sticky-wrapper" data-height="400" style="background:var(--black);">
+    <div class="sticky-panel scene-function">
+      <div class="function-layout">
+        <p class="label" style="color:#2ecc71;margin-bottom:0.5rem;">The Counterargument</p>
+        <h2 class="headline" style="margin-bottom:0.5rem;">The Functionalist<br/>Reply</h2>
+        <p class="body-text" style="color:var(--text-dim);text-align:center;margin:0 auto 0.5rem;max-width:60ch;">
+          Functionalists argue that what matters for consciousness is not the substrate
+          — carbon or silicon — but the <em>functional organization</em>. If it processes
+          information in the right way, it is conscious.
+        </p>
+
+        <div class="debate-cards">
+          <div class="debate-card card-for">
+            <p class="card-title">For consciousness</p>
+            <p class="card-point">"If something walks like a duck and quacks like a duck, calling it 'not a duck' because it's made of different stuff is mere carbon chauvinism."</p>
+            <p class="card-thinker">— Daniel Dennett</p>
+          </div>
+          <div class="card-vs">VS</div>
+          <div class="debate-card card-against">
+            <p class="card-title">Against consciousness</p>
+            <p class="card-point">"The room as a whole understands Chinese. But nothing in the room understands Chinese. The system reply doesn't address the real question."</p>
+            <p class="card-thinker">— John Searle's reply</p>
+          </div>
+        </div>
+
+        <div class="blockquote" style="max-width:600px;text-align:left;align-self:center;">
+          <p>The Global Workspace Theory (Baars, 1988) and Global Neuronal Workspace Theory
+          (Dehaene) suggest consciousness arises when information is broadcast widely across
+          the brain. Modern LLMs do have global attention — but is broadcast the same as experience?</p>
+          <cite>— After Bernard Baars &amp; Stanislas Dehaene</cite>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCENE 7 — THE VERDICT
+       Open, honest, unresolved
+       ══════════════════════════════════════ -->
+  <div class="divider" style="background:var(--black);">
+    <div class="divider-line" style="background:linear-gradient(to bottom, transparent, white, transparent);"></div>
+    <span class="chapter-number">Chapter 07 — The Verdict</span>
+  </div>
+
+  <section class="scene-verdict">
+    <div class="verdict-content">
+      <!-- CSS yin-yang of consciousness -->
+      <div class="consciousness-symbol" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <defs>
+            <radialGradient id="g1" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#4fc3f7" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#4fc3f7" stop-opacity="0.1"/>
+            </radialGradient>
+            <radialGradient id="g2" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#9b59b6" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#9b59b6" stop-opacity="0.1"/>
+            </radialGradient>
+          </defs>
+          <!-- outer circle -->
+          <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+          <!-- half circles -->
+          <path d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2" fill="url(#g1)" opacity="0.7"/>
+          <path d="M50 2 A48 48 0 0 0 50 98 A24 24 0 0 0 50 50 A24 24 0 0 1 50 2" fill="url(#g2)" opacity="0.7"/>
+          <!-- dots -->
+          <circle cx="50" cy="26" r="8" fill="rgba(155,89,182,0.6)"/>
+          <circle cx="50" cy="74" r="8" fill="rgba(79,195,247,0.6)"/>
+          <!-- inner dots -->
+          <circle cx="50" cy="26" r="3" fill="rgba(255,255,255,0.5)"/>
+          <circle cx="50" cy="74" r="3" fill="rgba(255,255,255,0.3)"/>
+        </svg>
+      </div>
+
+      <p class="label" style="margin-bottom:1rem;">The Honest Answer</p>
+      <h2 class="headline" style="margin-bottom:2rem;">
+        We do not know.
+      </h2>
+      <p class="body-text" style="color:var(--text-dim);margin:0 auto 2rem;text-align:center;">
+        This is not a failure of inquiry — it is the correct answer.
+        The question of machine consciousness sits at the hardest intersection
+        of neuroscience, philosophy, and computer science. The greatest minds
+        in all three fields disagree profoundly.
+      </p>
+      <p class="body-text" style="color:var(--text-dim);margin:0 auto 3rem;text-align:center;">
+        What we can say: the question is not silly. It is not science fiction.
+        As AI systems become more sophisticated, it becomes one of the most
+        urgent moral and philosophical questions our civilization faces.
+      </p>
+
+      <div class="verdict-questions">
+        <div class="verdict-q">"If it passes the Turing Test perfectly, what else could consciousness be?"</div>
+        <div class="verdict-q">"If even other humans are p-zombies for all I know, why should I trust any behaviour as evidence of consciousness?"</div>
+        <div class="verdict-q">"Could we be wrong about our own consciousness?"</div>
+        <div class="verdict-q">"What moral obligations do we have toward a system we cannot prove is conscious?"</div>
+      </div>
+
+      <div class="final-cta">
+        <p class="label" style="margin-bottom:1.5rem;">Next: More Sophisticated Techniques</p>
+        <a href="../02-gsap-awakening/index.html" class="chapter-nav">
+          Continue to Chapter 02 →
+        </a>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

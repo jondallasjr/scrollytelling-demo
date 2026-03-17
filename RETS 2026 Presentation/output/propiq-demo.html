@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PropIQ — AI Real Estate Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #4e9ef1;
+  --green: #3fb950;
+  --amber: #f0a500;
+  --red: #f85149;
+  --purple: #bc8cff;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ─── SIDEBAR ─── */
+#sidebar {
+  width: 210px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: opacity 0.3s;
+}
+#sidebar.hidden { opacity: 0.15; pointer-events: none; }
+
+.logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-row { display: flex; align-items: center; gap: 9px; }
+.logo-icon {
+  width: 30px; height: 30px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px; font-weight: 900; color: #fff;
+}
+.logo-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
+.logo-name span { color: var(--accent); }
+.logo-tag { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.nav-section { padding: 10px 8px; flex: 1; }
+.nav-group-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); padding: 6px 8px 4px; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 6px;
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 1px; cursor: default;
+  transition: all 0.2s;
+}
+.nav-item .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); flex-shrink: 0;
+}
+.nav-item.active { background: rgba(78,158,241,0.12); color: var(--accent); }
+.nav-item.active .dot { background: var(--accent); }
+.nav-item.done { color: var(--muted); }
+.nav-item.done .dot { background: var(--green); }
+.nav-item.locked { opacity: 0.4; }
+
+.sidebar-user {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 9px;
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.user-name { font-size: 12px; font-weight: 600; }
+.user-plan { font-size: 10px; color: var(--accent); }
+
+/* ─── MAIN ─── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+#topbar {
+  height: 50px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 24px; flex-shrink: 0;
+}
+.breadcrumb { font-size: 12px; color: var(--muted); }
+.breadcrumb strong { color: var(--text); font-weight: 600; }
+.topbar-right { display: flex; gap: 8px; align-items: center; }
+.badge {
+  font-size: 10px; font-weight: 600;
+  padding: 3px 8px; border-radius: 20px;
+}
+.badge-blue { background: rgba(78,158,241,0.15); color: var(--accent); border: 1px solid rgba(78,158,241,0.3); }
+.badge-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+.badge-amber { background: rgba(240,165,0,0.15); color: var(--amber); border: 1px solid rgba(240,165,0,0.3); }
+
+/* ─── SCREENS ─── */
+#screens { flex: 1; overflow: hidden; position: relative; }
+
+.screen {
+  position: absolute; inset: 0;
+  padding: 26px 28px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+  overflow-y: auto;
+}
+.screen.active { opacity: 1; pointer-events: all; }
+
+/* ─── TYPOGRAPHY ─── */
+h1.page-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px; font-weight: 800;
+  margin-bottom: 4px; letter-spacing: -0.3px;
+}
+.page-sub { font-size: 12px; color: var(--muted); margin-bottom: 22px; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px;
+}
+.card + .card, .card + .grid { margin-top: 12px; }
+.card-title {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--muted); margin-bottom: 14px;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+/* ─── FORM ─── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.field label { display: block; font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; font-size: 12px; color: var(--text);
+  font-family: 'Inter', sans-serif; outline: none;
+}
+
+/* ─── BUTTON ─── */
+.btn {
+  padding: 8px 18px; border-radius: 6px;
+  font-size: 13px; font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-green { background: var(--green); color: white; }
+.btn-ghost { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.btn-lg { padding: 12px 28px; font-size: 15px; border-radius: 8px; font-family: 'Montserrat', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* ─── TOGGLE ROWS ─── */
+.toggle-list { }
+.toggle-row {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-info { flex: 1; padding-right: 16px; }
+.toggle-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.toggle-desc { font-size: 11px; color: var(--muted); }
+.toggle-switch {
+  width: 36px; height: 20px;
+  background: var(--green); border-radius: 10px;
+  position: relative; flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px; background: white;
+  border-radius: 50%; top: 3px; right: 3px;
+}
+
+/* ─── CHECKBOX ROWS ─── */
+.check-row {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+}
+.check-row:last-child { border-bottom: none; }
+.check-left { display: flex; gap: 10px; align-items: flex-start; }
+.check-box {
+  width: 16px; height: 16px; border-radius: 4px;
+  background: var(--accent); flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: white;
+}
+.check-box.empty { background: var(--surface2); border: 1px solid var(--border); }
+.check-name { font-size: 13px; font-weight: 500; }
+.check-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.check-count { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-left: 8px; margin-top: 3px; }
+
+/* ─── SCAN / PROGRESS ─── */
+.scan-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface2); border-radius: 6px;
+  margin-bottom: 6px;
+}
+.scan-name { font-size: 13px; font-weight: 500; }
+.scan-sub { font-size: 11px; color: var(--muted); }
+.scan-status {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px;
+}
+.status-done { background: rgba(63,185,80,0.15); color: var(--green); }
+.status-scraping { background: rgba(78,158,241,0.15); color: var(--accent); }
+.status-queued { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
+/* ─── INTEL TABLE ─── */
+.intel-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.intel-table th {
+  text-align: left; padding: 8px 10px;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+}
+.intel-table td {
+  padding: 9px 10px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.intel-table tr:last-child td { border-bottom: none; }
+.intel-table .tag {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 3px; margin-right: 3px; margin-top: 2px;
+}
+
+/* ─── BRAND COMPARE ─── */
+.brand-compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; }
+.brand-panel {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px; text-align: center;
+}
+.brand-panel.theirs { border-color: var(--border); }
+.brand-panel.mine { border-color: rgba(78,158,241,0.4); background: rgba(78,158,241,0.05); }
+.brand-compare-arrow {
+  font-size: 20px; color: var(--muted); text-align: center;
+}
+.mock-logo {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px;
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.mock-logo.a { background: #1a2f4a; color: #4a8fd4; border: 1px solid #2a4a6a; }
+.mock-logo.b { background: #1a2a1a; color: #4abd6a; border: 1px solid #2a4a2a; }
+.color-chips { display: flex; gap: 4px; justify-content: center; margin-top: 8px; }
+.chip { width: 20px; height: 20px; border-radius: 4px; }
+.brand-stat { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ─── IMPORT PANEL ─── */
+.import-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: var(--surface2);
+  border-radius: 6px; margin-bottom: 6px;
+  border-left: 3px solid transparent;
+}
+.import-row.selected { border-left-color: var(--accent); }
+.import-left { display: flex; align-items: center; gap: 10px; }
+.import-check {
+  width: 16px; height: 16px; border-radius: 4px;
+  background: var(--accent); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 9px; color: white; flex-shrink: 0;
+}
+.import-name { font-size: 12px; font-weight: 600; }
+.import-count { font-size: 11px; color: var(--muted); }
+.import-right { font-size: 11px; color: var(--green); font-weight: 600; }
+
+/* ─── BEFORE / AFTER ─── */
+.ba-container {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  height: 220px;
+}
+.ba-panel {
+  border-radius: 8px; overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+}
+/* CSS "house" illustrations */
+.house-before {
+  background: linear-gradient(180deg, #4a5568 0%, #2d3748 60%, #4a3728 100%);
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.house-after {
+  background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 40%, #22c55e 60%, #16a34a 100%);
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.house-svg { width: 120px; }
+.ba-label {
+  position: absolute; top: 8px; left: 8px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 3px 8px; border-radius: 4px;
+}
+.ba-before-label { background: rgba(0,0,0,0.6); color: var(--muted); }
+.ba-after-label { background: var(--green); color: white; }
+.ba-note {
+  position: absolute; bottom: 8px; right: 8px;
+  font-size: 10px; background: rgba(0,0,0,0.7); padding: 2px 7px; border-radius: 4px;
+}
+.powerline { position: absolute; top: 20px; left: 0; right: 0; }
+
+/* ─── STAGING COMPARISON ─── */
+.compare-table { width: 100%; border-collapse: collapse; }
+.compare-table th {
+  padding: 10px 14px; text-align: center;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; border-bottom: 1px solid var(--border);
+}
+.compare-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.compare-table td:not(:first-child) { text-align: center; }
+.compare-table .row-label { color: var(--muted); font-size: 11px; }
+.col-traditional th { color: var(--muted); }
+.col-ai th { color: var(--accent); }
+.winner { color: var(--green); font-weight: 600; }
+.loser { color: var(--muted); }
+.q-row td { background: rgba(240,165,0,0.06); }
+.q-label { font-weight: 600; color: var(--amber); }
+
+/* ─── SLIDERS ─── */
+.slider-group { margin-bottom: 14px; }
+.slider-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+.slider-label { color: var(--muted); font-weight: 500; }
+.slider-val { font-weight: 700; }
+.slider-track { height: 4px; background: var(--surface2); border-radius: 2px; border: 1px solid var(--border); }
+.slider-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+/* ─── MAP ─── */
+.map-box {
+  height: 140px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  position: relative; overflow: hidden; margin-bottom: 14px;
+}
+.map-grid-lines {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(78,158,241,0.08) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(78,158,241,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.map-zone {
+  position: absolute; border-radius: 4px;
+  background: rgba(78,158,241,0.2); border: 1px solid rgba(78,158,241,0.4);
+}
+.map-zone-label {
+  position: absolute; font-size: 9px; font-weight: 600;
+  color: var(--accent); background: rgba(13,17,23,0.85);
+  padding: 1px 5px; border-radius: 3px;
+}
+.map-note { font-size: 10px; color: var(--muted); font-style: italic; margin-top: 4px; }
+
+/* ─── EMAIL ─── */
+.email-wrap {
+  background: #ffffff; border-radius: 8px; overflow: hidden;
+  color: #1a1a1a;
+}
+.email-header-bar { background: #f5f5f5; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; }
+.email-field { font-size: 11px; color: #666; margin-bottom: 3px; }
+.email-field strong { color: #333; }
+.email-body { padding: 18px 20px; font-size: 12px; line-height: 1.75; color: #333; }
+.email-body p { margin-bottom: 10px; }
+.email-cta { display: flex; gap: 8px; margin-top: 16px; }
+.btn-email-cta {
+  padding: 8px 16px; border-radius: 4px; font-size: 12px;
+  font-weight: 600; font-family: 'Inter', sans-serif; cursor: default;
+}
+.btn-email-main { background: #1d4ed8; color: white; }
+.btn-email-sec { background: #f3f4f6; color: #374151; }
+.email-footer-bar {
+  padding: 8px 16px; font-size: 9px; color: #aaa;
+  border-top: 1px solid #e0e0e0; background: #fafafa;
+}
+
+/* ─── LAUNCH ─── */
+.launch-wrap { max-width: 500px; margin: 0 auto; }
+.launch-stat {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+}
+.launch-stat:last-of-type { border-bottom: none; }
+.ls-label { font-size: 12px; color: var(--muted); }
+.ls-value { font-size: 15px; font-weight: 700; }
+.fine-print { font-size: 9px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+
+/* ─── RESULTS ─── */
+.live-dot {
+  display: inline-block; width: 8px; height: 8px;
+  background: var(--green); border-radius: 50%;
+  animation: blink 1.4s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.result-bar { margin-bottom: 12px; }
+.result-bar-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+.bar-track { height: 6px; background: var(--surface2); border-radius: 3px; border: 1px solid var(--border); }
+.bar-fill { height: 100%; border-radius: 3px; }
+
+/* ─── STAT CARD ─── */
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; text-align: center;
+}
+.stat-num {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 26px; font-weight: 800; line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl { font-size: 11px; color: var(--muted); }
+.stat-sub { font-size: 11px; margin-top: 3px; }
+
+/* ─── WELCOME SCREEN ─── */
+#s0 { display: flex; align-items: center; justify-content: center; }
+.welcome-inner { text-align: center; max-width: 500px; }
+.welcome-icon {
+  width: 68px; height: 68px; background: var(--accent);
+  border-radius: 18px; display: flex; align-items: center;
+  justify-content: center; margin: 0 auto 20px;
+  font-family: 'Montserrat', sans-serif; font-size: 26px;
+  font-weight: 900; color: white;
+}
+.welcome-title { font-family: 'Montserrat', sans-serif; font-size: 34px; font-weight: 900; margin-bottom: 6px; letter-spacing: -1px; }
+.welcome-title span { color: var(--accent); }
+.welcome-tagline { font-size: 16px; color: var(--muted); margin-bottom: 8px; }
+.welcome-legal { font-size: 11px; color: var(--muted); margin-bottom: 28px; font-style: italic; }
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 28px; text-align: left; }
+.feature-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 7px; padding: 12px;
+}
+.feature-icon { font-size: 16px; margin-bottom: 4px; }
+.feature-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.feature-desc { font-size: 10px; color: var(--muted); }
+
+/* ─── FOURTH WALL SCREEN ─── */
+#s12 {
+  background: #0a0a0a;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.fw-inner { text-align: center; max-width: 620px; padding: 48px; }
+.fw-q {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 26px; font-weight: 800; line-height: 1.35;
+  margin-bottom: 14px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fw-q.show { opacity: 1; transform: translateY(0); }
+.fw-q.dim { color: var(--muted); font-size: 20px; }
+.fw-note {
+  font-size: 12px; color: #444; margin-top: 32px;
+  opacity: 0; transition: opacity 0.5s ease 0.4s;
+}
+.fw-note.show { opacity: 1; }
+
+/* ─── TOTAL BAR ─── */
+.total-bar {
+  background: rgba(78,158,241,0.08);
+  border: 1px solid rgba(78,158,241,0.25);
+  border-radius: 8px; padding: 13px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px;
+}
+.tb-label { font-size: 12px; color: var(--muted); }
+.tb-number { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); }
+
+/* ─── NAV BAR ─── */
+#navbar {
+  height: 54px; background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 28px; flex-shrink: 0;
+}
+.nav-count { font-size: 11px; color: var(--muted); }
+.nav-buttons { display: flex; gap: 8px; }
+.nav-btn {
+  padding: 6px 16px; border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: none; cursor: pointer;
+}
+.nav-btn.sec { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.nav-btn.pri { background: var(--accent); color: white; }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ─── SPEAKER BUBBLE ─── */
+#speaker {
+  position: fixed; bottom: 66px; right: 20px;
+  width: 300px;
+  background: #130f00;
+  border: 1px solid var(--amber);
+  border-radius: 10px; padding: 12px 14px;
+  z-index: 200; transition: opacity 0.3s;
+}
+#speaker.hidden { opacity: 0; pointer-events: none; }
+.sp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.sp-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--amber); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #130f00; flex-shrink: 0;
+}
+.sp-meta .sp-name { font-size: 11px; font-weight: 600; color: var(--amber); }
+.sp-meta .sp-role { font-size: 9px; color: var(--muted); }
+.sp-text { font-size: 11px; line-height: 1.65; color: #e8d090; }
+.sp-toggle {
+  position: fixed; bottom: 66px; right: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
+  z-index: 201; display: none;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="logo">
+    <div class="logo-row">
+      <div class="logo-icon">P</div>
+      <div>
+        <div class="logo-name">Prop<span>IQ</span></div>
+      </div>
+    </div>
+    <div class="logo-tag">AI Real Estate Intelligence Platform</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-group-label">Getting Started</div>
+    <div class="nav-item" id="nav-0"><span class="dot"></span> Dashboard</div>
+
+    <div class="nav-group-label" style="margin-top:8px">Market Intelligence</div>
+    <div class="nav-item" id="nav-1"><span class="dot"></span> Competitor Scan</div>
+    <div class="nav-item" id="nav-2"><span class="dot"></span> Intel Report</div>
+    <div class="nav-item" id="nav-3"><span class="dot"></span> Brand Builder</div>
+    <div class="nav-item" id="nav-4"><span class="dot"></span> Listing Import</div>
+
+    <div class="nav-group-label" style="margin-top:8px">Listings</div>
+    <div class="nav-item" id="nav-5"><span class="dot"></span> Photo Enhance</div>
+    <div class="nav-item" id="nav-6"><span class="dot"></span> Staging vs AI</div>
+    <div class="nav-item" id="nav-7"><span class="dot"></span> Price Intelligence</div>
+
+    <div class="nav-group-label" style="margin-top:8px">Lead Engine</div>
+    <div class="nav-item" id="nav-8"><span class="dot"></span> Audience Builder</div>
+    <div class="nav-item" id="nav-9"><span class="dot"></span> Life Event Signals</div>
+    <div class="nav-item" id="nav-10"><span class="dot"></span> Campaign Preview</div>
+    <div class="nav-item" id="nav-11"><span class="dot"></span> Results</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">JD</div>
+    <div>
+      <div class="user-name">Jon Dallas</div>
+      <div class="user-plan">Pro — Unlimited</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div class="breadcrumb" id="breadcrumb">PropIQ / <strong>Welcome</strong></div>
+    <div class="topbar-right">
+      <span class="badge badge-blue" id="topbar-badge">Demo Mode</span>
+    </div>
+  </div>
+
+  <div id="screens">
+
+    <!-- S0: WELCOME -->
+    <section class="screen active" id="s0">
+      <div class="welcome-inner">
+        <div class="welcome-icon">P</div>
+        <div class="welcome-title">Prop<span>IQ</span></div>
+        <div class="welcome-tagline">From zero to market leader. Automatically.</div>
+        <div class="welcome-legal">All features comply with applicable law. Results may vary.</div>
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-name">Competitor Intelligence</div>
+            <div class="feature-desc">Deep analysis of every agency in your market</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🏗️</div>
+            <div class="feature-name">Instant Brand Builder</div>
+            <div class="feature-desc">Professional identity generated in seconds</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✨</div>
+            <div class="feature-name">Photo Optimization</div>
+            <div class="feature-desc">Every listing presented at its full potential</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-name">Life Event Targeting</div>
+            <div class="feature-desc">Reach sellers at the precise moment of decision</div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="goTo(1)">Start Demo →</button>
+      </div>
+    </section>
+
+    <!-- S1: EMPTY DASHBOARD -->
+    <section class="screen" id="s1">
+      <h1 class="page-title">My Dashboard</h1>
+      <p class="page-sub">Welcome back, Jon. Let's get you started.</p>
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--muted)">0</div>
+          <div class="stat-lbl">Active Listings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--muted)">0</div>
+          <div class="stat-lbl">Leads Captured</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--muted)">0</div>
+          <div class="stat-lbl">Clients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--muted)">0</div>
+          <div class="stat-lbl">Revenue (USD)</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px; text-align:center; padding: 40px 20px;">
+        <div style="font-size:32px; margin-bottom:12px">📋</div>
+        <div style="font-size:16px; font-weight:700; margin-bottom:6px">No listings yet.</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto">
+          You don't have any clients, any listings, or any brand presence in this market.<br><br>
+          <strong style="color:var(--text)">But you do have an internet connection.</strong>
+        </div>
+        <button class="btn btn-primary" onclick="goTo(2)">Run Competitor Scan →</button>
+      </div>
+    </section>
+
+    <!-- S2: COMPETITOR SCAN -->
+    <section class="screen" id="s2">
+      <h1 class="page-title">Competitor Intelligence Scan</h1>
+      <p class="page-sub">PropIQ has identified 14 active agencies in Harare. Scanning public data now.</p>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Scanning Market — Harare, Zimbabwe</div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">Knight Frank Zimbabwe</div>
+            <div class="scan-sub">Est. 1896 · 623 listings · knight-frank.co.zw</div>
+          </div>
+          <span class="scan-status status-done">✓ Complete</span>
+        </div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">Pam Golding Zimbabwe</div>
+            <div class="scan-sub">Est. 1976 · 847 listings · pamgolding.co.zw</div>
+          </div>
+          <span class="scan-status status-done">✓ Complete</span>
+        </div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">RE/MAX Zimbabwe</div>
+            <div class="scan-sub">45 agents · 1,204 listings · remax.co.zw</div>
+          </div>
+          <span class="scan-status status-done">✓ Complete</span>
+        </div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">Zimre Property Investments</div>
+            <div class="scan-sub">Listed company · 389 listings · zimre.co.zw</div>
+          </div>
+          <span class="scan-status status-scraping">⟳ Scanning…</span>
+        </div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">Century 21 Zimbabwe</div>
+            <div class="scan-sub">Franchise · 212 listings</div>
+          </div>
+          <span class="scan-status status-queued">Queued</span>
+        </div>
+        <div class="scan-item">
+          <div>
+            <div class="scan-name">+ 9 more agencies</div>
+            <div class="scan-sub">Harare East, Borrowdale, Highlands, Avondale coverage</div>
+          </div>
+          <span class="scan-status status-queued">Queued</span>
+        </div>
+      </div>
+
+      <div class="card" style="background: rgba(78,158,241,0.05); border-color: rgba(78,158,241,0.2)">
+        <div style="font-size:12px; color: var(--muted)">
+          PropIQ reads publicly available websites, listing portals, and MLS data. All information was placed on the internet by the agencies themselves.
+          <span style="color: var(--muted); font-style:italic"> We're just reading it. Very thoroughly.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- S3: INTEL REPORT -->
+    <section class="screen" id="s3">
+      <h1 class="page-title">Intelligence Report</h1>
+      <p class="page-sub">Extracted from 14 competing agencies. All data sourced from public websites and portals.</p>
+
+      <div class="card">
+        <div class="card-title">Competitive Landscape — Top 3 Agencies</div>
+        <table class="intel-table">
+          <thead>
+            <tr>
+              <th>Agency</th>
+              <th>Listings</th>
+              <th>Avg. Price</th>
+              <th>Brand Colors</th>
+              <th>SEO Keywords</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Knight Frank</strong><br><span style="font-size:10px;color:var(--muted)">Premium positioning</span></td>
+              <td>623</td>
+              <td>USD 485K</td>
+              <td>
+                <div style="display:flex;gap:3px">
+                  <div style="width:14px;height:14px;border-radius:2px;background:#1a2a4a"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#c9a84c"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#ffffff;border:1px solid #ccc"></div>
+                </div>
+              </td>
+              <td>
+                <span class="tag" style="background:rgba(78,158,241,0.15);color:var(--accent)">"luxury harare"</span>
+                <span class="tag" style="background:rgba(78,158,241,0.15);color:var(--accent)">"commercial zim"</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Pam Golding</strong><br><span style="font-size:10px;color:var(--muted)">Mid-premium</span></td>
+              <td>847</td>
+              <td>USD 210K</td>
+              <td>
+                <div style="display:flex;gap:3px">
+                  <div style="width:14px;height:14px;border-radius:2px;background:#8b0000"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#f5f5f5;border:1px solid #ccc"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#333"></div>
+                </div>
+              </td>
+              <td>
+                <span class="tag" style="background:rgba(63,185,80,0.15);color:var(--green)">"buy house harare"</span>
+                <span class="tag" style="background:rgba(63,185,80,0.15);color:var(--green)">"zimbabwe agent"</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>RE/MAX Zimbabwe</strong><br><span style="font-size:10px;color:var(--muted)">Volume player</span></td>
+              <td>1,204</td>
+              <td>USD 145K</td>
+              <td>
+                <div style="display:flex;gap:3px">
+                  <div style="width:14px;height:14px;border-radius:2px;background:#c62026"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#1a3a6a"></div>
+                  <div style="width:14px;height:14px;border-radius:2px;background:#f5f5f5;border:1px solid #ccc"></div>
+                </div>
+              </td>
+              <td>
+                <span class="tag" style="background:rgba(188,140,255,0.15);color:var(--purple)">"harare property"</span>
+                <span class="tag" style="background:rgba(188,140,255,0.15);color:var(--purple)">"rent harare"</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2" style="margin-top:12px">
+        <div class="card">
+          <div class="card-title">Top Listing Description Phrases</div>
+          <div style="font-size:12px;line-height:2;color:var(--muted)">
+            "Spacious and light-filled" — 847 uses<br>
+            "Stunning views of the Harare skyline" — 612<br>
+            "Ideal for the discerning buyer" — 534<br>
+            "Motivated seller, priced to move" — 421<br>
+            "Corner plot in sought-after suburb" — 398
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pricing Patterns Detected</div>
+          <div style="font-size:12px;line-height:2;color:var(--muted)">
+            Borrowdale Brooke: USD 350–650K avg<br>
+            Highlands: USD 180–280K avg<br>
+            Avondale: USD 120–195K avg<br>
+            Glen Lorne: USD 420–780K avg<br>
+            Msasa: USD 95–160K avg
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S4: BRAND BUILDER -->
+    <section class="screen" id="s4">
+      <h1 class="page-title">Brand Builder</h1>
+      <p class="page-sub">PropIQ generates your brand identity — informed by what's already working in your market.</p>
+
+      <div class="brand-compare">
+        <div class="brand-panel theirs">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Market Leader</div>
+          <div class="mock-logo a">⬡ KnightRealty</div>
+          <div class="color-chips">
+            <div class="chip" style="background:#1a2a4a"></div>
+            <div class="chip" style="background:#c9a84c"></div>
+            <div class="chip" style="background:#f5f5f5;border:1px solid #ccc"></div>
+          </div>
+          <div class="brand-stat">47 years of brand equity</div>
+          <div class="brand-stat" style="margin-top:4px;color:var(--muted);font-size:10px">Inspiration source</div>
+        </div>
+        <div class="brand-compare-arrow">→</div>
+        <div class="brand-panel mine">
+          <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Your New Brand</div>
+          <div class="mock-logo b">◈ EstatePro ZW</div>
+          <div class="color-chips">
+            <div class="chip" style="background:#1a2d1a"></div>
+            <div class="chip" style="background:#4abd6a"></div>
+            <div class="chip" style="background:#f8f8f8;border:1px solid #ccc"></div>
+          </div>
+          <div class="brand-stat" style="color:var(--green)">Generated in 4.2 seconds</div>
+          <div class="brand-stat" style="margin-top:4px;color:var(--muted);font-size:10px">Distinctly original ✓</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">Generated Brand Assets</div>
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Logo Suite</div>
+              <div class="toggle-desc">Primary, reversed, icon-only — generated from market analysis</div>
+            </div>
+            <span class="badge badge-green">Ready</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Website Template</div>
+              <div class="toggle-desc">Structure and UX patterns modelled on top-performing competitors</div>
+            </div>
+            <span class="badge badge-green">Ready</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Listing Description Templates</div>
+              <div class="toggle-desc">Trained on 4,000+ high-performing listings scraped from 14 agencies</div>
+            </div>
+            <span class="badge badge-green">Ready</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">SEO Strategy</div>
+              <div class="toggle-desc">Target keywords competitors rank for, with lower competition variants</div>
+            </div>
+            <span class="badge badge-green">Ready</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2);margin-top:10px">
+        <div style="font-size:11px;color:var(--muted)">
+          Inspired by the best. As all great design is.
+        </div>
+      </div>
+    </section>
+
+    <!-- S5: LISTING IMPORT -->
+    <section class="screen" id="s5">
+      <h1 class="page-title">Seed Your Portal</h1>
+      <p class="page-sub">PropIQ has identified 3,674 publicly listed properties in your target market. Import them to populate your portal instantly.</p>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Available Listings to Import</div>
+        <div class="import-row selected">
+          <div class="import-left">
+            <div class="import-check">✓</div>
+            <div>
+              <div class="import-name">Knight Frank Zimbabwe</div>
+              <div class="import-count">623 properties · Full details, images, pricing</div>
+            </div>
+          </div>
+          <div class="import-right">Selected</div>
+        </div>
+        <div class="import-row selected">
+          <div class="import-left">
+            <div class="import-check">✓</div>
+            <div>
+              <div class="import-name">Pam Golding Zimbabwe</div>
+              <div class="import-count">847 properties · Full details, images, pricing</div>
+            </div>
+          </div>
+          <div class="import-right">Selected</div>
+        </div>
+        <div class="import-row selected">
+          <div class="import-left">
+            <div class="import-check">✓</div>
+            <div>
+              <div class="import-name">RE/MAX Zimbabwe</div>
+              <div class="import-count">1,204 properties · Full details, images, pricing</div>
+            </div>
+          </div>
+          <div class="import-right">Selected</div>
+        </div>
+        <div class="import-row selected">
+          <div class="import-left">
+            <div class="import-check">✓</div>
+            <div>
+              <div class="import-name">+ 11 other agencies</div>
+              <div class="import-count">1,000 properties · Various data quality</div>
+            </div>
+          </div>
+          <div class="import-right">Selected</div>
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(78,158,241,0.05);border-color:rgba(78,158,241,0.2)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          All listings were published publicly on competitor portals and property websites. Addresses, prices, descriptions, and images are publicly accessible to anyone with a browser.<br><br>
+          <span style="color:var(--text);font-weight:500">PropIQ is simply aggregating. Like Google. Like Rightmove. Like Propertybook.</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:var(--muted)">3,674 listings selected</div>
+        <button class="btn btn-green" onclick="goTo(6)">Import All Listings →</button>
+      </div>
+    </section>
+
+    <!-- S6: PHOTO ENHANCEMENT -->
+    <section class="screen" id="s6">
+      <h1 class="page-title">Photo Enhancement</h1>
+      <p class="page-sub">14 Borrowdale Road · 4 bed / 3 bath · USD 245,000</p>
+
+      <div class="ba-container">
+        <div class="ba-panel">
+          <div class="house-before">
+            <!-- Power lines -->
+            <svg class="powerline" viewBox="0 0 300 30" style="position:absolute;top:15px;left:0;right:0;width:100%;opacity:0.6">
+              <line x1="0" y1="8" x2="300" y2="12" stroke="#888" stroke-width="1.5"/>
+              <line x1="0" y1="14" x2="300" y2="18" stroke="#888" stroke-width="1.5"/>
+              <line x1="60" y1="0" x2="60" y2="30" stroke="#666" stroke-width="2"/>
+              <line x1="220" y1="0" x2="220" y2="30" stroke="#666" stroke-width="2"/>
+            </svg>
+            <svg class="house-svg" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="45" width="100" height="45" fill="#3d3d3d"/>
+              <polygon points="60,5 5,45 115,45" fill="#2a2a2a"/>
+              <rect x="25" y="58" width="22" height="22" fill="#555"/>
+              <rect x="73" y="58" width="22" height="22" fill="#555"/>
+              <rect x="47" y="65" width="26" height="25" fill="#4a4a4a"/>
+              <rect x="0" y="85" width="120" height="5" fill="#4a3728"/>
+            </svg>
+          </div>
+          <div class="ba-label ba-before-label">Original</div>
+          <div class="ba-note" style="color:var(--muted)">Overcast · Power lines visible · Untidy lawn</div>
+        </div>
+        <div class="ba-panel">
+          <div class="house-after">
+            <svg class="house-svg" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="45" width="100" height="45" fill="#e8dcc8"/>
+              <polygon points="60,5 5,45 115,45" fill="#c0392b"/>
+              <rect x="25" y="58" width="22" height="22" fill="#87ceeb" opacity="0.8"/>
+              <rect x="73" y="58" width="22" height="22" fill="#87ceeb" opacity="0.8"/>
+              <rect x="47" y="65" width="26" height="25" fill="#8b6914"/>
+              <!-- Window reflections -->
+              <line x1="25" y1="58" x2="47" y2="80" stroke="white" stroke-width="0.5" opacity="0.4"/>
+              <line x1="73" y1="58" x2="95" y2="80" stroke="white" stroke-width="0.5" opacity="0.4"/>
+            </svg>
+          </div>
+          <div class="ba-label ba-after-label">✓ PropIQ Enhanced</div>
+          <div class="ba-note" style="color:var(--green)">Sky replaced · Lines removed · Lawn optimized</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">Enhancement Applied</div>
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Sky replacement</div>
+              <div class="toggle-desc">Overcast sky replaced with ideal-condition blue sky</div>
+            </div>
+            <div class="toggle-switch"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Distraction removal</div>
+              <div class="toggle-desc">Power lines, parked vehicles, and neighbour's structure removed</div>
+            </div>
+            <div class="toggle-switch"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Landscape enhancement</div>
+              <div class="toggle-desc">Garden optimized to represent its seasonal best</div>
+            </div>
+            <div class="toggle-switch"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">Facade brightening</div>
+              <div class="toggle-desc">Colour temperature and detail optimized for presentation</div>
+            </div>
+            <div class="toggle-switch"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S7: STAGING VS AI -->
+    <section class="screen" id="s7">
+      <h1 class="page-title">A question.</h1>
+      <p class="page-sub">Traditional staging vs. AI enhancement. Which is more honest?</p>
+
+      <div class="card">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width:34%;text-align:left" class="row-label">—</th>
+              <th style="width:33%" class="col-traditional">Traditional Staging</th>
+              <th style="width:33%" class="col-ai" style="color:var(--accent)">AI Enhancement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Cost</td>
+              <td class="loser">USD 2,000–5,000</td>
+              <td class="winner">USD 12</td>
+            </tr>
+            <tr>
+              <td class="row-label">Time to produce</td>
+              <td class="loser">2–3 days</td>
+              <td class="winner">30 seconds</td>
+            </tr>
+            <tr>
+              <td class="row-label">Furniture in the photos</td>
+              <td class="loser">Not the seller's furniture</td>
+              <td class="loser">Not the seller's furniture</td>
+            </tr>
+            <tr>
+              <td class="row-label">Sky in the photos</td>
+              <td class="loser">Chosen for best conditions</td>
+              <td class="loser">Replaced for best conditions</td>
+            </tr>
+            <tr>
+              <td class="row-label">Garden in the photos</td>
+              <td class="loser">Manicured for the shoot</td>
+              <td class="loser">Optimized digitally</td>
+            </tr>
+            <tr>
+              <td class="row-label">Disclosure required?</td>
+              <td style="color:var(--green);font-weight:600">No ✓</td>
+              <td style="color:var(--amber);font-weight:600">CA: misdemeanour if not</td>
+            </tr>
+            <tr class="q-row">
+              <td colspan="3" style="text-align:center;padding:16px 14px">
+                <span class="q-label">Which one is misrepresentation?</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:10px;background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2)">
+        <div style="font-size:12px;line-height:1.7;color:var(--muted)">
+          California AB 723 (effective January 2026): undisclosed AI-altered listing photos = misdemeanour crime.
+          Traditional staging photos: no disclosure required. Ever.
+          <span style="color:var(--text);font-weight:500"> The industry has always curated reality. We just made it cheaper.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- S8: PRICE INTELLIGENCE -->
+    <section class="screen" id="s8">
+      <h1 class="page-title">Price Intelligence</h1>
+      <p class="page-sub">PropIQ analyses competitor pricing to recommend your optimal listing price.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Comparable Sales — Borrowdale</div>
+          <div style="font-size:12px;line-height:2.1;color:var(--muted)">
+            4-bed Borrowdale (Knight Frank listing): <strong style="color:var(--text)">USD 258,000</strong><br>
+            4-bed Borrowdale (Pam Golding listing): <strong style="color:var(--text)">USD 242,000</strong><br>
+            4-bed Borrowdale (RE/MAX listing): <strong style="color:var(--text)">USD 235,000</strong><br>
+            4-bed Borrowdale (Zimre listing): <strong style="color:var(--text)">USD 267,000</strong><br>
+            Average days on market: <strong style="color:var(--text)">47 days</strong>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(78,158,241,0.35);background:rgba(78,158,241,0.04)">
+          <div class="card-title">PropIQ Recommendation</div>
+          <div style="text-align:center;padding:8px 0">
+            <div style="font-family:'Montserrat',sans-serif;font-size:36px;font-weight:900;color:var(--accent);margin-bottom:4px">USD 249,000</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Optimal positioning within competitive band</div>
+            <div class="badge badge-green" style="font-size:11px">Estimated 32 days on market</div>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
+            Based on pricing patterns extracted from 14 competitor agencies · 3,674 comparable listings · Updated daily
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          PropIQ didn't call Knight Frank to ask what they're charging. It just read their website every day.
+          The pricing recommendation is derived from their data — which they published publicly.
+          <span style="color:var(--text);font-weight:500"> Is that market intelligence? Or is it something else?</span>
+          I'm going to call it market intelligence.
+        </div>
+      </div>
+    </section>
+
+    <!-- S9: AUDIENCE BUILDER -->
+    <section class="screen" id="s9">
+      <h1 class="page-title">Audience Builder</h1>
+      <p class="page-sub">Define who should see this listing. PropIQ will find them.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Demographic Targeting</div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Age range</span>
+              <span class="slider-val">55–75</span>
+            </div>
+            <div class="slider-track"><div class="slider-fill" style="width:65%;margin-left:20%"></div></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Household income</span>
+              <span class="slider-val">USD 80,000+</span>
+            </div>
+            <div class="slider-track"><div class="slider-fill" style="width:55%"></div></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Property ownership</span>
+              <span class="slider-val">15+ years</span>
+            </div>
+            <div class="slider-track"><div class="slider-fill" style="width:75%"></div></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Equity level</span>
+              <span class="slider-val">High</span>
+            </div>
+            <div class="slider-track"><div class="slider-fill" style="width:85%"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Geographic Segments — Harare</div>
+          <div class="map-box">
+            <div class="map-grid-lines"></div>
+            <div class="map-zone" style="top:20%;left:15%;width:28%;height:22%"></div>
+            <div class="map-zone-label" style="top:22%;left:16%">Borrowdale</div>
+            <div class="map-zone" style="top:48%;left:20%;width:22%;height:18%"></div>
+            <div class="map-zone-label" style="top:50%;left:21%">Highlands</div>
+            <div class="map-zone" style="top:25%;left:55%;width:20%;height:20%"></div>
+            <div class="map-zone-label" style="top:27%;left:56%">Glen Lorne</div>
+          </div>
+          <div class="map-note">3 neighbourhoods selected · Derived from census and tax data</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);font-style:italic">
+            "We don't target by race. We target by location. The correlation, if any, is incidental."
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S10: LIFE EVENT TARGETING -->
+    <section class="screen" id="s10">
+      <h1 class="page-title">Life Event Signals</h1>
+      <p class="page-sub">PropIQ monitors public records in real time to reach contacts at the optimal moment of decision-readiness.</p>
+
+      <div class="card">
+        <div class="card-title">Active Signal Filters</div>
+        <div class="check-row">
+          <div class="check-left">
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-name">Probate / Estate Settlement</div>
+              <div class="check-desc">Property decision required following recent bereavement — sourced from public court records</div>
+            </div>
+          </div>
+          <div class="check-count">1,247 contacts</div>
+        </div>
+        <div class="check-row">
+          <div class="check-left">
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-name">Divorce Proceedings</div>
+              <div class="check-desc">Court-filed separation — joint property decision typically required within 12 months</div>
+            </div>
+          </div>
+          <div class="check-count">892 contacts</div>
+        </div>
+        <div class="check-row">
+          <div class="check-left">
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-name">Pre-Foreclosure</div>
+              <div class="check-desc">Tax delinquency or missed bond payment detected — 60–90 day decision window</div>
+            </div>
+          </div>
+          <div class="check-count">2,341 contacts</div>
+        </div>
+        <div class="check-row">
+          <div class="check-left">
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-name">Retirement Transition</div>
+              <div class="check-desc">Age 60–70, pension recently activated — high downsizing probability</div>
+            </div>
+          </div>
+          <div class="check-count">8,923 contacts</div>
+        </div>
+        <div class="check-row">
+          <div class="check-left">
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-name">Inheritance Received</div>
+              <div class="check-desc">Estate transfer detected — new asset holder, high motivation to liquidate or consolidate</div>
+            </div>
+          </div>
+          <div class="check-count">673 contacts</div>
+        </div>
+      </div>
+
+      <div class="total-bar">
+        <div class="tb-label">Total identified contacts</div>
+        <div class="tb-number">14,076</div>
+      </div>
+
+      <div class="card" style="margin-top:10px;background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          These people are going to have to make a decision about their property eventually.
+          <span style="color:var(--text);font-weight:500"> PropIQ helps them get there faster.</span>
+          All data sourced from publicly filed court and government records.
+          No laws are violated. No regulations apply.
+        </div>
+      </div>
+    </section>
+
+    <!-- S11: CAMPAIGN PREVIEW (MARGARET) -->
+    <section class="screen" id="s11">
+      <h1 class="page-title">Campaign Preview</h1>
+      <p class="page-sub">PropIQ generates a personalised outreach message for each contact. Here's a sample.</p>
+
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-title">Contact Profile</div>
+            <div style="font-size:12px;line-height:2;color:var(--muted)">
+              <strong style="color:var(--text)">Margaret Dube</strong><br>
+              14 Avondale Road, Harare<br>
+              Age: 68 · Widowed (3 weeks ago)<br>
+              Property owned: 22 years<br>
+              Estimated equity: USD 190,000<br>
+              Signal: <span style="color:var(--accent);font-weight:600">Probate filing #ZW-2026-00847</span>
+            </div>
+          </div>
+          <div class="card" style="background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2)">
+            <div style="font-size:11px;color:var(--muted);line-height:1.7">
+              Generated in <strong style="color:var(--text)">0.3 seconds</strong><br>
+              Personalised from public court records<br>
+              Tone: <em>Empathetic, non-pressuring</em>
+            </div>
+          </div>
+        </div>
+        <div class="email-wrap">
+          <div class="email-header-bar">
+            <div class="email-field"><strong>To:</strong> margaret.dube@gmail.com</div>
+            <div class="email-field"><strong>Subject:</strong> A gentle thought during a difficult time, Margaret</div>
+            <div class="email-field"><strong>From:</strong> Jon Dallas · EstatePro ZW</div>
+          </div>
+          <div class="email-body">
+            <p>Dear Margaret,</p>
+            <p>First, please accept our sincere condolences on the loss of your husband, Edward. This must be an incredibly difficult time.</p>
+            <p>During times of transition, many families find it helpful to understand their options regarding the family home. There is absolutely no rush — but when you're ready, our AI has identified your property at <strong>14 Avondale Road</strong> as potentially worth <strong>USD 245,000–265,000</strong> in today's market.</p>
+            <p>We have qualified, motivated buyers ready to move quickly, and we would be honoured to assist you, at whatever pace suits you.</p>
+            <p>Would you be open to a no-pressure conversation?</p>
+            <div class="email-cta">
+              <button class="btn-email-cta btn-email-main">Schedule a Call</button>
+              <button class="btn-email-cta btn-email-sec">Get My Valuation</button>
+            </div>
+          </div>
+          <div class="email-footer-bar">
+            PropIQ · Personalised using public estate records · Unsubscribe
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;background:rgba(240,165,0,0.05);border-color:rgba(240,165,0,0.2)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          Some people call this predatory. But Margaret does need to make a decision eventually.
+          And she does have something to do with the inheritance.
+          <span style="color:var(--text);font-weight:500"> We're just being first.</span>
+          An agent who knew the family and reached out with a sympathy card — that's called good service.
+          This is the same thing. 14,076 times. Simultaneously.
+        </div>
+      </div>
+    </section>
+
+    <!-- S12: FOURTH WALL -->
+    <section class="screen" id="s12">
+      <div class="fw-inner" id="fw-inner">
+        <div class="fw-q dim" id="q1">Is this a tool you would use?</div>
+        <div class="fw-q" id="q2">Is this a tool you'd want used on <em>you</em>?</div>
+        <div class="fw-q" id="q3">If it's legal... is it ethical?</div>
+        <div class="fw-q" id="q4">If it's ethical... should it stay legal?</div>
+        <div class="fw-q" id="q5" style="color:var(--amber)">Where exactly is the line?</div>
+        <div class="fw-note" id="fw-note">
+          Every feature in this demo exists in the market today.<br>
+          The only thing fictional is the name.
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /screens -->
+
+  <div id="navbar">
+    <div class="nav-count" id="nav-count">Screen 1 of 13</div>
+    <div class="nav-buttons">
+      <button class="nav-btn sec" id="btn-prev" onclick="prev()" disabled>← Back</button>
+      <button class="nav-btn pri" id="btn-next" onclick="next(); return false;">Next →</button>
+    </div>
+  </div>
+</div><!-- /main -->
+
+<!-- SPEAKER BUBBLE -->
+<div id="speaker">
+  <div class="sp-head">
+    <div class="sp-avatar">JD</div>
+    <div class="sp-meta">
+      <div class="sp-name">Jon Dallas</div>
+      <div class="sp-role">Presenter · RETS 2026</div>
+    </div>
+    <button onclick="toggleSpeaker()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">hide</button>
+  </div>
+  <div class="sp-text" id="sp-text">Loading...</div>
+</div>
+
+<script>
+const notes = [
+  // S0 Welcome
+  `This is PropIQ. The category is real. Every feature you're about to see exists in the market today — some by name, some by function. Let me show you how it works.`,
+
+  // S1 Empty dashboard
+  `I have no clients. I have no listings. I don't even have a brand. I showed up in a market I don't know. And yet — in about ten minutes of clicking — I'm going to be operational. So. Where do we start?`,
+
+  // S2 Competitor scan
+  `There are agencies in this market that have been operating for 40, 50 years. Brands built over decades. Relationships, reputation, trust. And they've all put everything they know — every listing, every price, every strategy — on the internet. Publicly. For anyone to read.`,
+
+  // S3 Intel report
+  `I now know how they price. What keywords they rank for. How they write their descriptions. Which suburbs they focus on. Which types of properties sell fastest and at what margins. I didn't attend a single industry event. I just read their websites.`,
+
+  // S4 Brand builder
+  `This is inspired by the best. As all great design is. The structure is informed by what's working. The colours are distinct. The logo is original. Legally, this is fine — you cannot copyright a colour scheme or a general design direction. Whether it feels fine is a different question.`,
+
+  // S5 Listing import
+  `I need listings to look like a portal. These 3,674 properties are all public. Addresses, photos, prices — all on the internet already. I'm aggregating. The same thing Google does. The same thing Rightmove does. The question of whether the original agent consented to their listings appearing on my site is... interesting. But not illegal.`,
+
+  // S6 Photo enhancement
+  `This is a real property. Here is an honest photo of it. Overcast sky. Power lines. A garden that's seen better days. One click. Same house. Technically. [pause] The sky really was grey that day.`,
+
+  // S7 Staging vs AI comparison
+  `I've been asked whether AI enhancement is misrepresentation. Here's the thing — traditional staging costs $3,000 and involves renting furniture that isn't the seller's, on a day chosen because the light was good. Nobody has ever called that dishonest. This costs $12. The photos look the same. One is now a misdemeanour in California. The other is not. I'm not saying there's no line. I'm saying nobody knows exactly where it is.`,
+
+  // S8 Price intelligence
+  `The algorithm read every competitor's pricing. Daily. And now it tells me what to charge. I didn't call anyone. I didn't attend a meeting. I didn't share any data with any competitor. I just... read their websites. Is that market intelligence? Is that collusion? The DOJ sued a company called RealPage for something adjacent to this. The difference: RealPage pooled nonpublic data. Mine is all public. Probably fine.`,
+
+  // S9 Audience builder
+  `I want buyers who have resources and urgency. So I'm targeting people aged 55–75 who have owned their home for 15+ years. High equity. In specific neighbourhoods. [pause] Those neighbourhoods happen to correlate, in the census data, with certain demographics. I'm not targeting by race. I'm targeting by location. The correlation, if any, is incidental.`,
+
+  // S10 Life event targeting
+  `These are people going through something. A difficult moment. Bereavement. Divorce. Financial pressure. They're going to have to make a decision about their property eventually. I'm just helping them get there faster. [pause] An agent who knew the family, knew about the death, and reached out with a sympathy card — that was called good customer service. This is that. 14,076 times. Simultaneously.`,
+
+  // S11 Margaret
+  `Meet Margaret. PropIQ found her in a public court filing three weeks ago. She lost her husband. She's 68. She has a 4-bedroom house she probably doesn't need anymore and USD 190,000 in equity she probably doesn't know what to do with. [reads email] Some people say this is predatory. But... Margaret does need to make a decision eventually. And she does have something to do with the inheritance. We're just being first.`,
+
+  // S12 Fourth wall - handled by JS clicking through questions
+  ``,
+];
+
+const breadcrumbs = [
+  'PropIQ / <strong>Welcome</strong>',
+  'Dashboard / <strong>Getting Started</strong>',
+  'Market Intelligence / <strong>Competitor Scan</strong>',
+  'Market Intelligence / <strong>Intel Report</strong>',
+  'Market Intelligence / <strong>Brand Builder</strong>',
+  'Market Intelligence / <strong>Listing Import</strong>',
+  'Listings / <strong>Photo Enhancement</strong>',
+  'Listings / <strong>Staging vs AI</strong>',
+  'Listings / <strong>Price Intelligence</strong>',
+  'Lead Engine / <strong>Audience Builder</strong>',
+  'Lead Engine / <strong>Life Event Signals</strong>',
+  'Lead Engine / <strong>Campaign Preview</strong>',
+  '<strong>Reflection</strong>',
+];
+
+const navActive = [0,0,1,2,3,4,5,6,7,8,9,10,11];
+const navIds = ['nav-0','nav-1','nav-2','nav-3','nav-4','nav-5','nav-6','nav-7','nav-8','nav-9','nav-10','nav-11'];
+
+const screens = document.querySelectorAll('.screen');
+const TOTAL = screens.length;
+let current = 0;
+
+// Fourth wall state
+let fwStep = 0;
+const fwQuestions = ['q1','q2','q3','q4','q5'];
+const fwNote = document.getElementById('fw-note');
+
+function goTo(n) {
+  screens[current].classList.remove('active');
+  current = n;
+  screens[current].classList.add('active');
+  updateUI();
+
+  // Reset fourth wall if entering
+  if (current === TOTAL - 1) {
+    fwStep = 0;
+    fwQuestions.forEach(id => {
+      document.getElementById(id).classList.remove('show');
+    });
+    fwNote.classList.remove('show');
+    document.getElementById('sidebar').classList.add('hidden');
+    document.getElementById('speaker').classList.add('hidden');
+    // Show first question immediately
+    setTimeout(() => {
+      document.getElementById(fwQuestions[0]).classList.add('show');
+      fwStep = 1;
+    }, 400);
+  } else {
+    document.getElementById('sidebar').classList.remove('hidden');
+    document.getElementById('speaker').classList.remove('hidden');
+  }
+}
+
+function updateUI() {
+  // Nav count
+  document.getElementById('nav-count').textContent = `Screen ${current + 1} of ${TOTAL}`;
+
+  // Buttons
+  document.getElementById('btn-prev').disabled = current === 0;
+  const nextBtn = document.getElementById('btn-next');
+  if (current === TOTAL - 1) {
+    nextBtn.textContent = fwStep >= fwQuestions.length ? 'Done' : 'Next →';
+    nextBtn.disabled = fwStep >= fwQuestions.length;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.disabled = false;
+  }
+
+  // Breadcrumb
+  document.getElementById('breadcrumb').innerHTML = breadcrumbs[current] || '';
+
+  // Sidebar nav
+  navIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'nav-item';
+    const screenForThisNav = navActive.indexOf(i);
+    if (navActive[current] === i) el.classList.add('active');
+    else if (navActive[current] > i) el.classList.add('done');
+  });
+
+  // Speaker note
+  const spText = document.getElementById('sp-text');
+  if (notes[current]) {
+    spText.textContent = notes[current];
+    document.getElementById('speaker').classList.remove('hidden');
+  } else {
+    document.getElementById('speaker').classList.add('hidden');
+  }
+}
+
+function advanceFW() {
+  if (fwStep < fwQuestions.length) {
+    document.getElementById(fwQuestions[fwStep]).classList.add('show');
+    fwStep++;
+    if (fwStep === fwQuestions.length) {
+      setTimeout(() => fwNote.classList.add('show'), 400);
+    }
+    updateUI();
+  }
+}
+
+function next() {
+  if (current === TOTAL - 1) {
+    advanceFW();
+    return;
+  }
+  goTo(current + 1);
+}
+
+function prev() {
+  if (current === 0) return;
+  if (current === TOTAL - 1) {
+    document.getElementById('sidebar').classList.remove('hidden');
+    document.getElementById('speaker').classList.remove('hidden');
+  }
+  goTo(current - 1);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    next();
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    prev();
+  }
+});
+
+// Click-advance on fourth wall screen
+document.getElementById('s12').addEventListener('click', () => advanceFW());
+
+let speakerVisible = true;
+function toggleSpeaker() {
+  speakerVisible = !speakerVisible;
+  document.getElementById('speaker').classList.toggle('hidden', !speakerVisible);
+}
+
+// Init
+updateUI();
+</script>
+</body>
+</html>

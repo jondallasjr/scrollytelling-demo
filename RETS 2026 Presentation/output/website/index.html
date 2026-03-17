@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI Can Help You Sell More RIGHT NOW. Here's How. | Jon Dallas | RETS 2026</title>
+<meta property="og:title" content="AI Can Help You Sell More RIGHT NOW. Here's How.">
+<meta property="og:description" content="Jon Dallas at RETS 2026 — How Zimbabwe real estate agents can use AI today to sell more, faster.">
+<meta property="og:image" content="../../images/final/hero-africa-tech.jpg">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2026-03-12">
+<meta property="article:tag" content="AI, Real Estate, Zimbabwe, RETS 2026">
+<meta name="category" content="Presentation">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0F1419;
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --red: #E74C3C;
+  --white: #FFFFFF;
+  --gray: #B8C4CE;
+  --dark-gray: #1A2129;
+  --slide-max-w: 1200px;
+}
+
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== SLIDE CONTAINER ===== */
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+  overflow: hidden;
+}
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===== LAYOUT TYPES ===== */
+
+/* Full-bleed background image with text overlay */
+.slide--hero {
+  background-size: cover;
+  background-position: center;
+}
+.slide--hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15,20,25,0.82) 0%, rgba(15,20,25,0.55) 100%);
+  z-index: 1;
+}
+.slide--hero .slide__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem;
+  max-width: var(--slide-max-w);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+/* Section divider — bold text over image */
+.slide--divider {
+  background-size: cover;
+  background-position: center;
+}
+.slide--divider::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15,20,25,0.65);
+  z-index: 1;
+}
+.slide--divider .slide__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem;
+  max-width: var(--slide-max-w);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+/* Image-left, content-right */
+.slide--split {
+  display: flex;
+  align-items: stretch;
+}
+.slide--split .slide__image {
+  flex: 0 0 42%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.slide--split .slide__image::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: linear-gradient(to right, transparent, var(--bg));
+}
+.slide--split .slide__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 3.5rem;
+  max-width: 700px;
+}
+
+/* Stats slide — big number centered */
+.slide--stat {
+  text-align: center;
+}
+.slide--stat .slide__content {
+  padding: 2rem;
+  max-width: var(--slide-max-w);
+}
+
+/* Text-only centered */
+.slide--text {
+  text-align: center;
+}
+.slide--text .slide__content {
+  padding: 2rem;
+  max-width: 900px;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, .stat-number {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+h1 { font-size: clamp(2.2rem, 5vw, 4rem); }
+h2 { font-size: clamp(1.6rem, 3.5vw, 2.8rem); margin-bottom: 1.2rem; }
+h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 700; margin-bottom: 0.6rem; }
+
+.slide__label {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+}
+
+.label--teal { background: rgba(0,212,170,0.15); color: var(--teal); }
+.label--amber { background: rgba(245,166,35,0.15); color: var(--amber); }
+.label--red { background: rgba(231,76,60,0.15); color: var(--red); }
+
+.stat-number {
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.stat-number--teal { color: var(--teal); }
+.stat-number--amber { color: var(--amber); }
+.stat-number--red { color: var(--red); }
+
+.subtitle {
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  color: var(--gray);
+  font-weight: 400;
+  line-height: 1.5;
+  margin-top: 0.8rem;
+}
+
+/* ===== BULLET POINTS (progressive reveal) ===== */
+.bullet-list {
+  list-style: none;
+  text-align: left;
+}
+.bullet-list li {
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--gray);
+  padding: 0.5rem 0;
+  padding-left: 1.8rem;
+  position: relative;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.bullet-list li.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.bullet-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+.bullet-list--red li::before { background: var(--red); }
+.bullet-list--amber li::before { background: var(--amber); }
+
+.bullet-list li strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+/* ===== CALLOUT BOX ===== */
+.callout {
+  background: rgba(0,212,170,0.08);
+  border-left: 3px solid var(--teal);
+  padding: 1rem 1.2rem;
+  margin-top: 1.2rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95rem;
+  color: var(--gray);
+}
+.callout--red {
+  background: rgba(231,76,60,0.08);
+  border-left-color: var(--red);
+}
+.callout--amber {
+  background: rgba(245,166,35,0.08);
+  border-left-color: var(--amber);
+}
+.callout strong { color: var(--white); }
+
+/* ===== SLIDE COUNTER ===== */
+.slide-counter {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.5rem;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--teal);
+  z-index: 100;
+  transition: width 0.3s ease;
+}
+
+/* ===== NAVIGATION HINT ===== */
+.nav-hint {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.2);
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .slide--split {
+    flex-direction: column;
+  }
+  .slide--split .slide__image {
+    flex: 0 0 30vh;
+    width: 100%;
+  }
+  .slide--split .slide__image::after {
+    right: auto;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+  }
+  .slide--split .slide__content {
+    padding: 1.5rem 1.5rem 2rem;
+    overflow-y: auto;
+  }
+  .slide--hero .slide__content,
+  .slide--divider .slide__content,
+  .slide--stat .slide__content,
+  .slide--text .slide__content {
+    padding: 1.5rem;
+  }
+  h1 { font-size: 2rem; }
+  .stat-number { font-size: 3.5rem; }
+}
+
+/* ===== QUOTE STYLING ===== */
+.quote {
+  font-size: clamp(1.3rem, 3vw, 2.2rem);
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.35;
+  font-style: italic;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ===== ACTION ITEMS ===== */
+.action-list {
+  list-style: none;
+  text-align: left;
+  counter-reset: actions;
+}
+.action-list li {
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  line-height: 1.5;
+  color: var(--gray);
+  padding: 1rem 0 1rem 3.2rem;
+  position: relative;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.action-list li.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.action-list li::before {
+  counter-increment: actions;
+  content: counter(actions);
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--amber);
+  color: var(--bg);
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.action-list li:last-child { border-bottom: none; }
+.action-list li strong { color: var(--white); font-weight: 600; }
+
+/* ===== CONTACT SLIDE ===== */
+.contact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  color: var(--gray);
+}
+.contact-item i {
+  color: var(--teal);
+  font-size: 1.2rem;
+}
+
+/* ===== AGENTIC AI SLIDE ===== */
+.stat-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+.stat-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.stat-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.stat-card__number {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 2.2rem;
+  color: var(--teal);
+  line-height: 1;
+}
+.stat-card__label {
+  font-size: 0.85rem;
+  color: var(--gray);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-counter" id="slideCounter"></div>
+<div class="nav-hint" id="navHint">Press &rarr; or tap to advance</div>
+
+<div class="deck" id="deck">
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide slide--hero active" role="img" aria-label="Aerial view of modern African city at twilight with real estate app on smartphone" style="background-image: url('../../images/final/hero-africa-tech.jpg')">
+  <div class="slide__content">
+    <div class="slide__label label--teal">RETS 2026 &bull; ZIMBABWE</div>
+    <h1>AI Can Help You Sell More <span style="color:var(--amber)">RIGHT NOW.</span><br>Here's How.</h1>
+    <p class="subtitle" style="margin-top:1.5rem; font-size:1.15rem;">Jon Dallas &nbsp;&bull;&nbsp; AI Developer &nbsp;&bull;&nbsp; TEDx Speaker</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: THE HOOK ==================== -->
+<div class="slide slide--stat">
+  <div class="slide__content">
+    <div class="slide__label label--teal">THE SHIFT HAS ALREADY HAPPENED</div>
+    <div class="stat-number stat-number--teal">82%</div>
+    <h2 style="font-size:clamp(1.2rem,2.5vw,1.8rem); font-weight:700;">of US real estate agents now use AI tools.</h2>
+    <p class="subtitle">Three years ago, it was near zero.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: THE REAL QUESTION ==================== -->
+<div class="slide slide--text">
+  <div class="slide__content">
+    <div class="slide__label label--amber">THE REAL QUESTION</div>
+    <p class="quote">"What if Zimbabwe doesn't need to follow the West &mdash; what if you can <span style="color:var(--amber)">skip ahead</span>?"</p>
+    <div class="stat-row" style="margin-top:2rem;">
+      <div class="stat-card">
+        <div class="stat-card__number">91.6%</div>
+        <div class="stat-card__label">Mobile penetration in Zimbabwe</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__number">87%</div>
+        <div class="stat-card__label">Access internet via mobile</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__number">$119B</div>
+        <div class="stat-card__label">Zimbabwe real estate market</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: SECTION — WHAT AI DOES ==================== -->
+<div class="slide slide--divider" role="img" aria-label="Real estate agent using AI on laptop" style="background-image: url('../../images/final/agent-using-ai.jpg')">
+  <div class="slide__content">
+    <div class="slide__label label--teal">SECTION 01</div>
+    <h1>What AI Actually Does <span style="color:var(--teal)">TODAY</span></h1>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: AI WRITES LISTINGS ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/whatsapp-business-chat.webp')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">AI IN ACTION</div>
+    <h2>AI Writes Your Listings<br><span style="color:var(--teal)">(And They're Better)</span></h2>
+    <ul class="bullet-list">
+      <li><strong>68%</strong> of agents say AI's biggest impact = listing descriptions</li>
+      <li><strong>Propertybook:</strong> 450+ SEO articles generated in 48 hours</li>
+      <li><strong>Pam Golding:</strong> 45 min &rarr; 9 min per listing (80% time saved)</li>
+      <li>I built both of these tools. They work <strong>today.</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: AI ANSWERS LEADS ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/whatsapp-messaging.webp')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">AI IN ACTION</div>
+    <h2>AI Answers Your Leads<br><span style="color:var(--teal)">While You Sleep</span></h2>
+    <ul class="bullet-list">
+      <li><strong>EliseAI</strong> powers 1 in 8 US apartments</li>
+      <li>Response time = <strong>#1 killer</strong> of hot leads</li>
+      <li>WhatsApp AI: <strong>98% open rate</strong>, 320M users in Africa</li>
+      <li>NoBroker (India): photo upload <strong>3 days &rarr; 6 minutes</strong></li>
+    </ul>
+    <div class="callout">
+      <strong>Coming up later:</strong> Matthew Searle on why slow responses kill your leads.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: VIRTUAL STAGING ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/virtual-staging-styles.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">AI IN ACTION</div>
+    <h2>AI Stages Your Properties<br><span style="color:var(--teal)">For Almost Nothing</span></h2>
+    <ul class="bullet-list">
+      <li>Virtual staging: <strong>200% more inquiries</strong></li>
+      <li><strong>97%</strong> cost reduction vs traditional staging</li>
+      <li>Properties go live <strong>73% faster</strong></li>
+      <li>Sell for <strong>25% higher prices</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: FIND BUYERS ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/real-estate-analytics-dashboard.webp')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">AI IN ACTION</div>
+    <h2>AI Finds Your<br><span style="color:var(--teal)">Next Buyer</span></h2>
+    <ul class="bullet-list">
+      <li>AI for lead gen = <strong>23% more transactions</strong> closed</li>
+      <li>Redfin AI search: <strong>2x homes viewed</strong>, 47% more tours</li>
+      <li>Compass "Likely to Sell": <strong>8%</strong> monthly hit rate</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: SECTION — CAUTIONARY TALES ==================== -->
+<div class="slide slide--divider" role="img" aria-label="Distressed house with for-sale sign at dusk" style="background-image: url('../../images/final/caution-housing.jpg')">
+  <div class="slide__content">
+    <div class="slide__label label--red">SECTION 02</div>
+    <h1 style="color:var(--white)">The Cautionary <span style="color:var(--red)">Tales</span></h1>
+    <p class="subtitle" style="color:rgba(255,255,255,0.8); margin-top:0.8rem; font-size:1.1rem;">AI is powerful. It's also dangerous if you're not careful.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: ZILLOW ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/zillow-failure.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--red">CAUTIONARY TALE</div>
+    <h2>Zillow: A <span style="color:var(--red)">$500 Million</span> AI Disaster</h2>
+    <ul class="bullet-list bullet-list--red">
+      <li>Bought <strong>9,680 homes</strong>, sold 3,032</li>
+      <li><strong>$304M</strong> write-down in one quarter</li>
+      <li><strong>2,000 people</strong> fired</li>
+      <li>AI trained on rising markets <strong>breaks when markets shift</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: BIAS ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/housing-bias.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--red">CAUTIONARY TALE</div>
+    <h2>The <span style="color:var(--red)">Bias</span> Problem</h2>
+    <ul class="bullet-list bullet-list--red">
+      <li>Black neighborhoods undervalued by <strong>$48,000</strong> on average</li>
+      <li>"Whitewashing" case: <strong>$995K &rarr; $1.48M</strong> — same house, different face</li>
+      <li>AI trained on biased data = <strong>biased results</strong></li>
+    </ul>
+    <div class="callout callout--red">
+      <strong>For Zimbabwe:</strong> When AI tools arrive, you must watch for this. Your market. Your rules.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: FAKE LISTINGS ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/fake-listings.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--red">CAUTIONARY TALE</div>
+    <h2>Fake Listings<br><span style="color:var(--red)">Are Coming</span></h2>
+    <ul class="bullet-list bullet-list--red">
+      <li>AI-enhanced Detroit listing: <strong>2.6M views</strong> — property in ruins</li>
+      <li>AI added a <strong>nonexistent window</strong> in Minnesota</li>
+      <li>Australia fines <strong>$5,500&ndash;$22,000</strong> for undisclosed AI images</li>
+      <li>Your <strong>reputation is your business</strong> &mdash; don't let AI destroy trust</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: SECTION — ZIMBABWE'S OPPORTUNITY ==================== -->
+<div class="slide slide--divider" role="img" aria-label="Aerial view of Harare Zimbabwe with jacaranda trees at sunset" style="background-image: url('../../images/final/zimbabwe-cityscape.jpg')">
+  <div class="slide__content">
+    <div class="slide__label label--teal">SECTION 03</div>
+    <h1>Zimbabwe's Unique <span style="color:var(--teal)">Opportunity</span></h1>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: M-PESA LESSON ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/mobile-money-africa.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">THE LEAPFROG</div>
+    <h2>The <span style="color:var(--teal)">M-Pesa</span> Lesson</h2>
+    <ul class="bullet-list">
+      <li>Kenya 2007: 5 bank branches per 100K people, <strong>73% mobile</strong></li>
+      <li>Today: <strong>31.8M active users</strong>, 25% of Kenya's GDP</li>
+      <li><strong>200,000 households</strong> lifted out of poverty</li>
+      <li>Zimbabwe 2026: <strong>91.6% mobile</strong>, $119B real estate market</li>
+    </ul>
+    <div class="callout" style="margin-top:1rem;">
+      <strong>Same conditions. Same opportunity. Different industry.</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 15: PROPERTYBOOK ==================== -->
+<div class="slide slide--split">
+  <div class="slide__image" style="background-image: url('../../images/final/propertybook-platform.jpg')"></div>
+  <div class="slide__content">
+    <div class="slide__label label--teal">BUILDING THE FOUNDATION</div>
+    <h2><span style="color:var(--teal)">Propertybook</span> Is Already Here</h2>
+    <ul class="bullet-list">
+      <li><strong>300,000+</strong> monthly visitors</li>
+      <li><strong>8,500+</strong> active listings across 80+ cities</li>
+      <li><strong>2,000+</strong> registered agents</li>
+      <li>Every listing = <strong>training data</strong> for future AI</li>
+    </ul>
+    <div class="callout">
+      Agents who list digitally today have a <strong>head start</strong> tomorrow.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 16: AGENTIC AI ==================== -->
+<div class="slide slide--stat">
+  <div class="slide__content">
+    <div class="slide__label label--teal">WHAT'S NEXT</div>
+    <h2>Agentic AI: It Doesn't Just Write.<br>It <span style="color:var(--teal)">Plans. Executes. Follows Up.</span></h2>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-card__number">$430&ndash;550B</div>
+        <div class="stat-card__label">Annual value in real estate<br><span style="font-size:0.75rem;opacity:0.6">McKinsey 2026</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__number">64%</div>
+        <div class="stat-card__label">Walmart vendor deals negotiated by AI<br><span style="font-size:0.75rem;opacity:0.6">Target was 20%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__number">83%</div>
+        <div class="stat-card__label">Of vendors preferred dealing with AI</div>
+      </div>
+    </div>
+    <p class="subtitle" style="margin-top:1.5rem;">This is <strong style="color:var(--amber);">12&ndash;18 months</strong> away from real estate.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 17: SECTION — MONDAY MORNING ==================== -->
+<div class="slide slide--divider" role="img" aria-label="Woman holding phone with real estate app overlooking African city at sunrise" style="background-image: url('../../images/final/take-action-sunrise.jpg')">
+  <div class="slide__content">
+    <div class="slide__label label--amber">SECTION 04</div>
+    <h1>What You Should Do <span style="color:var(--amber)">Monday Morning</span></h1>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 18: THREE THINGS ==================== -->
+<div class="slide slide--text">
+  <div class="slide__content" style="max-width:750px;">
+    <div class="slide__label label--amber">YOUR ACTION PLAN</div>
+    <h2 style="margin-bottom:1.5rem;">Three Things You Can Do <span style="color:var(--amber)">This Week</span></h2>
+    <ol class="action-list">
+      <li><strong>Try AI for your next listing.</strong> ChatGPT is free. Paste your property details, get a draft in 30 seconds.</li>
+      <li><strong>Set up a WhatsApp auto-responder.</strong> Don't lose leads to slow response times. Basic AI bots exist today.</li>
+      <li><strong>List everything digitally on Propertybook.</strong> Every digital listing builds Zimbabwe's property data foundation. You're not just selling today &mdash; you're building tomorrow.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 19: THE BOTTOM LINE ==================== -->
+<div class="slide slide--text">
+  <div class="slide__content">
+    <p class="quote" style="color:var(--white);">"The question isn't whether AI will reshape Zimbabwe's property market &mdash;<br><br>it's <span style="color:var(--teal)">who will build the tools</span> that do it."</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 20: THANK YOU ==================== -->
+<div class="slide slide--hero" role="img" aria-label="African city skyline" style="background-image: url('../../images/final/hero-africa-tech.jpg')">
+  <div class="slide__content">
+    <h1 style="margin-bottom:0.5rem;">Thank You</h1>
+    <p style="font-size:1.3rem; color:var(--gray); margin-bottom:2rem;">Jon Dallas &nbsp;&bull;&nbsp; RETS 2026</p>
+    <div class="contact-grid">
+      <div class="contact-item"><span style="color:var(--teal); font-weight:700;">in</span> <span>/in/jondallas</span></div>
+      <div class="contact-item"><span style="color:var(--teal); font-weight:700;">@</span> <span>jon@jondallas.com</span></div>
+    </div>
+    <p style="margin-top:2.5rem; font-size:0.9rem; color:rgba(255,255,255,0.4);">Slides available after the event</p>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<script>
+(function() {
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const counter = document.getElementById('slideCounter');
+  const progress = document.getElementById('progressBar');
+  const navHint = document.getElementById('navHint');
+  const total = slides.length;
+  let current = 0;
+  let revealIndex = {}; // track bullet reveals per slide
+
+  function initSlide(i) {
+    if (revealIndex[i] === undefined) {
+      revealIndex[i] = 0;
+    }
+  }
+
+  function getRevealables(i) {
+    const slide = slides[i];
+    return Array.from(slide.querySelectorAll('.bullet-list li, .action-list li, .stat-card'));
+  }
+
+  function showSlide(i) {
+    slides.forEach((s, idx) => {
+      s.classList.toggle('active', idx === i);
+    });
+    counter.textContent = (i + 1) + ' / ' + total;
+    progress.style.width = ((i + 1) / total * 100) + '%';
+    initSlide(i);
+    // Show already-revealed items
+    const items = getRevealables(i);
+    items.forEach((item, idx) => {
+      if (idx < revealIndex[i]) {
+        item.classList.add('visible');
+      }
+    });
+  }
+
+  function advance() {
+    // Hide nav hint after first interaction
+    if (navHint.style.opacity !== '0') {
+      navHint.style.opacity = '0';
+    }
+
+    initSlide(current);
+    const items = getRevealables(current);
+
+    // If there are unrevealed bullets, reveal next
+    if (revealIndex[current] < items.length) {
+      items[revealIndex[current]].classList.add('visible');
+      revealIndex[current]++;
+      return;
+    }
+
+    // Otherwise, go to next slide
+    if (current < total - 1) {
+      current++;
+      showSlide(current);
+    }
+  }
+
+  function retreat() {
+    if (current > 0) {
+      current--;
+      // Reset reveals for the slide we left
+      const prevItems = getRevealables(current + 1);
+      prevItems.forEach(item => item.classList.remove('visible'));
+      revealIndex[current + 1] = 0;
+
+      showSlide(current);
+      // Show all bullets on the slide we're going back to
+      const items = getRevealables(current);
+      items.forEach(item => item.classList.add('visible'));
+      revealIndex[current] = items.length;
+    }
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'PageDown') {
+      e.preventDefault();
+      advance();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      retreat();
+    }
+  });
+
+  // Click/tap navigation
+  deck.addEventListener('click', function(e) {
+    const rect = deck.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width * 0.25) {
+      retreat();
+    } else {
+      advance();
+    }
+  });
+
+  // Touch swipe
+  let touchStartX = 0;
+  let touchStartY = 0;
+  deck.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  deck.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) advance();
+      else retreat();
+    } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+      // Tap
+      advance();
+    }
+  }, { passive: true });
+
+  // Init
+  showSlide(0);
+})();
+</script>
+</body>
+</html>

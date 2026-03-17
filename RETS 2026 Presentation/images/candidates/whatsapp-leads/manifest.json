@@ -1,0 +1,68 @@
+{
+  "query": "AI chatbot real estate property inquiry",
+  "num_requested": 5,
+  "num_found": 5,
+  "num_downloaded": 5,
+  "images": [
+    {
+      "index": 1,
+      "filename": "01.svg",
+      "title": "Real Estate AI Chatbots: A Step-by-Step Guide for Landlords",
+      "source": "DoorLoop",
+      "domain": "www.doorloop.com",
+      "imageUrl": "https://cdn.prod.website-files.com/5f18a24d02bace2ac2d05bac/64bfd64439ee361011b19d71_benefits-of-real-estate-ai-chatbots.svg",
+      "width": 1360,
+      "height": 691,
+      "downloaded": true,
+      "filesize_kb": 159.4
+    },
+    {
+      "index": 2,
+      "filename": "02.png",
+      "title": "Real Estate AI Chatbot - Real Estate 7 - Premium Real Estate ...",
+      "source": "Premium Real Estate WordPress Theme",
+      "domain": "contempothemes.com",
+      "imageUrl": "https://contempothemes.com/wp-content/uploads/2024/05/chatspark-instant-property-information-1024x1024.png",
+      "width": 1024,
+      "height": 1024,
+      "downloaded": true,
+      "filesize_kb": 442.8
+    },
+    {
+      "index": 3,
+      "filename": "03.png",
+      "title": "How to pick the best real estate AI chatbot (Examples + use ...",
+      "source": "Sendbird",
+      "domain": "sendbird.com",
+      "imageUrl": "https://sendbird.imgix.net/cms/Intelligent-property-matching.png",
+      "width": 1800,
+      "height": 1245,
+      "downloaded": true,
+      "filesize_kb": 335.1
+    },
+    {
+      "index": 4,
+      "filename": "04.webp",
+      "title": "Real Estate Chatbot - A Complete Guide",
+      "source": "Talentelgia",
+      "domain": "www.talentelgia.com",
+      "imageUrl": "https://www.talentelgia.com/blog/wp-content/uploads/2024/06/Real-Estate-Chatbot.webp",
+      "width": 1920,
+      "height": 1080,
+      "downloaded": true,
+      "filesize_kb": 205.6
+    },
+    {
+      "index": 5,
+      "filename": "05.png",
+      "title": "Real Estate Chatbot for property developers & managers | WotNot",
+      "source": "WotNot",
+      "domain": "wotnot.io",
+      "imageUrl": "https://framerusercontent.com/images/uYnHxqkKUA0uK6B8JV2AJByju0.png?width=584&height=539",
+      "width": 584,
+      "height": 539,
+      "downloaded": true,
+      "filesize_kb": 27.9
+    }
+  ]
+}

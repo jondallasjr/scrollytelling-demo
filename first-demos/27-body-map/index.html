@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>27 — The Body Map</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden;background:#04060e}
+body{color:#d0e0ff;font-family:'Georgia',serif;overflow-x:hidden}
+
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:200;font-size:0.7rem;
+  letter-spacing:0.2em;color:rgba(180,200,255,0.3);text-decoration:none;
+  text-transform:uppercase;font-family:'Courier New',monospace;transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(180,200,255,0.8)}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:4rem 2rem;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at center, #060d1e 0%, #04060e 100%);
+}
+.hero-label{font-size:0.65rem;letter-spacing:0.4em;color:#4488ff;text-transform:uppercase;margin-bottom:1.5rem;opacity:0.7;font-family:'Courier New',monospace}
+.hero-title{font-size:clamp(2rem,6vw,5rem);font-weight:400;line-height:1.1;margin-bottom:1rem}
+.hero-title em{font-style:italic;color:#88aaff}
+.hero-sub{font-size:0.9rem;color:rgba(180,200,255,0.5);max-width:500px;margin:0 auto;line-height:1.9}
+
+/* ─── BRAIN MAP ─── */
+#brain-section{
+  min-height:100vh;padding:4rem 2rem;
+  display:flex;align-items:flex-start;justify-content:center;
+}
+.brain-inner{
+  display:grid;grid-template-columns:1fr 380px;gap:3rem;
+  max-width:900px;width:100%;
+  align-items:start;
+}
+@media(max-width:720px){.brain-inner{grid-template-columns:1fr}}
+
+.brain-header{grid-column:1/-1;margin-bottom:1rem}
+.section-label{font-size:0.65rem;letter-spacing:0.4em;color:#4488ff;text-transform:uppercase;margin-bottom:0.5rem;opacity:0.6;font-family:'Courier New',monospace}
+.section-title{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:400;line-height:1.3}
+
+#brain-svg-wrap{position:relative}
+#brain-svg{width:100%;max-width:450px;display:block}
+
+/* Hotspots */
+.hotspot{
+  position:absolute;
+  width:24px;height:24px;border-radius:50%;
+  cursor:pointer;transform:translate(-50%,-50%);
+  border:2px solid;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.hotspot::after{
+  content:'';position:absolute;inset:-6px;border-radius:50%;
+  border:1px solid currentColor;opacity:0;
+  animation:pulse-ring 2s ease infinite;
+}
+@keyframes pulse-ring{
+  0%{transform:scale(0.8);opacity:0.6}
+  100%{transform:scale(1.6);opacity:0}
+}
+.hotspot:hover,.hotspot.active{
+  transform:translate(-50%,-50%) scale(1.3);
+}
+
+/* Info panel */
+.brain-info{
+  position:sticky;top:4rem;
+  border:1px solid rgba(68,136,255,0.2);
+  border-radius:6px;padding:1.5rem;
+  background:rgba(4,6,14,0.8);
+  min-height:300px;
+}
+.bi-region{font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:#4488ff;opacity:0.7;font-family:'Courier New',monospace;margin-bottom:0.5rem}
+.bi-name{font-size:1.3rem;margin-bottom:1rem;color:#88aaff}
+.bi-function{font-size:0.85rem;color:rgba(180,200,255,0.7);line-height:1.8;margin-bottom:1rem}
+.bi-question{
+  font-style:italic;font-size:0.85rem;color:rgba(180,200,255,0.5);
+  border-left:2px solid rgba(68,136,255,0.4);padding-left:1rem;line-height:1.7;
+}
+.bi-phi{margin-top:1rem;font-family:'Courier New',monospace;font-size:0.7rem;color:#4488ff;opacity:0.7}
+.bi-default{font-size:0.85rem;color:rgba(180,200,255,0.3);font-style:italic;line-height:1.8}
+
+/* ─── NERVOUS SYSTEM ─── */
+#nervous-section{
+  min-height:100vh;padding:5rem 2rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.nervous-body{font-size:0.9rem;color:rgba(180,200,255,0.6);max-width:560px;text-align:center;line-height:1.9;margin:1.5rem auto}
+#nervous-canvas{border:1px solid rgba(68,136,255,0.15);border-radius:4px;display:block;margin:0 auto}
+
+/* ─── GUT SECTION ─── */
+#gut-section{
+  min-height:80vh;padding:5rem 2rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#04060e,#060414);
+}
+.gut-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:800px;margin:2rem auto}
+@media(max-width:600px){.gut-grid{grid-template-columns:1fr}}
+.gut-card{
+  border:1px solid rgba(100,80,200,0.2);border-radius:4px;
+  padding:1.5rem;background:rgba(4,6,14,0.6);
+}
+.gut-card h3{font-size:1rem;color:#aa88ff;margin-bottom:0.8rem}
+.gut-card p{font-size:0.82rem;color:rgba(180,200,255,0.55);line-height:1.8}
+.gut-stat{font-family:'Courier New',monospace;font-size:0.7rem;color:rgba(100,80,200,0.7);margin-top:0.8rem}
+
+/* ─── FINAL ─── */
+.final-section{
+  min-height:80vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:5rem 2rem;
+}
+.final-big{font-size:clamp(2rem,5vw,4rem);font-weight:300;line-height:1.2;margin-bottom:2rem}
+.final-big span{color:#88aaff;font-style:italic}
+.final-body{font-size:0.9rem;color:rgba(180,200,255,0.5);max-width:500px;line-height:1.9}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Project 27 — The Body Map</div>
+  <h1 class="hero-title">Where does<br><em>consciousness live</em>?</h1>
+  <p class="hero-sub">The brain is obvious. But the gut has 500 million neurons. The heart has its own nervous system. The immune system makes decisions. The body is less a house for a mind than a distributed mind itself.</p>
+</div>
+
+<!-- BRAIN MAP -->
+<section id="brain-section">
+  <div class="brain-inner">
+    <div class="brain-header">
+      <div class="section-label">Region 01 — The Brain</div>
+      <h2 class="section-title">Click a region to explore its relationship with consciousness</h2>
+    </div>
+
+    <div id="brain-svg-wrap">
+      <!-- SVG brain outline with interactive hotspots -->
+      <svg id="brain-svg" viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Brain silhouette -->
+        <path d="M200 30 C240 25 290 35 320 65 C355 100 365 145 360 185 C355 225 340 260 315 285 C295 305 270 320 245 330 C230 336 215 340 200 340 C185 340 170 336 155 330 C130 320 105 305 85 285 C60 260 45 225 40 185 C35 145 45 100 80 65 C110 35 160 25 200 30Z" fill="rgba(4,8,20,0.9)" stroke="rgba(68,136,255,0.3)" stroke-width="1.5"/>
+
+        <!-- Cortex convolutions -->
+        <path d="M160 60 C180 50 220 52 240 65" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M110 100 C130 85 160 80 185 90" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M270 85 C295 75 320 85 335 105" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M65 155 C80 140 100 135 120 145" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M345 140 C355 155 355 175 345 188" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M80 210 C90 225 105 235 125 238" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M335 200 C340 215 335 235 320 248" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M130 280 C150 292 175 300 200 302" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+        <path d="M270 280 C250 292 225 300 200 302" stroke="rgba(68,136,255,0.15)" stroke-width="1.5" fill="none"/>
+
+        <!-- Corpus callosum hint -->
+        <path d="M145 195 Q200 175 255 195" stroke="rgba(100,150,255,0.2)" stroke-width="2" fill="none"/>
+
+        <!-- Brainstem -->
+        <path d="M175 325 L180 365 C185 370 215 370 220 365 L225 325" fill="rgba(4,6,14,0.9)" stroke="rgba(68,136,255,0.25)" stroke-width="1"/>
+
+        <!-- Internal structure lines -->
+        <ellipse cx="200" cy="210" rx="35" ry="25" fill="none" stroke="rgba(68,136,255,0.1)" stroke-width="1"/>
+        <ellipse cx="200" cy="200" rx="20" ry="15" fill="rgba(68,100,180,0.05)" stroke="rgba(68,136,255,0.1)" stroke-width="1"/>
+      </svg>
+
+      <!-- HOTSPOTS -->
+      <div class="hotspot" id="hs-prefrontal"
+        style="left:50%;top:18%;color:#4488ff;border-color:#4488ff;background:rgba(68,136,255,0.15)"
+        data-region="prefrontal"
+        title="Prefrontal Cortex"></div>
+
+      <div class="hotspot" id="hs-parietal"
+        style="left:28%;top:30%;color:#aa66ff;border-color:#aa66ff;background:rgba(170,102,255,0.15)"
+        data-region="parietal"
+        title="Parietal Cortex"></div>
+
+      <div class="hotspot" id="hs-temporal"
+        style="left:16%;top:55%;color:#44aaff;border-color:#44aaff;background:rgba(68,170,255,0.15)"
+        data-region="temporal"
+        title="Temporal Lobe"></div>
+
+      <div class="hotspot" id="hs-occipital"
+        style="left:50%;top:72%;color:#88cc44;border-color:#88cc44;background:rgba(136,204,68,0.12)"
+        data-region="occipital"
+        title="Occipital Lobe"></div>
+
+      <div class="hotspot" id="hs-thalamus"
+        style="left:50%;top:52%;color:#ffaa44;border-color:#ffaa44;background:rgba(255,170,68,0.15)"
+        data-region="thalamus"
+        title="Thalamus"></div>
+
+      <div class="hotspot" id="hs-claustrum"
+        style="left:72%;top:45%;color:#ff6688;border-color:#ff6688;background:rgba(255,102,136,0.15)"
+        data-region="claustrum"
+        title="Claustrum"></div>
+
+      <div class="hotspot" id="hs-brainstem"
+        style="left:50%;top:88%;color:#66ddaa;border-color:#66ddaa;background:rgba(102,221,170,0.12)"
+        data-region="brainstem"
+        title="Brainstem"></div>
+    </div>
+
+    <div class="brain-info" id="brain-info">
+      <div class="bi-default">Click any highlighted region to explore its role in consciousness. Each region raises different questions about where, and what, experience is.</div>
+    </div>
+  </div>
+</section>
+
+<!-- NERVOUS SYSTEM -->
+<section id="nervous-section">
+  <div class="section-label">Region 02 — The Nervous System</div>
+  <h2 class="section-title" style="text-align:center;margin-bottom:0.5rem">The brain is 2% of your neurons</h2>
+  <p class="nervous-body">Your peripheral nervous system has billions of neurons distributed throughout your body — in skin, organs, blood vessels. Pain, hunger, proprioception, interoception: the body's continuous report of its own state. This information is not processed by the brain alone. Much of it never reaches consciousness at all.</p>
+  <canvas id="nervous-canvas" width="700" height="400"></canvas>
+</section>
+
+<!-- GUT SECTION -->
+<section id="gut-section">
+  <div class="section-label">Region 03 — The Second Brain</div>
+  <h2 class="section-title" style="text-align:center">The enteric nervous system</h2>
+  <div class="gut-grid">
+    <div class="gut-card">
+      <h3>500 million neurons</h3>
+      <p>The gut has more neurons than the spinal cord. It can function entirely without the brain — it has its own reflexes, its own chemistry, its own rhythms. It is not a remote terminal of the brain. It is a peer.</p>
+      <div class="gut-stat">neurons: 500M · neurotransmitters: 30+ types · serotonin produced: 95%</div>
+    </div>
+    <div class="gut-card">
+      <h3>Gut → Brain</h3>
+      <p>The vagus nerve sends more signals upward (gut to brain) than downward. Your gut constantly reports its state. Emotion — the word itself comes from "to move outward." Feelings may begin in the body, not the mind.</p>
+      <div class="gut-stat">vagal afferents: ~80% sensory · emotional influence: significant · research: emerging</div>
+    </div>
+    <div class="gut-card">
+      <h3>The microbiome thinks</h3>
+      <p>38 trillion bacteria live in your gut. They produce neurotransmitters. They influence mood, anxiety, cognition. The boundaries of self — which cells are "you"? — dissolve under scrutiny. You are a colony.</p>
+      <div class="gut-stat">bacteria: 38T · species: ~1000 · proportion of human cells: 50%</div>
+    </div>
+    <div class="gut-card">
+      <h3>The felt sense</h3>
+      <p>Eugene Gendlin described the "felt sense" — a pre-verbal, body-based knowing. Before we have words for a feeling, we have a bodily sensation. Consciousness may begin not in language but in this: the body's ongoing self-knowledge.</p>
+      <div class="gut-stat">interoceptive signals: continuous · conscious access: partial · felt sense: always available</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="final-section">
+  <div class="final-big">The mind<br>is not<br><span>upstairs</span></div>
+  <p class="final-body">
+    The Cartesian picture — a rational mind surveying a dumb body — is wrong. The body is not a vehicle for consciousness; it is consciousness's primary medium. Every perception begins in the body. Every emotion begins in the body. The brain is not the controller of the body; it is the largest organ of a distributed, whole-body intelligence. Consciousness is not localized. It is the body knowing itself.
+  </p>
+</section>
+
+<script>
+const lenis = new Lenis({ lerp: 0.09 });
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── BRAIN REGION DATA ───
+const REGIONS = {
+  prefrontal: {
+    name: 'Prefrontal Cortex',
+    function: 'Executive function, planning, working memory, decision-making, self-reflection, impulse control. The newest part of the brain evolutionarily. Doesn\'t fully develop until age 25.',
+    question: 'If this region is damaged, are you less conscious, or just less rational? Is the self located here — or does it just manage here?',
+    phi: 'Φ contribution: HIGH · Integration: dense recurrent connections · Lesion effects: personality change, not unconsciousness',
+    color: '#4488ff'
+  },
+  parietal: {
+    name: 'Parietal Cortex',
+    function: 'Spatial awareness, body image, attention, sensory integration. The parietal lobe constructs the sense of having a body in space — proprioception, the experience of where you are.',
+    question: 'Parietal damage causes neglect syndrome: patients ignore half of space, half of their own body. Is the body part of consciousness, or its container?',
+    phi: 'Φ contribution: HIGH · Integration: multisensory binding · Lesion effects: spatial distortions, body neglect',
+    color: '#aa66ff'
+  },
+  temporal: {
+    name: 'Temporal Lobe',
+    function: 'Language, long-term memory, object recognition, auditory processing. Temporal lobe seizures can cause intense déjà vu, forced memories, mystical experiences.',
+    question: 'Stimulating the temporal lobe can produce religious feelings of oneness with the universe. Is mystical experience neurological? Does that make it less real?',
+    phi: 'Φ contribution: MEDIUM-HIGH · Integration: memory + perception · Lesion effects: prosopagnosia, memory loss',
+    color: '#44aaff'
+  },
+  occipital: {
+    name: 'Occipital Lobe / Visual Cortex',
+    function: 'Primary visual processing. 30% of the cortex is devoted to vision. The experience of seeing is constructed here — there is no "raw" visual data that reaches consciousness unchanged.',
+    question: 'We don\'t see the world. We see a model of the world built by this lobe. The "outside" is always already mediated. Is any experience unmediated?',
+    phi: 'Φ contribution: MEDIUM · Integration: hierarchical · Lesion effects: blindsight, visual agnosia',
+    color: '#88cc44'
+  },
+  thalamus: {
+    name: 'Thalamus',
+    function: 'The relay station. Almost all sensory information passes through the thalamus before reaching the cortex. It gates what reaches consciousness. During sleep, it shuts the gate.',
+    question: 'Without the thalamus filtering, what would experience be? Is consciousness partly defined by what is excluded? Are we always conscious of only a tiny sliver?',
+    phi: 'Φ contribution: CRITICAL · Integration: cortico-thalamic loops · Lesion effects: coma, vegetative states',
+    color: '#ffaa44'
+  },
+  claustrum: {
+    name: 'Claustrum',
+    function: 'A thin sheet of neurons Crick & Koch identified as a candidate for the "consciousness conductor." It has widespread connections to almost all cortical areas. Its function is largely unknown.',
+    question: 'Francis Crick\'s last paper, co-authored weeks before his death, argued the claustrum may be the seat of unified conscious experience. His last question: is this where it binds?',
+    phi: 'Φ contribution: UNKNOWN · Integration: extraordinary · Research: still active · Mystery: intentional',
+    color: '#ff6688'
+  },
+  brainstem: {
+    name: 'Brainstem',
+    function: 'Controls breathing, heartbeat, arousal, sleep-wake cycles. Damage here causes coma. The brainstem is required for consciousness to occur — but it doesn\'t seem to generate experience itself.',
+    question: 'The brainstem is the necessary but not sufficient condition for consciousness. It\'s the power supply. The question is: where does the program run?',
+    phi: 'Φ contribution: ENABLING (not generating) · Arousal systems: critical · Damage: loss of consciousness',
+    color: '#66ddaa'
+  }
+};
+
+const infoEl = document.getElementById('brain-info');
+document.querySelectorAll('.hotspot').forEach(hs => {
+  hs.addEventListener('click', () => {
+    const region = REGIONS[hs.dataset.region];
+    if (!region) return;
+    document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active'));
+    hs.classList.add('active');
+    infoEl.innerHTML = `
+      <div class="bi-region">${hs.dataset.region.toUpperCase()}</div>
+      <div class="bi-name">${region.name}</div>
+      <div class="bi-function">${region.function}</div>
+      <div class="bi-question">${region.question}</div>
+      <div class="bi-phi">${region.phi}</div>
+    `;
+    gsap.from(infoEl, { opacity: 0, y: 10, duration: 0.4, ease: 'power2.out' });
+  });
+});
+
+// ─── NERVOUS SYSTEM CANVAS ───
+const nc = document.getElementById('nervous-canvas');
+const nctx = nc.getContext('2d');
+nc.width = Math.min(window.innerWidth - 48, 700);
+const NW = nc.width, NH = nc.height;
+
+// Draw a simplified body outline with neural pathways
+const nerveNodes = [
+  // Brain
+  { x: NW*0.5, y: NH*0.08, r:28, label:'Brain', color:'#4488ff' },
+  // Spinal column points
+  { x: NW*0.5, y: NH*0.2, r:6, label:'C1', color:'#6688ff' },
+  { x: NW*0.5, y: NH*0.28, r:6, label:'T1', color:'#6688ff' },
+  { x: NW*0.5, y: NH*0.38, r:6, label:'L1', color:'#6688ff' },
+  { x: NW*0.5, y: NH*0.48, r:6, label:'S1', color:'#6688ff' },
+  // Gut
+  { x: NW*0.5, y: NH*0.43, r:16, label:'Gut', color:'#aa66ff' },
+  // Heart
+  { x: NW*0.45, y: NH*0.26, r:10, label:'Heart', color:'#ff4466' },
+  // Hands
+  { x: NW*0.22, y: NH*0.55, r:8, label:'L.Hand', color:'#44aaff' },
+  { x: NW*0.78, y: NH*0.55, r:8, label:'R.Hand', color:'#44aaff' },
+  // Feet
+  { x: NW*0.4, y: NH*0.92, r:8, label:'L.Foot', color:'#88ccff' },
+  { x: NW*0.6, y: NH*0.92, r:8, label:'R.Foot', color:'#88ccff' },
+];
+
+const nerveEdges = [
+  [0,1,'#6688ff',2],[1,2,'#6688ff',1.5],[2,3,'#6688ff',1.5],[3,4,'#6688ff',1.5],
+  [4,5,'#aa66ff',1],[2,6,'#ff4466',1.5],
+  [2,7,'#44aaff',1],[2,8,'#44aaff',1],
+  [4,9,'#88ccff',1],[4,10,'#88ccff',1],
+  [0,6,'#ff446688',0.8], // vagus
+  [5,0,'#aa66ff88',0.8], // gut-brain
+];
+
+let signalParticles = [];
+let nT = 0;
+
+function spawnSignal(from, to, color) {
+  signalParticles.push({ from, to, t: 0, speed: 0.01+Math.random()*0.01, color });
+}
+
+function drawNervous() {
+  nT++;
+  nctx.fillStyle = 'rgba(4,6,14,0.3)';
+  nctx.fillRect(0, 0, NW, NH);
+
+  // Edges
+  nerveEdges.forEach(([a,b,color,w]) => {
+    const na = nerveNodes[a], nb = nerveNodes[b];
+    nctx.strokeStyle = color;
+    nctx.lineWidth = w;
+    nctx.beginPath();
+    nctx.moveTo(na.x, na.y);
+    nctx.lineTo(nb.x, nb.y);
+    nctx.stroke();
+  });
+
+  // Spawn signals
+  if (nT % 40 === 0) {
+    const e = nerveEdges[Math.floor(Math.random()*nerveEdges.length)];
+    spawnSignal(nerveNodes[e[0]], nerveNodes[e[1]], e[2].substring(0,7));
+  }
+
+  // Update + draw signals
+  signalParticles = signalParticles.filter(s => s.t <= 1);
+  signalParticles.forEach(s => {
+    s.t += s.speed;
+    const x = s.from.x + (s.to.x - s.from.x) * s.t;
+    const y = s.from.y + (s.to.y - s.from.y) * s.t;
+    const alpha = Math.sin(s.t * Math.PI);
+    nctx.beginPath();
+    nctx.arc(x, y, 4, 0, Math.PI * 2);
+    nctx.fillStyle = s.color + Math.round(alpha * 200).toString(16).padStart(2,'0');
+    nctx.fill();
+  });
+
+  // Nodes
+  nerveNodes.forEach(n => {
+    const pulse = (Math.sin(nT * 0.04 + n.x * 0.01) + 1) / 2;
+    const grd = nctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*1.8);
+    grd.addColorStop(0,n.color+Math.round(pulse*100+80).toString(16).padStart(2,'0'));
+    grd.addColorStop(1,'transparent');
+    nctx.beginPath();
+    nctx.arc(n.x,n.y,n.r*1.8,0,Math.PI*2);
+    nctx.fillStyle=grd;
+    nctx.fill();
+
+    nctx.beginPath();
+    nctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    nctx.fillStyle=n.color+'44';
+    nctx.fill();
+    nctx.strokeStyle=n.color;
+    nctx.lineWidth=1;
+    nctx.stroke();
+
+    nctx.font='9px Courier New';
+    nctx.fillStyle=n.color+'bb';
+    nctx.textAlign='center';
+    nctx.fillText(n.label,n.x,n.y+n.r+12);
+  });
+
+  requestAnimationFrame(drawNervous);
+}
+
+const nervObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) drawNervous();
+  });
+}, { threshold: 0.3, once: true });
+nervObs.observe(nc);
+</script>
+</body>
+</html>

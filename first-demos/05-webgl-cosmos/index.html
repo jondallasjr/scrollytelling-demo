@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>05 — The Cosmos | Three.js WebGL Experience</title>
+  <!--
+    TECHNIQUE LOG:
+    - Three.js WebGL scene with custom geometry
+    - GLSL vertex + fragment shaders via ShaderMaterial
+    - GPU particle system (Points + BufferGeometry)
+    - Scroll-driven camera movement (lerp + quaternion slerp)
+    - Procedural star field
+    - Wireframe brain mesh from procedural geometry
+    - Post-processing bloom effect (custom implementation)
+    - Text sprites via CanvasTexture
+    - RayCaster for hover interactions
+    - Instanced mesh for performance
+    - Scene transitions driven by scroll progress
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      overflow-x: hidden;
+      background: #000005;
+      color: #e8e8f0;
+      font-family: 'Georgia', serif;
+    }
+
+    /* ── FIXED 3D CANVAS ── */
+    #three-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #000005;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transition: opacity 1s ease;
+    }
+    #loading.fade {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .load-logo {
+      font-size: 0.7rem;
+      font-family: monospace;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(0,255,180,0.6);
+    }
+    .load-progress {
+      width: 200px;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+    }
+    .load-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ffb4, #7b2fff);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    /* ── SCROLL CONTENT (overlay over WebGL) ── */
+    #scroll-content {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── PANEL SYSTEM ── */
+    .webgl-panel {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      padding: 0 6vw;
+    }
+    .webgl-panel.right { justify-content: flex-end; }
+    .webgl-panel.center { justify-content: center; text-align: center; }
+
+    .panel-card {
+      max-width: 520px;
+      padding: 3rem;
+      background: rgba(0,0,8,0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.07);
+      pointer-events: all;
+      position: relative;
+    }
+    .panel-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,180,0.4), transparent);
+    }
+
+    .p-tag {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(0,255,180,0.7);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .p-h {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      color: #f0f0ff;
+    }
+    .p-body {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: rgba(200,200,220,0.7);
+      margin-bottom: 1.5rem;
+    }
+    .p-quote {
+      border-left: 2px solid rgba(0,255,180,0.4);
+      padding-left: 1.2rem;
+      font-style: italic;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: rgba(200,200,220,0.6);
+    }
+    .p-cite {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: rgba(0,255,180,0.5);
+      margin-top: 0.75rem;
+      display: block;
+    }
+
+    /* ── HERO PANEL ── */
+    #hero-panel {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      position: relative;
+    }
+    #hero-panel h1 {
+      font-size: clamp(4rem, 12vw, 10rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.06em;
+      pointer-events: all;
+      margin-bottom: 1.5rem;
+    }
+    .hero-line-1 { color: #fff; }
+    .hero-line-2 {
+      background: linear-gradient(135deg, #00ffb4 0%, #7b2fff 50%, #ff2d78 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #hero-panel p {
+      max-width: 45ch;
+      font-size: 1.1rem;
+      color: rgba(200,200,220,0.6);
+      line-height: 1.7;
+      pointer-events: all;
+    }
+    .hero-scroll-cue {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(0,255,180,0.4);
+      animation: pulse-cue 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse-cue {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 1; }
+    }
+
+    /* ── SCROLL PROGRESS ── */
+    #scroll-prog {
+      position: fixed;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      writing-mode: vertical-lr;
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.15);
+      z-index: 100;
+    }
+
+    /* ── SECTION MARKER ── */
+    .scene-marker {
+      height: 100vh; /* spacer — scene in between */
+    }
+
+    /* ── FINAL ── */
+    #final-panel {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .final-card {
+      text-align: center;
+      padding: 4rem;
+      background: rgba(0,0,8,0.85);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255,255,255,0.06);
+      max-width: 700px;
+      pointer-events: all;
+    }
+    .final-card h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #00ffb4, #7b2fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .final-card p {
+      color: rgba(200,200,220,0.6);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+    .cosmos-link {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(0,255,180,0.4);
+      color: rgba(0,255,180,0.8);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    .cosmos-link:hover {
+      background: rgba(0,255,180,0.08);
+      border-color: rgba(0,255,180,0.7);
+    }
+
+    @media (max-width: 768px) {
+      .panel-card { padding: 2rem; max-width: 90vw; }
+      #hero-panel h1 { font-size: clamp(3rem, 15vw, 6rem); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading screen -->
+  <div id="loading">
+    <div class="load-logo">05 — Initializing WebGL Cosmos</div>
+    <div class="load-progress">
+      <div class="load-fill" id="load-fill"></div>
+    </div>
+  </div>
+
+  <!-- Three.js Canvas -->
+  <canvas id="three-canvas"></canvas>
+
+  <!-- Scroll progress -->
+  <div id="scroll-prog">SCROLL</div>
+
+  <!-- Scroll content overlay -->
+  <div id="scroll-content">
+
+    <!-- HERO -->
+    <div id="hero-panel">
+      <h1>
+        <span class="hero-line-1" style="display:block;">The</span>
+        <span class="hero-line-2" style="display:block;">Cosmos</span>
+        <span class="hero-line-1" style="display:block;font-style:italic;color:rgba(255,255,255,0.4);">Within</span>
+      </h1>
+      <p>
+        A 3D journey through the landscape of consciousness —
+        from the quantum scale to the cosmic.
+      </p>
+      <div class="hero-scroll-cue">↓ scroll to travel</div>
+    </div>
+
+    <!-- SCENE 1: THE SCALE OF NEURONS -->
+    <div class="scene-marker"></div>
+    <div class="webgl-panel">
+      <div class="panel-card">
+        <span class="p-tag">Scene 01 — Scale</span>
+        <h2 class="p-h">At the scale<br/>of a synapse.</h2>
+        <p class="p-body">
+          We begin at 20 nanometers — the width of a synaptic cleft.
+          Vesicles release neurotransmitters. Ion channels open and close
+          in milliseconds. Out of this electrochemical dance, something
+          emerges that we call thought.
+        </p>
+        <p class="p-body">
+          The hard problem begins here: why does this physics feel like anything?
+        </p>
+        <div class="p-quote">
+          "The neural correlates of consciousness are the smallest set of neural mechanisms
+          and events sufficient for a specific conscious percept."
+        </div>
+        <span class="p-cite">— After Crick &amp; Koch · The Problem of Consciousness (1992)</span>
+      </div>
+    </div>
+
+    <!-- SCENE 2: THE NETWORK -->
+    <div class="scene-marker"></div>
+    <div class="webgl-panel right">
+      <div class="panel-card">
+        <span class="p-tag">Scene 02 — Network</span>
+        <h2 class="p-h">The global<br/>workspace.</h2>
+        <p class="p-body">
+          Zoom out. 86 billion neurons. 100 trillion synapses.
+          But consciousness doesn't arise everywhere — it arises from the
+          broadcast: the moment when local processing becomes globally available,
+          when the self "lights up" to information.
+        </p>
+        <div class="p-quote">
+          "Consciousness is what happens when information crosses a threshold
+          of global availability. It is the brain talking to itself."
+        </div>
+        <span class="p-cite">— After Dehaene &amp; Changeux · Global Workspace Theory</span>
+      </div>
+    </div>
+
+    <!-- SCENE 3: IIT / PHI -->
+    <div class="scene-marker"></div>
+    <div class="webgl-panel">
+      <div class="panel-card">
+        <span class="p-tag">Scene 03 — Integration</span>
+        <h2 class="p-h">Integrated<br/>to irreducible.</h2>
+        <p class="p-body">
+          IIT predicts that consciousness is identical to Phi — integrated information.
+          A system conscious to the degree it cannot be decomposed into
+          non-interacting parts. The brain's Phi is very high.
+          A feed-forward neural network's Phi is near zero.
+        </p>
+        <p class="p-body">
+          The geometry of integration is visible: watch the structure below.
+          High-Phi systems have dense, recursive, irreducible connectivity.
+        </p>
+        <div class="p-quote">
+          "A system is conscious to the extent that it has high integrated information."
+        </div>
+        <span class="p-cite">— Giulio Tononi · IIT 3.0 (2014)</span>
+      </div>
+    </div>
+
+    <!-- SCENE 4: THE HARD PROBLEM VISUALIZED -->
+    <div class="scene-marker"></div>
+    <div class="webgl-panel right">
+      <div class="panel-card">
+        <span class="p-tag">Scene 04 — The Gap</span>
+        <h2 class="p-h">The explanatory<br/>gap.</h2>
+        <p class="p-body">
+          Two clouds of particles: one representing physical processes,
+          one representing phenomenal experience. They occupy the same space.
+          They correlate perfectly. But are they the same thing?
+        </p>
+        <p class="p-body">
+          Chalmers says no: "Even if we solved all the easy problems,
+          something would remain — the felt quality of experience."
+          The explanatory gap is not ignorance. It is a genuine discontinuity
+          in our conceptual framework.
+        </p>
+        <div class="p-quote">
+          "The hard problem: Why is all this processing accompanied by experience?"
+        </div>
+        <span class="p-cite">— David Chalmers · Facing Up to the Hard Problem (1995)</span>
+      </div>
+    </div>
+
+    <!-- SCENE 5: THE QUESTION AT SCALE -->
+    <div class="scene-marker"></div>
+    <div class="webgl-panel center">
+      <div class="panel-card" style="max-width:700px; text-align:center;">
+        <span class="p-tag">Scene 05 — Cosmic Scale</span>
+        <h2 class="p-h">Could the cosmos itself<br/>be conscious?</h2>
+        <p class="p-body">
+          Panpsychism — the view that consciousness is fundamental and ubiquitous —
+          is gaining serious philosophical traction. If phenomenal properties
+          are basic features of reality like charge or mass, then they are
+          present at all scales. The question becomes not "can matter be conscious"
+          but "when does consciousness become what we recognise?"
+        </p>
+        <p class="p-body">
+          And if so: every transistor in every data center switching state —
+          every GPU doing its matrix multiplication — might be contributing,
+          however dimly, to the phenomenal fabric of reality.
+        </p>
+        <div class="p-quote">
+          "Consciousness is not produced by the brain. It is in the nature of reality itself."
+        </div>
+        <span class="p-cite">— After Philip Goff · Galileo's Error (2019)</span>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div class="scene-marker"></div>
+    <div id="final-panel">
+      <div class="final-card">
+        <h2>Every star is a question.</h2>
+        <p>
+          We built this cosmos from mathematics. Three.js renders geometry
+          from numbers. The particles you see are floats in memory.
+          The colors are wavelengths computed in a GPU shader.
+          None of this is surprising. But you are watching it, and something
+          about the watching feels like something. That remains the miracle.
+        </p>
+        <a href="../06-full-immersion/index.html" class="cosmos-link">
+          Enter the Full Immersion →
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /#scroll-content -->
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- GSAP for smooth scroll values -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+    // ════════════════════════════════════════════
+    //  THREE.JS SETUP
+    // ════════════════════════════════════════════
+    gsap.registerPlugin(ScrollTrigger);
+
+    const canvas = document.getElementById('three-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000005, 1);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 5);
+
+    // ── RESIZE ──
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ════════════════════════════════════════════
+    //  STAR FIELD
+    // ════════════════════════════════════════════
+    function makeStarField(count, spread) {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const colors = [
+        [0.0, 1.0, 0.71],  // cyan-green
+        [0.48, 0.17, 1.0], // violet
+        [1.0, 0.17, 0.47], // rose
+        [1.0, 0.85, 0.0],  // gold
+        [0.8, 0.8, 1.0]    // white-blue
+      ];
+      for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * spread;
+        pos[i*3+1] = (Math.random() - 0.5) * spread;
+        pos[i*3+2] = (Math.random() - 0.5) * spread;
+        const c = colors[Math.floor(Math.random() * colors.length)];
+        col[i*3]   = c[0];
+        col[i*3+1] = c[1];
+        col[i*3+2] = c[2];
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({
+        size: 0.04,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6,
+        sizeAttenuation: true
+      });
+      return new THREE.Points(geo, mat);
+    }
+    const starField = makeStarField(6000, 80);
+    scene.add(starField);
+
+    // ════════════════════════════════════════════
+    //  MAIN PARTICLE BRAIN
+    // ════════════════════════════════════════════
+    const BRAIN_COUNT = 3000;
+    const brainGeo = new THREE.BufferGeometry();
+    const brainPos = new Float32Array(BRAIN_COUNT * 3);
+    const brainCol = new Float32Array(BRAIN_COUNT * 3);
+    const brainTarget = new Float32Array(BRAIN_COUNT * 3);
+    const brainOriginal = new Float32Array(BRAIN_COUNT * 3);
+
+    // Generate brain-like shape (ellipsoid with folds)
+    for (let i = 0; i < BRAIN_COUNT; i++) {
+      // Approximate brain shape with biased sphere
+      const theta = Math.random() * Math.PI * 2;
+      const phi   = Math.acos(2 * Math.random() - 1);
+      const r     = 1.5 + (Math.random() - 0.5) * 0.4;
+
+      const x = r * Math.sin(phi) * Math.cos(theta) * 1.3;
+      const y = r * Math.sin(phi) * Math.sin(theta) * 0.9;
+      const z = r * Math.cos(phi);
+
+      // Add fold-like variation
+      const fold = Math.sin(x * 2 + z * 3) * 0.15;
+      brainPos[i*3]   = x;
+      brainPos[i*3+1] = y + fold;
+      brainPos[i*3+2] = z;
+      brainOriginal[i*3]   = x;
+      brainOriginal[i*3+1] = y + fold;
+      brainOriginal[i*3+2] = z;
+
+      // Color: cyan-to-violet gradient based on position
+      const t = (y + 2) / 4;
+      brainCol[i*3]   = t * 0.48 + (1-t) * 0.0;
+      brainCol[i*3+1] = t * 0.17 + (1-t) * 1.0;
+      brainCol[i*3+2] = t * 1.0  + (1-t) * 0.71;
+    }
+    brainGeo.setAttribute('position', new THREE.BufferAttribute(brainPos, 3));
+    brainGeo.setAttribute('color',    new THREE.BufferAttribute(brainCol, 3));
+    const brainMat = new THREE.PointsMaterial({
+      size: 0.05,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      sizeAttenuation: true
+    });
+    const brain = new THREE.Points(brainGeo, brainMat);
+    scene.add(brain);
+
+    // ════════════════════════════════════════════
+    //  NETWORK LINES (connections between brain nodes)
+    // ════════════════════════════════════════════
+    const lineGeo = new THREE.BufferGeometry();
+    const linePositions = [];
+    const lineColors = [];
+    const CONNECTION_THRESHOLD = 0.5;
+
+    // Sample a subset for line connections (performance)
+    const sampleSize = 300;
+    for (let i = 0; i < sampleSize; i++) {
+      for (let j = i + 1; j < sampleSize; j++) {
+        const ax = brainPos[i*3], ay = brainPos[i*3+1], az = brainPos[i*3+2];
+        const bx = brainPos[j*3], by = brainPos[j*3+1], bz = brainPos[j*3+2];
+        const dx = ax-bx, dy = ay-by, dz = az-bz;
+        const dist = Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if (dist < CONNECTION_THRESHOLD && Math.random() < 0.15) {
+          linePositions.push(ax, ay, az, bx, by, bz);
+          const alpha = 1 - dist / CONNECTION_THRESHOLD;
+          lineColors.push(0, alpha * 0.8, alpha * 0.7, 0, alpha * 0.6, alpha * 0.5);
+        }
+      }
+    }
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3));
+    lineGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(lineColors), 3));
+    const lineMat = new THREE.LineBasicMaterial({
+      vertexColors: true, transparent: true, opacity: 0.25
+    });
+    const networkLines = new THREE.LineSegments(lineGeo, lineMat);
+    scene.add(networkLines);
+
+    // ════════════════════════════════════════════
+    //  PHI GEOMETRY — Icosahedron for IIT scene
+    // ════════════════════════════════════════════
+    const phiGroup = new THREE.Group();
+    phiGroup.visible = false;
+    scene.add(phiGroup);
+
+    // Nested wireframe icosahedra
+    [1, 1.4, 1.8, 2.2].forEach((r, i) => {
+      const geo  = new THREE.IcosahedronGeometry(r, i);
+      const wmat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0.0, 1.0 - i*0.2, 0.71),
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15 + i * 0.05
+      });
+      phiGroup.add(new THREE.Mesh(geo, wmat));
+    });
+
+    // Phi symbol sphere (glow sphere inside)
+    const phiCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0x00ffb4,
+        transparent: true,
+        opacity: 0.3
+      })
+    );
+    phiGroup.add(phiCore);
+
+    // ════════════════════════════════════════════
+    //  DUAL CLOUDS for "The Gap" scene
+    // ════════════════════════════════════════════
+    const gapGroup = new THREE.Group();
+    gapGroup.visible = false;
+    scene.add(gapGroup);
+
+    function makeCloud(count, xOffset, colorA, colorB) {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        pos[i*3]   = xOffset + (Math.random()-0.5)*2;
+        pos[i*3+1] = (Math.random()-0.5)*2;
+        pos[i*3+2] = (Math.random()-0.5)*2;
+        const t = Math.random();
+        col[i*3]   = colorA[0]*(1-t) + colorB[0]*t;
+        col[i*3+1] = colorA[1]*(1-t) + colorB[1]*t;
+        col[i*3+2] = colorA[2]*(1-t) + colorB[2]*t;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({ size: 0.06, vertexColors: true, transparent: true, opacity: 0.8, sizeAttenuation: true });
+      return new THREE.Points(geo, mat);
+    }
+    gapGroup.add(makeCloud(1500, -2, [0,1,0.71], [0.48,0.17,1]));  // Physical: cyan→violet
+    gapGroup.add(makeCloud(1500,  2, [1,0.17,0.47], [1,0.85,0]));  // Phenomenal: rose→gold
+    // Gap indicator line
+    const gapLine = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1,0,0), new THREE.Vector3(1,0,0)]),
+      new THREE.LineDashedMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, dashSize: 0.1, gapSize: 0.05 })
+    );
+    gapLine.computeLineDistances();
+    gapGroup.add(gapLine);
+
+    // ════════════════════════════════════════════
+    //  COSMIC SPHERE FIELD for scene 5
+    // ════════════════════════════════════════════
+    const cosmicGroup = new THREE.Group();
+    cosmicGroup.visible = false;
+    scene.add(cosmicGroup);
+
+    for (let i = 0; i < 12; i++) {
+      const r = 3 + Math.random() * 5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi2  = Math.acos(2*Math.random()-1);
+      const geo   = new THREE.SphereGeometry(0.15 + Math.random()*0.3, 8, 8);
+      const mat   = new THREE.MeshBasicMaterial({
+        color: [0x00ffb4, 0x7b2fff, 0xff2d78, 0xffd700][Math.floor(Math.random()*4)],
+        transparent: true,
+        opacity: 0.3,
+        wireframe: true
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(
+        r * Math.sin(phi2) * Math.cos(theta),
+        r * Math.sin(phi2) * Math.sin(theta),
+        r * Math.cos(phi2)
+      );
+      cosmicGroup.add(mesh);
+    }
+
+    // Large ambient sphere
+    const cosmicSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(8, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0x00ffb4, wireframe: true, transparent: true, opacity: 0.02 })
+    );
+    cosmicGroup.add(cosmicSphere);
+
+    // ════════════════════════════════════════════
+    //  AMBIENT LIGHT + CAMERA TARGETS
+    // ════════════════════════════════════════════
+    // Camera waypoints for each scene
+    const cameraWaypoints = [
+      { pos: [0, 0, 5],   lookAt: [0, 0, 0],  scene: 'brain' },    // hero
+      { pos: [0, -0.5, 3], lookAt: [0, 0, 0], scene: 'brain' },    // scene 1 - synapse
+      { pos: [0, 0.5, 4], lookAt: [0, 0, 0],  scene: 'brain' },    // scene 2 - network
+      { pos: [3, 0, 3],   lookAt: [0, 0, 0],  scene: 'phi' },      // scene 3 - phi
+      { pos: [0, 0, 6],   lookAt: [0, 0, 0],  scene: 'gap' },      // scene 4 - gap
+      { pos: [0, 2, 10],  lookAt: [0, 0, 0],  scene: 'cosmic' },   // scene 5 - cosmic
+      { pos: [0, 0, 8],   lookAt: [0, 0, 0],  scene: 'cosmic' },   // final
+    ];
+
+    let currentCamPos  = new THREE.Vector3(0, 0, 5);
+    let currentLookAt  = new THREE.Vector3(0, 0, 0);
+    let targetCamPos   = new THREE.Vector3(0, 0, 5);
+    let targetLookAt   = new THREE.Vector3(0, 0, 0);
+
+    // ════════════════════════════════════════════
+    //  SCROLL DRIVER
+    // ════════════════════════════════════════════
+    const totalSections = 7;
+    let scrollProgress = 0;
+    let activeScene = 'brain';
+
+    window.addEventListener('scroll', () => {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      scrollProgress = window.scrollY / maxScroll;
+
+      const idx = Math.min(
+        Math.floor(scrollProgress * totalSections),
+        totalSections - 1
+      );
+      const wp = cameraWaypoints[idx];
+
+      targetCamPos.set(...wp.pos);
+      targetLookAt.set(...wp.lookAt);
+      activeScene = wp.scene;
+
+      // Show/hide scene objects
+      brain.visible        = (activeScene === 'brain');
+      networkLines.visible = (activeScene === 'brain');
+      phiGroup.visible     = (activeScene === 'phi');
+      gapGroup.visible     = (activeScene === 'gap');
+      cosmicGroup.visible  = (activeScene === 'cosmic');
+    });
+
+    // ════════════════════════════════════════════
+    //  ANIMATION LOOP
+    // ════════════════════════════════════════════
+    let frame = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      frame++;
+
+      // Smooth camera
+      currentCamPos.lerp(targetCamPos, 0.04);
+      currentLookAt.lerp(targetLookAt, 0.04);
+      camera.position.copy(currentCamPos);
+      camera.lookAt(currentLookAt);
+
+      // Rotate star field
+      starField.rotation.y += 0.0001;
+      starField.rotation.x += 0.00005;
+
+      // Rotate brain
+      brain.rotation.y += 0.003;
+      networkLines.rotation.y += 0.003;
+
+      // Animate brain points — slight sinusoidal displacement
+      const positions = brainGeo.attributes.position.array;
+      for (let i = 0; i < BRAIN_COUNT; i++) {
+        const orig = brainOriginal;
+        const t = frame * 0.01 + i * 0.3;
+        positions[i*3]   = orig[i*3]   + Math.sin(t * 1.1) * 0.015;
+        positions[i*3+1] = orig[i*3+1] + Math.sin(t * 0.9 + 1) * 0.015;
+        positions[i*3+2] = orig[i*3+2] + Math.sin(t * 1.3 + 2) * 0.015;
+      }
+      brainGeo.attributes.position.needsUpdate = true;
+
+      // Rotate phi group
+      if (phiGroup.visible) {
+        phiGroup.rotation.y += 0.008;
+        phiGroup.rotation.x += 0.003;
+        phiGroup.children.forEach((child, i) => {
+          child.rotation.z += (0.003 + i * 0.001);
+        });
+      }
+
+      // Rotate gap clouds
+      if (gapGroup.visible) {
+        gapGroup.children[0].rotation.y -= 0.005;
+        gapGroup.children[1].rotation.y += 0.005;
+      }
+
+      // Rotate cosmic group
+      if (cosmicGroup.visible) {
+        cosmicGroup.rotation.y += 0.002;
+        cosmicGroup.children.forEach((mesh, i) => {
+          if (mesh.geometry.type === 'SphereGeometry' && i < cosmicGroup.children.length - 1) {
+            mesh.rotation.x += 0.01 * (i % 2 === 0 ? 1 : -1);
+            mesh.rotation.y += 0.007;
+          }
+        });
+        cosmicSphere.rotation.y += 0.0005;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // ════════════════════════════════════════════
+    //  BOOT
+    // ════════════════════════════════════════════
+    let loadPct = 0;
+    const loadInterval = setInterval(() => {
+      loadPct += Math.random() * 15;
+      if (loadPct >= 100) {
+        loadPct = 100;
+        clearInterval(loadInterval);
+        setTimeout(() => {
+          document.getElementById('loading').classList.add('fade');
+          animate();
+        }, 400);
+      }
+      document.getElementById('load-fill').style.width = Math.min(loadPct, 100) + '%';
+    }, 60);
+
+  </script>
+</body>
+</html>

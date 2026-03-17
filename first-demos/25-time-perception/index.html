@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25 — Time Perception</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden;background:#060609}
+body{color:#d0cce8;font-family:'Georgia',serif;overflow-x:hidden}
+
+.nav-back{
+  position:fixed;top:1.5rem;left:2rem;z-index:200;font-size:0.7rem;
+  letter-spacing:0.2em;color:rgba(200,190,230,0.3);text-decoration:none;
+  text-transform:uppercase;font-family:'Courier New',monospace;transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(200,190,230,0.8)}
+
+/* ─── HERO ─── */
+.hero{
+  height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;position:relative;overflow:hidden;
+}
+#hero-clock-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-text{position:relative;z-index:2;text-align:center}
+.hero-label{font-size:0.65rem;letter-spacing:0.4em;color:#9988ff;text-transform:uppercase;margin-bottom:1.5rem;opacity:0.7;font-family:'Courier New',monospace}
+.hero-title{font-size:clamp(2.5rem,7vw,6rem);font-weight:400;line-height:1.05;margin-bottom:1rem}
+.hero-title em{font-style:italic;color:#cc99ff}
+.hero-sub{font-size:0.9rem;color:rgba(200,190,230,0.5);max-width:500px;margin:0 auto;line-height:1.9}
+
+/* ─── SHARED SECTION ─── */
+.clock-section{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:5rem 2rem;
+  position:relative;
+}
+.section-label{font-size:0.65rem;letter-spacing:0.4em;color:#9988ff;text-transform:uppercase;margin-bottom:0.8rem;opacity:0.6;font-family:'Courier New',monospace}
+.section-title{font-size:clamp(1.5rem,3.5vw,2.8rem);font-weight:400;margin-bottom:1rem;line-height:1.3}
+.section-body{font-size:0.9rem;color:rgba(200,190,230,0.6);max-width:560px;text-align:center;line-height:1.9;margin:0 auto 2rem}
+
+.clock-canvas{
+  border-radius:50%;
+  border:1px solid rgba(200,190,230,0.1);
+  display:block;margin:0 auto;
+}
+.clock-readout{
+  text-align:center;margin-top:1.5rem;font-family:'Courier New',monospace;
+  font-size:0.75rem;color:rgba(200,190,230,0.4);letter-spacing:0.15em;
+  line-height:2;
+}
+
+/* ─── MULTI-CLOCK GRID ─── */
+#grid-section{
+  min-height:100vh;padding:5rem 2rem;
+  display:flex;flex-direction:column;align-items:center;
+}
+.clocks-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:3rem;
+  max-width:800px;width:100%;margin-top:2rem;
+}
+@media(max-width:600px){.clocks-grid{grid-template-columns:1fr}}
+.clock-card{text-align:center}
+.clock-card-label{
+  font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;
+  margin-bottom:0.5rem;font-family:'Courier New',monospace;opacity:0.5;
+}
+.clock-card-name{font-size:1.1rem;margin-bottom:1rem}
+
+/* ─── SUBJECTIVE TIME ─── */
+#subjective-section{
+  min-height:150vh;position:relative;
+}
+#subjective-sticky{
+  position:sticky;top:0;height:100vh;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+#subjective-canvas{position:absolute;inset:0;width:100%;height:100%}
+.subjective-text{position:relative;z-index:2;text-align:center;max-width:600px;padding:2rem}
+.subjective-text h2{font-size:clamp(1.5rem,4vw,3rem);margin-bottom:1rem;font-weight:300}
+.subjective-text p{font-size:0.85rem;color:rgba(200,190,230,0.5);line-height:1.9;font-family:'Courier New',monospace}
+
+/* ─── FINAL ─── */
+.final-section{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;padding:5rem 2rem;
+}
+.final-title{font-size:clamp(2rem,5vw,4rem);font-weight:300;line-height:1.2;margin-bottom:2rem}
+.final-title span{color:#cc99ff;font-style:italic}
+.final-body{font-size:0.9rem;color:rgba(200,190,230,0.5);max-width:500px;line-height:1.9;font-family:'Georgia',serif}
+#live-clock{
+  font-size:clamp(2rem,6vw,5rem);
+  font-family:'Courier New',monospace;
+  color:#9988ff;letter-spacing:0.1em;
+  margin:2rem auto;opacity:0.7;
+}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="hero-clock-canvas"></canvas>
+  <div class="hero-text">
+    <div class="hero-label">Project 25 — Time Perception</div>
+    <h1 class="hero-title">Time is not<br><em>given</em> — it is made</h1>
+    <p class="hero-sub">A second on a clock. A second in flow state. A second in pain. A second before death. The same unit of external time. Utterly different phenomenological durations. Consciousness constructs time from the inside.</p>
+  </div>
+</div>
+
+<!-- BIOLOGICAL CLOCK -->
+<section class="clock-section" id="bio-section">
+  <div class="section-label">Clock 01 — The Circadian</div>
+  <h2 class="section-title">The body keeps time<br>before the mind does</h2>
+  <p class="section-body">Your cells oscillate on a ~24-hour cycle driven by proteins that accumulate and degrade. This rhythm existed before awareness. Before thought. It is the oldest clock. Consciousness sits atop it, surfing a biological wave it didn't choose.</p>
+  <canvas class="clock-canvas" id="bio-canvas" width="300" height="300"></canvas>
+  <div class="clock-readout" id="bio-readout">reading circadian phase...</div>
+</section>
+
+<!-- GEOLOGICAL CLOCK -->
+<section class="clock-section" id="geo-section" style="background:linear-gradient(180deg,#060609,#060510)">
+  <div class="section-label">Clock 02 — The Geological</div>
+  <h2 class="section-title">Deep time<br>dwarfs awareness</h2>
+  <p class="section-body">The Earth is 4.5 billion years old. Consciousness — in any complex form — appeared perhaps 500 million years ago. The span of recorded human history is 0.0001% of Earth's age. We experience time in seconds; geology thinks in eons. We are a flash.</p>
+  <canvas class="clock-canvas" id="geo-canvas" width="300" height="300"></canvas>
+  <div class="clock-readout" id="geo-readout">calculating geological position...</div>
+</section>
+
+<!-- MULTI-CLOCK GRID -->
+<section id="grid-section">
+  <div class="section-label">Clock 03 — Four Scales</div>
+  <h2 class="section-title" style="text-align:center;margin-bottom:0.5rem">The same moment,<br>four timescales</h2>
+  <p class="section-body">Right now, you are simultaneously: a creature of milliseconds (neural firing), seconds (heartbeat), years (lifespan), and eons (cosmic time). Consciousness occupies only one of these. Which one is real?</p>
+  <div class="clocks-grid">
+    <div class="clock-card">
+      <div class="clock-card-label">Scale I</div>
+      <div class="clock-card-name">Neural (ms)</div>
+      <canvas class="clock-canvas" id="neural-clock" width="180" height="180"></canvas>
+    </div>
+    <div class="clock-card">
+      <div class="clock-card-label">Scale II</div>
+      <div class="clock-card-name">Heartbeat (s)</div>
+      <canvas class="clock-canvas" id="heart-clock" width="180" height="180"></canvas>
+    </div>
+    <div class="clock-card">
+      <div class="clock-card-label">Scale III</div>
+      <div class="clock-card-name">Lifespan (years)</div>
+      <canvas class="clock-canvas" id="life-clock" width="180" height="180"></canvas>
+    </div>
+    <div class="clock-card">
+      <div class="clock-card-label">Scale IV</div>
+      <div class="clock-card-name">Cosmic (billions)</div>
+      <canvas class="clock-canvas" id="cosmic-clock" width="180" height="180"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- SUBJECTIVE TIME -->
+<div id="subjective-section">
+  <div id="subjective-sticky">
+    <canvas id="subjective-canvas"></canvas>
+    <div class="subjective-text">
+      <h2 id="subjective-h">Scroll to feel time change</h2>
+      <p id="subjective-p">time flows at the rate of attention</p>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<section class="final-section">
+  <div class="final-title">The clock says<br><span>now</span></div>
+  <div id="live-clock"></div>
+  <p class="final-body">
+    Every clock measures duration. But duration is not time — it is the trace time leaves in the physical world. Consciousness doesn't experience duration. It experiences the present moment — a razor's edge between past and future that is infinitely thin and yet contains everything. The present is not a slice of time. It is where time happens.
+  </p>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const lenis = new Lenis({ lerp: 0.09 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── HERO CLOCK: Spirograph / orbital rings ───
+const hc = document.getElementById('hero-clock-canvas');
+const hctx = hc.getContext('2d');
+let hW, hH;
+function resizeHero() { hW = hc.width = hc.offsetWidth; hH = hc.height = hc.offsetHeight; }
+resizeHero();
+window.addEventListener('resize', resizeHero);
+
+const RINGS = [
+  { r: 0.35, speed: 0.0003, trail: 200, color: '#9988ff', phase: 0 },
+  { r: 0.25, speed: 0.0007, trail: 150, color: '#cc88ff', phase: 1.2 },
+  { r: 0.18, speed: 0.0012, trail: 100, color: '#ff88cc', phase: 2.4 },
+  { r: 0.12, speed: 0.002,  trail: 60,  color: '#88ccff', phase: 0.8 },
+];
+RINGS.forEach(r => { r.history = []; r.t = 0; });
+
+let heroT = 0;
+function drawHero() {
+  heroT++;
+  hctx.fillStyle = 'rgba(6,6,9,0.18)';
+  hctx.fillRect(0, 0, hW, hH);
+
+  const cx = hW / 2, cy = hH / 2;
+  const base = Math.min(hW, hH) * 0.42;
+
+  RINGS.forEach((ring, ri) => {
+    ring.t = heroT * ring.speed;
+    const x = cx + Math.cos(ring.t + ring.phase) * base * ring.r;
+    const y = cy + Math.sin(ring.t * 1.3 + ring.phase) * base * ring.r;
+    ring.history.push({ x, y });
+    if (ring.history.length > ring.trail) ring.history.shift();
+
+    ring.history.forEach((p, i) => {
+      const alpha = (i / ring.history.length) * 0.5;
+      hctx.beginPath();
+      hctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+      hctx.fillStyle = ring.color + Math.round(alpha * 255).toString(16).padStart(2,'0');
+      hctx.fill();
+    });
+
+    // Current point glow
+    const grd = hctx.createRadialGradient(x, y, 0, x, y, 10);
+    grd.addColorStop(0, ring.color + 'aa');
+    grd.addColorStop(1, 'transparent');
+    hctx.beginPath();
+    hctx.arc(x, y, 10, 0, Math.PI * 2);
+    hctx.fillStyle = grd;
+    hctx.fill();
+  });
+
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+
+// ─── HELPER: draw clock face ───
+function drawClockFace(ctx, w, h, color, progress, label, sublabel, detail) {
+  const cx = w / 2, cy = h / 2;
+  const r = Math.min(w, h) * 0.45;
+  ctx.clearRect(0, 0, w, h);
+
+  // Ring background
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(6,6,9,0.6)';
+  ctx.fill();
+  ctx.strokeStyle = color + '33';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Tick marks
+  for (let i = 0; i < 60; i++) {
+    const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
+    const inner = i % 5 === 0 ? r * 0.82 : r * 0.9;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    ctx.strokeStyle = color + (i % 5 === 0 ? '88' : '33');
+    ctx.lineWidth = i % 5 === 0 ? 1.5 : 0.5;
+    ctx.stroke();
+  }
+
+  // Progress arc
+  const startA = -Math.PI / 2;
+  const endA = startA + progress * Math.PI * 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.88, startA, endA);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Hand
+  const handA = startA + progress * Math.PI * 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(handA) * r * 0.7, cy + Math.sin(handA) * r * 0.7);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // Label
+  if (label) {
+    ctx.font = `${w * 0.07}px 'Courier New'`;
+    ctx.fillStyle = color + 'cc';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, cx, cy + r * 0.35);
+  }
+}
+
+// ─── BIO CLOCK (Circadian) ───
+const bioC = document.getElementById('bio-canvas');
+const bioCtx = bioC.getContext('2d');
+const bioRd = document.getElementById('bio-readout');
+
+function drawBioClock() {
+  const now = new Date();
+  const totalMins = now.getHours() * 60 + now.getMinutes();
+  const progress = totalMins / (24 * 60);
+  const phase = totalMins < 6*60 ? 'Deep sleep zone' :
+                totalMins < 9*60 ? 'Cortisol peak' :
+                totalMins < 13*60 ? 'Peak alertness' :
+                totalMins < 15*60 ? 'Post-lunch dip' :
+                totalMins < 19*60 ? 'Reaction peak' :
+                totalMins < 22*60 ? 'Melatonin rising' : 'Sleep pressure max';
+
+  drawClockFace(bioCtx, 300, 300, '#cc99ff', progress,
+    `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`);
+  bioRd.innerHTML = `Circadian progress: ${Math.round(progress*100)}%<br>${phase}<br>${Math.round((1-progress)*24*60)}min until next cycle`;
+}
+drawBioClock();
+setInterval(drawBioClock, 1000);
+
+// ─── GEO CLOCK ───
+const geoC = document.getElementById('geo-canvas');
+const geoCtx = geoC.getContext('2d');
+const geoRd = document.getElementById('geo-readout');
+
+function drawGeoClock() {
+  const EARTH_AGE_YEARS = 4.5e9;
+  const now = new Date();
+  const yearProgress = (now.getMonth() * 30.4 + now.getDate()) / 365;
+  const yearFraction = (now.getFullYear() + yearProgress) / EARTH_AGE_YEARS;
+
+  drawClockFace(geoCtx, 300, 300, '#88ccff', yearFraction % 1, 'EONS');
+
+  const humanAppearance = (3e5 / EARTH_AGE_YEARS) * 100;
+  geoRd.innerHTML = `Earth age: 4.5 billion years<br>Homo sapiens: last ${(3e5/EARTH_AGE_YEARS*100).toFixed(4)}% of time<br>This year: ${(1/EARTH_AGE_YEARS*1e9).toFixed(4)} nanoseconds of cosmic time`;
+}
+drawGeoClock();
+
+// ─── MINI CLOCKS ───
+function makeMiniClock(id, color, getProgress, getLabel) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext('2d');
+  function draw() {
+    drawClockFace(ctx, 180, 180, color, getProgress(), getLabel());
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+let neuralT2 = 0;
+makeMiniClock('neural-clock', '#ff88cc',
+  () => { neuralT2 += 0.015; return neuralT2 % 1; }, // ~100Hz brain oscillation
+  () => null
+);
+
+makeMiniClock('heart-clock', '#ff6666',
+  () => { const t = Date.now() / 1000; return (t * (72/60)) % 1; }, // 72 bpm
+  () => null
+);
+
+makeMiniClock('life-clock', '#88ffaa',
+  () => {
+    const birth = new Date(1990, 0, 1); // approximate
+    const lifeExpectancy = 78;
+    const age = (Date.now() - birth) / (1000 * 60 * 60 * 24 * 365);
+    return Math.min(age / lifeExpectancy, 1);
+  },
+  () => null
+);
+
+makeMiniClock('cosmic-clock', '#ffcc66',
+  () => {
+    const UNIVERSE_AGE = 13.8e9;
+    const YEAR = new Date().getFullYear();
+    return (YEAR / UNIVERSE_AGE) % 1;
+  },
+  () => null
+);
+
+// ─── SUBJECTIVE TIME ───
+const sc = document.getElementById('subjective-canvas');
+const sctx = sc.getContext('2d');
+let scW, scH;
+function resizeSc() { scW = sc.width = sc.offsetWidth; scH = sc.height = sc.offsetHeight; }
+resizeSc();
+
+let subjProgress = 0;
+let sT = 0;
+
+const SUBJECTIVE_STATES = [
+  { label: 'Flow State', sub: 'time disappears entirely', speed: 0.005, color: '#88ffaa', density: 1 },
+  { label: 'Deep Attention', sub: 'minutes feel like seconds', speed: 0.012, color: '#88ccff', density: 1.5 },
+  { label: 'Normal', sub: 'time flows as measured', speed: 0.025, color: '#cc99ff', density: 2 },
+  { label: 'Boredom', sub: 'seconds feel like minutes', speed: 0.05, color: '#ffcc66', density: 3 },
+  { label: 'Anxiety', sub: 'time becomes hyperreal', speed: 0.1, color: '#ff8866', density: 4 },
+];
+
+ScrollTrigger.create({
+  trigger: '#subjective-section',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 0.5,
+  onUpdate: self => {
+    subjProgress = self.progress;
+    const stateIdx = Math.min(Math.floor(subjProgress * SUBJECTIVE_STATES.length), SUBJECTIVE_STATES.length - 1);
+    const state = SUBJECTIVE_STATES[stateIdx];
+    document.getElementById('subjective-h').textContent = state.label;
+    document.getElementById('subjective-p').textContent = state.sub;
+    document.getElementById('subjective-h').style.color = state.color;
+  }
+});
+
+function drawSubjective() {
+  if (!scW) resizeSc();
+  const stateIdx = Math.min(Math.floor(subjProgress * SUBJECTIVE_STATES.length), SUBJECTIVE_STATES.length - 1);
+  const state = SUBJECTIVE_STATES[stateIdx];
+  sT += state.speed;
+
+  sctx.fillStyle = `rgba(6,6,9,${0.1 + state.density * 0.02})`;
+  sctx.fillRect(0, 0, scW, scH);
+
+  const cx = scW / 2, cy = scH / 2;
+
+  // Radiating rings — faster in anxiety/boredom, slower in flow
+  for (let i = 0; i < 12; i++) {
+    const phase = (sT * 1.5 + i / 12) % 1;
+    const r = phase * Math.min(scW, scH) * 0.55;
+    const alpha = (1 - phase) * 0.25;
+    sctx.beginPath();
+    sctx.arc(cx, cy, r, 0, Math.PI * 2);
+    sctx.strokeStyle = state.color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+    sctx.lineWidth = 1;
+    sctx.stroke();
+  }
+
+  // Central spiral
+  sctx.beginPath();
+  for (let a = 0; a < Math.PI * 8; a += 0.05) {
+    const r2 = a * (20 + state.density * 5);
+    const x = cx + Math.cos(a + sT * 3) * r2;
+    const y = cy + Math.sin(a + sT * 2.7) * r2;
+    if (a === 0) sctx.moveTo(x, y);
+    else sctx.lineTo(x, y);
+  }
+  sctx.strokeStyle = state.color + '33';
+  sctx.lineWidth = 1;
+  sctx.stroke();
+
+  requestAnimationFrame(drawSubjective);
+}
+drawSubjective();
+
+// ─── LIVE CLOCK ───
+const liveClock = document.getElementById('live-clock');
+function updateLiveClock() {
+  const n = new Date();
+  const h = n.getHours().toString().padStart(2,'0');
+  const m = n.getMinutes().toString().padStart(2,'0');
+  const s = n.getSeconds().toString().padStart(2,'0');
+  const ms = n.getMilliseconds().toString().padStart(3,'0');
+  liveClock.textContent = `${h}:${m}:${s}.${ms}`;
+}
+updateLiveClock();
+setInterval(updateLiveClock, 50);
+</script>
+</body>
+</html>

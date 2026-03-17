@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RETS 2026 — Scrollytelling Segments</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #09100e;
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --red: #E74C3C;
+  --white: #FFFFFF;
+  --gray: #6b7f75;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,170,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,170,0.015) 1px, transparent 1px);
+  background-size: 70px 70px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 60vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 5rem 2rem 3rem;
+  position: relative; z-index: 1;
+}
+
+.hero-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2rem, 7vw, 5rem); line-height: 1.05; margin-bottom: 1.2rem;
+}
+
+.hero-title em { font-style: normal; color: var(--teal); }
+
+.hero-sub {
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem); color: var(--gray);
+  max-width: 560px; line-height: 1.65;
+}
+
+.hero-meta {
+  margin-top: 1.5rem; display: flex; gap: 1.5rem; align-items: center;
+  flex-wrap: wrap; justify-content: center;
+  font-size: 0.8rem; color: rgba(255,255,255,0.25);
+}
+
+.hero-meta span {
+  display: flex; align-items: center; gap: 0.4rem;
+}
+
+/* ── GRID ── */
+.segments {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  padding: 2rem 1.5rem 8rem;
+}
+
+.segments-label {
+  text-align: center; font-family: 'Montserrat', sans-serif;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--gray);
+  margin-bottom: 2.5rem;
+}
+
+.segment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+}
+
+.segment-card {
+  background: var(--bg);
+  padding: 2.5rem 2rem;
+  text-decoration: none;
+  color: var(--white);
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+
+.segment-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: currentColor;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.segment-card:hover { background: rgba(255,255,255,0.02); }
+.segment-card:hover::before { transform: scaleX(1); }
+
+.sc-num {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  letter-spacing: 0.2em; color: currentColor;
+  margin-bottom: 1.5rem; opacity: 0.5;
+}
+
+.sc-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 1.5rem; line-height: 1.15; margin-bottom: 0.7rem;
+}
+
+.sc-technique {
+  font-family: 'Montserrat', sans-serif; font-size: 0.62rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: currentColor; opacity: 0.45; margin-bottom: 1.2rem;
+}
+
+.sc-desc {
+  font-size: 0.88rem; line-height: 1.65; color: var(--gray);
+  margin-bottom: 1.5rem;
+}
+
+.sc-tags {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+}
+
+.sc-tag {
+  font-family: 'Montserrat', sans-serif; font-size: 0.55rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.2rem 0.5rem; border: 1px solid currentColor;
+  opacity: 0.3; border-radius: 2px;
+}
+
+.sc-arrow {
+  position: absolute; bottom: 1.8rem; right: 1.8rem;
+  font-size: 1.1rem; opacity: 0.15;
+  transition: opacity 0.3s, transform 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.segment-card:hover .sc-arrow { opacity: 0.7; transform: translate(4px, -4px); }
+
+/* Slide topic label */
+.sc-source {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  font-size: 0.6rem; font-family: 'Montserrat', sans-serif;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: currentColor; opacity: 0.2;
+  padding: 0.2rem 0.4rem; border-radius: 2px;
+  border: 1px solid currentColor;
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="hero-eyebrow">Jon Dallas · RETS 2026 · Zimbabwe</p>
+  <h1 class="hero-title">
+    AI Can Help You Sell More<br>
+    <em>RIGHT NOW.</em>
+  </h1>
+  <p class="hero-sub">
+    Each segment below takes one idea from the RETS 2026 presentation
+    and turns it into an immersive, scroll-driven experience.
+    Pick any — or start at the top.
+  </p>
+  <div class="hero-meta">
+    <span>↗ Scrollytelling Segments</span>
+    <span>·</span>
+    <span>Self-contained · No dependencies</span>
+    <span>·</span>
+    <span>More added continuously</span>
+  </div>
+</div>
+
+<div class="segments">
+  <p class="segments-label">All Segments — Growing List</p>
+
+  <div class="segment-grid">
+
+    <a href="segment-01-the-shift.html" class="segment-card" style="color:var(--teal);">
+      <span class="sc-source">Slide 2</span>
+      <div class="sc-num">01</div>
+      <h2 class="sc-title">The Shift Has Already Happened</h2>
+      <p class="sc-technique">Sticky Scroll · Dot Grid · Counter</p>
+      <p class="sc-desc">
+        82% of US real estate agents now use AI. Watch 100 agent dots light up in teal
+        as a counter climbs in real-time with your scroll. Then see the before/after: three years, zero to everywhere.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">IntersectionObserver</span>
+        <span class="sc-tag">Sticky pin</span>
+        <span class="sc-tag">Dot grid</span>
+        <span class="sc-tag">CSS transitions</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-02-zimbabwe-leap.html" class="segment-card" style="color:#4ade80;">
+      <span class="sc-source">Slide 3</span>
+      <div class="sc-num">02</div>
+      <h2 class="sc-title">Zimbabwe's Leap</h2>
+      <p class="sc-technique">Sticky Panels · Animated Counters · Africa Silhouette</p>
+      <p class="sc-desc">
+        Three numbers that reveal Zimbabwe's hidden advantage: 91.6% mobile penetration, 87% internet via phone, and a $119B market.
+        Each stat fades in as you scroll, with animated counters counting up on entry.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">CSS clip-path</span>
+        <span class="sc-tag">Sticky reveal</span>
+        <span class="sc-tag">requestAnimationFrame</span>
+        <span class="sc-tag">Dot indicator</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-03-while-you-sleep.html" class="segment-card" style="color:var(--teal);">
+      <span class="sc-source">Slide 6</span>
+      <div class="sc-num">03</div>
+      <h2 class="sc-title">AI Answers While You Sleep</h2>
+      <p class="sc-technique">WhatsApp Chat Animation · Response Time Bars</p>
+      <p class="sc-desc">
+        It's 2:47 AM. A lead comes in. Watch a WhatsApp conversation unfold bubble by bubble
+        as you scroll — the AI responds in 47 seconds. Then see the data: respond in 5 min vs next day.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">Chat simulation</span>
+        <span class="sc-tag">Typing indicator</span>
+        <span class="sc-tag">Bar chart animation</span>
+        <span class="sc-tag">Sticky scene</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-04-zillow-disaster.html" class="segment-card" style="color:var(--red);">
+      <span class="sc-source">Slide 10</span>
+      <div class="sc-num">04</div>
+      <h2 class="sc-title">The Zillow Disaster</h2>
+      <p class="sc-technique">SVG Chart Draw · Scroll-Driven Counter · Loss Animation</p>
+      <p class="sc-desc">
+        A $500 million AI disaster, told through a scroll-driven SVG chart that draws
+        itself as you descend. Watch the counter go from homes-bought to a brutal −$304M write-down.
+        Peak markers appear at the right moments. Lessons follow.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">SVG stroke-dashoffset</span>
+        <span class="sc-tag">Scroll-driven chart</span>
+        <span class="sc-tag">Dynamic counter</span>
+        <span class="sc-tag">Sticky pin</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-05-mpesa-leapfrog.html" class="segment-card" style="color:#4ade80;">
+      <span class="sc-source">Slide 14</span>
+      <div class="sc-num">05</div>
+      <h2 class="sc-title">The M-Pesa Leapfrog</h2>
+      <p class="sc-technique">Dual Panel Reveal · Sequential Fact Cascade</p>
+      <p class="sc-desc">
+        Kenya skipped banks in 2007. Zimbabwe can skip legacy PropTech in 2026.
+        Two side-by-side panels reveal facts in parallel as you scroll — one for Kenya then, one for Zimbabwe now —
+        building the unmissable parallel.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">Dual panel layout</span>
+        <span class="sc-tag">Sequential reveal</span>
+        <span class="sc-tag">Outcome grid</span>
+        <span class="sc-tag">Sticky comparison</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-06-virtual-staging.html" class="segment-card" style="color:var(--teal);">
+      <span class="sc-source">Slide 7</span>
+      <div class="sc-num">06</div>
+      <h2 class="sc-title">Virtual Staging: Almost Nothing</h2>
+      <p class="sc-technique">Scroll-Driven Wipe Reveal · clip-path Animation</p>
+      <p class="sc-desc">
+        A CSS before/after room wipe driven by scroll position. As you descend, the "after" image
+        reveals from left to right — empty concrete room transforming into a warm staged space.
+        Four stats snap in as the reveal completes.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">clip-path wipe</span>
+        <span class="sc-tag">CSS room art</span>
+        <span class="sc-tag">Sticky scene</span>
+        <span class="sc-tag">Cost comparison</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <a href="segment-07-monday-morning.html" class="segment-card" style="color:var(--amber);">
+      <span class="sc-source">Slide 18</span>
+      <div class="sc-num">07</div>
+      <h2 class="sc-title">Monday Morning Action Plan</h2>
+      <p class="sc-technique">Accordion Expand · Scroll-State Machine · Active/Done Cycle</p>
+      <p class="sc-desc">
+        An animated Monday morning alarm clock, then three action items that open accordion-style
+        as you scroll — each moving from locked → active → done, with a satisfying
+        teal checkmark and completion state at the end.
+      </p>
+      <div class="sc-tags">
+        <span class="sc-tag">State machine</span>
+        <span class="sc-tag">Accordion reveal</span>
+        <span class="sc-tag">Scroll phases</span>
+        <span class="sc-tag">Sticky list</span>
+      </div>
+      <div class="sc-arrow">→</div>
+    </a>
+
+    <!-- Placeholder for upcoming segments -->
+    <div class="segment-card" style="color:rgba(255,255,255,0.15); cursor:default; pointer-events:none; border: 1px dashed rgba(255,255,255,0.06);">
+      <div class="sc-num">08+</div>
+      <h2 class="sc-title" style="color:rgba(255,255,255,0.15);">More Coming…</h2>
+      <p class="sc-technique" style="color:rgba(255,255,255,0.1);">Segments added continuously</p>
+      <p class="sc-desc" style="color:rgba(255,255,255,0.1);">
+        Agentic AI timeline · The Bias Problem · Propertybook data story ·
+        The Bottom Line quote · Fake listings warning…
+      </p>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

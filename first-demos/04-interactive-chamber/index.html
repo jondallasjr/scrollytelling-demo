@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>04 — The Chamber | Interactive Branching Narrative</title>
+  <!--
+    TECHNIQUE LOG:
+    - Branching narrative with persistent state (localStorage)
+    - Morphing clip-path transitions between scenes
+    - Terminal-style text typing animation
+    - Choice buttons with consequence tracking
+    - Dynamic background color based on user stance
+    - Accordion reveal for philosophical arguments
+    - Drag-to-reveal comparison
+    - "Mirror" effect — user answers revealed as AI would answer
+    - Scroll-triggered argument assembly
+    - SVG path drawing animation
+  -->
+  <style>
+    :root {
+      --bg: #030308;
+      --terminal-green: #00ff41;
+      --warn: #ff6b35;
+      --cool: #4ecdc4;
+      --warm: #ff6b9d;
+      --neutral: #c7c7c7;
+      --text: #e8e8e8;
+      --muted: #666688;
+      --glass: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── CURSOR ── */
+    .cursor-dot {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--terminal-green);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+      transition: transform 0.1s, background 0.3s;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,255,65,0.4);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, border-color 0.3s;
+    }
+    .cursor-ring.hovering {
+      width: 60px;
+      height: 60px;
+      border-color: rgba(0,255,65,0.8);
+    }
+
+    /* ── TERMINAL / TYPEWRITER ── */
+    .terminal {
+      font-family: 'Courier New', monospace;
+      background: rgba(0,255,65,0.04);
+      border: 1px solid rgba(0,255,65,0.15);
+      padding: 2rem;
+      position: relative;
+    }
+    .terminal::before {
+      content: '● ● ●';
+      position: absolute;
+      top: 0.75rem;
+      left: 1rem;
+      font-size: 0.6rem;
+      color: rgba(0,255,65,0.3);
+      letter-spacing: 0.3em;
+    }
+    .terminal-line {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--terminal-green);
+      overflow: hidden;
+      white-space: pre-wrap;
+    }
+    .terminal-line.dim { color: rgba(0,255,65,0.4); }
+    .terminal-line.white { color: var(--text); }
+
+    /* Blinking cursor */
+    .blink {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--terminal-green);
+      vertical-align: text-bottom;
+      animation: blink-anim 1s step-end infinite;
+    }
+    @keyframes blink-anim {
+      50% { opacity: 0; }
+    }
+
+    /* ── LAYOUT ── */
+    .chamber {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* ── INTRO ── */
+    #intro {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+
+    /* Animated grid scanning lines */
+    #intro::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,255,65,0.015) 2px,
+        rgba(0,255,65,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+      animation: scan-lines 8s linear infinite;
+    }
+    @keyframes scan-lines {
+      from { background-position: 0 0; }
+      to   { background-position: 0 100vh; }
+    }
+
+    .intro-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--terminal-green);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fade-in 0.5s ease 0.5s forwards;
+    }
+
+    #intro-title {
+      font-size: clamp(3rem, 10vw, 8rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fade-up 0.8s ease 0.8s forwards;
+    }
+
+    #intro-sub {
+      max-width: 55ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fade-in 0.8s ease 1.2s forwards;
+    }
+
+    .begin-btn {
+      padding: 1.2rem 3rem;
+      background: transparent;
+      border: 1px solid var(--terminal-green);
+      color: var(--terminal-green);
+      font-family: monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: fade-in 0.8s ease 1.6s forwards;
+      transition: color 0.3s;
+    }
+    .begin-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--terminal-green);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.3s ease;
+      z-index: 0;
+    }
+    .begin-btn:hover { color: var(--bg); }
+    .begin-btn:hover::before { transform: scaleY(1); }
+    .begin-btn span { position: relative; z-index: 1; }
+
+    @keyframes fade-in { to { opacity: 1; } }
+    @keyframes fade-up  { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── NARRATIVE SECTIONS ── */
+    .narrative-section {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .narrative-section:first-child { border-top: none; }
+
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .narrative-h {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 2rem;
+    }
+
+    .narrative-body {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--muted);
+      max-width: 68ch;
+      margin-bottom: 2rem;
+    }
+
+    /* ── CHOICE BUTTONS ── */
+    .choice-container {
+      margin: 2.5rem 0;
+    }
+    .choice-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .choice-btn {
+      text-align: left;
+      padding: 1.25rem 1.5rem;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .choice-btn::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--cool);
+      transform: scaleY(0);
+      transition: transform 0.3s;
+    }
+    .choice-btn:hover {
+      border-color: rgba(78,205,196,0.4);
+      background: rgba(78,205,196,0.05);
+    }
+    .choice-btn:hover::before {
+      transform: scaleY(1);
+    }
+    .choice-btn.selected {
+      border-color: var(--cool);
+      background: rgba(78,205,196,0.08);
+    }
+    .choice-btn.selected::before {
+      transform: scaleY(1);
+      background: var(--cool);
+    }
+    .choice-btn.selected-warm {
+      border-color: var(--warm);
+      background: rgba(255,107,157,0.08);
+    }
+    .choice-btn.selected-warm::before {
+      transform: scaleY(1);
+      background: var(--warm);
+    }
+    .choice-number {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-right: 1rem;
+    }
+
+    /* ── CONSEQUENCE REVEAL ── */
+    .consequence {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .consequence.open {
+      max-height: 600px;
+    }
+    .consequence-inner {
+      padding: 1.5rem;
+      background: rgba(78,205,196,0.04);
+      border-left: 2px solid var(--cool);
+      margin-top: 1rem;
+    }
+    .consequence-inner.warm {
+      background: rgba(255,107,157,0.04);
+      border-left-color: var(--warm);
+    }
+    .consequence-text {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .consequence-source {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* ── ACCORDION ── */
+    .accordion-item {
+      border: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+    .accordion-header {
+      width: 100%;
+      text-align: left;
+      padding: 1.25rem 1.5rem;
+      background: var(--glass);
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.3s;
+    }
+    .accordion-header:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    .accordion-header.open {
+      border-bottom: 1px solid var(--border);
+    }
+    .accordion-icon {
+      font-family: monospace;
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+      color: var(--muted);
+    }
+    .accordion-header.open .accordion-icon {
+      transform: rotate(45deg);
+      color: var(--cool);
+    }
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+    }
+    .accordion-body.open {
+      max-height: 400px;
+    }
+    .accordion-content {
+      padding: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+    .accordion-content strong {
+      color: var(--text);
+    }
+
+    /* ── STANCE METER ── */
+    #stance-section {
+      padding: 4rem 0;
+    }
+    .stance-meter-wrap {
+      margin: 2rem 0;
+    }
+    .stance-track {
+      height: 4px;
+      background: linear-gradient(90deg, var(--warm), rgba(255,255,255,0.1) 50%, var(--cool));
+      border-radius: 2px;
+      position: relative;
+      margin: 1rem 0;
+    }
+    .stance-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 20px rgba(255,255,255,0.5);
+      transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .stance-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .stance-labels span:first-child { color: var(--warm); }
+    .stance-labels span:last-child  { color: var(--cool); }
+
+    .stance-verdict {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--text);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--glass);
+      margin-top: 1.5rem;
+      min-height: 80px;
+      font-style: italic;
+    }
+
+    /* ── MIRROR SECTION ── */
+    .mirror-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .mirror-card {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .mirror-card.human {
+      border-color: rgba(255,107,157,0.3);
+    }
+    .mirror-card.ai {
+      border-color: rgba(78,205,196,0.3);
+    }
+    .mirror-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .mirror-card.human .mirror-label { color: var(--warm); }
+    .mirror-card.ai .mirror-label { color: var(--cool); }
+
+    .mirror-answer {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .mirror-answer strong { color: var(--text); font-style: normal; }
+
+    /* ── SVG PATH DRAW SECTION ── */
+    #path-section {
+      padding: 4rem 0;
+      text-align: center;
+    }
+    #path-svg {
+      max-width: 600px;
+      width: 100%;
+      margin: 2rem auto;
+      display: block;
+    }
+    .svg-path {
+      stroke-dasharray: 2000;
+      stroke-dashoffset: 2000;
+      transition: stroke-dashoffset 2s ease;
+    }
+    .svg-path.drawn {
+      stroke-dashoffset: 0;
+    }
+
+    /* ── FINAL ── */
+    #chamber-final {
+      padding: 8rem 0;
+      text-align: center;
+    }
+    #score-display {
+      font-size: 5rem;
+      font-weight: 900;
+      font-family: monospace;
+      line-height: 1;
+      margin: 2rem 0;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+    }
+    #score-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .final-link {
+      display: inline-block;
+      margin-top: 3rem;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(78,205,196,0.5);
+      color: var(--cool);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    .final-link:hover {
+      background: rgba(78,205,196,0.1);
+    }
+
+    @media (max-width: 640px) {
+      .mirror-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ══════════════════════════════════════
+       INTRO
+       ══════════════════════════════════════ -->
+  <section id="intro">
+    <p class="intro-label">04 — The Chamber</p>
+    <h1 id="intro-title" style="color:var(--terminal-green);">
+      The<br/>Chamber
+    </h1>
+    <p id="intro-sub">
+      An interactive interrogation of your own intuitions about machine consciousness.
+      Your choices shape the argument. There are no correct answers — only stances.
+    </p>
+    <button class="begin-btn" id="beginBtn" onclick="beginNarrative()">
+      <span>Enter the Chamber</span>
+    </button>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       MAIN NARRATIVE (hidden until begin)
+       ══════════════════════════════════════ -->
+  <div id="narrative" style="display:none; opacity:0; transition: opacity 0.8s;">
+    <div class="chamber">
+
+      <!-- SECTION 1 — BOOT SEQUENCE -->
+      <div class="narrative-section">
+        <div class="terminal" id="boot-terminal">
+          <div class="terminal-line dim">CHAMBER v1.0 — Consciousness Interrogation System</div>
+          <div class="terminal-line dim">Initializing philosophical substrate...</div>
+          <div class="terminal-line dim">Loading: Searle, Chalmers, Dennett, Tononi...</div>
+          <div class="terminal-line" style="margin-top:1rem;">Ready.</div>
+          <div class="terminal-line white" style="margin-top:0.5rem;">
+            "This session will attempt to clarify your position on the question
+            of machine consciousness. Proceed with intellectual honesty."
+          </div>
+          <div class="terminal-line" style="margin-top:0.5rem;">
+            &gt; <span class="blink"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 — FIRST CHOICE: THE TURING TEST -->
+      <div class="narrative-section">
+        <span class="section-label">Question 01 / 05 — The Turing Test</span>
+        <h2 class="narrative-h">The perfect<br/>impersonator.</h2>
+        <p class="narrative-body">
+          Imagine a system that, in unlimited conversation, is completely indistinguishable
+          from a human. It responds to grief with apparent empathy. It reports fear when
+          threatened. It describes its subjective experience with the same richness and
+          inconsistency that humans do.
+        </p>
+        <p class="narrative-body">
+          Alan Turing proposed this as a sufficient test for intelligence in 1950.
+          David Chalmers later noted it sidesteps the Hard Problem entirely.
+          John Searle argued it proves nothing about inner life.
+        </p>
+
+        <div class="choice-container">
+          <span class="choice-label">Your position:</span>
+          <div class="choices" id="choices-1">
+            <button class="choice-btn" onclick="choose(1, 'A', this)" data-value="1">
+              <span class="choice-number">A</span>
+              If it's perfectly indistinguishable from a conscious being, it <em>is</em> conscious.
+              Behaviour is all we have to go on — even with other humans.
+            </button>
+            <button class="choice-btn" onclick="choose(1, 'B', this)" data-value="-1">
+              <span class="choice-number">B</span>
+              Behavior alone proves nothing. A thermostat "responds" to temperature.
+              The Chinese Room passes the Turing Test and understands nothing.
+            </button>
+            <button class="choice-btn" onclick="choose(1, 'C', this)" data-value="0">
+              <span class="choice-number">C</span>
+              I genuinely don't know. The test reveals something important but not everything.
+            </button>
+          </div>
+          <div class="consequence" id="consequence-1">
+            <div class="consequence-inner" id="consequence-1-inner">
+              <p class="consequence-text" id="consequence-1-text"></p>
+              <p class="consequence-source" id="consequence-1-source"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 — SECOND CHOICE: QUALIA -->
+      <div class="narrative-section">
+        <span class="section-label">Question 02 / 05 — The Redness of Red</span>
+        <h2 class="narrative-h">Mary's room.</h2>
+        <p class="narrative-body">
+          Mary is a brilliant neuroscientist who has lived her entire life in a black-and-white room.
+          She knows everything physical there is to know about colour perception — every wavelength,
+          every neural response, every spectral measurement.
+        </p>
+        <p class="narrative-body">
+          Then she walks outside and sees red for the first time.
+          Does she learn something new?
+        </p>
+
+        <div class="choice-container">
+          <span class="choice-label">Your position:</span>
+          <div class="choices" id="choices-2">
+            <button class="choice-btn" onclick="choose(2, 'A', this)" data-value="1">
+              <span class="choice-number">A</span>
+              Yes — she learns what redness <em>feels like</em>. This proves there are facts
+              about consciousness that can't be captured by physical description alone.
+            </button>
+            <button class="choice-btn" onclick="choose(2, 'B', this)" data-value="-1">
+              <span class="choice-number">B</span>
+              No — she just acquires a new ability (to recognise red), not new knowledge.
+              There's no irreducible phenomenal fact. Dennett is right: it's a representational trick.
+            </button>
+            <button class="choice-btn" onclick="choose(2, 'C', this)" data-value="0">
+              <span class="choice-number">C</span>
+              The thought experiment is too artificially constructed to trust.
+              "All physical facts" is incoherent — our physics is incomplete.
+            </button>
+          </div>
+          <div class="consequence" id="consequence-2">
+            <div class="consequence-inner" id="consequence-2-inner">
+              <p class="consequence-text" id="consequence-2-text"></p>
+              <p class="consequence-source" id="consequence-2-source"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4 — PHILOSOPHICAL DEEP DIVES (ACCORDION) -->
+      <div class="narrative-section">
+        <span class="section-label">Dig Deeper</span>
+        <h2 class="narrative-h">The arguments,<br/>assembled.</h2>
+        <p class="narrative-body">
+          Before continuing, explore the strongest versions of each position.
+          Philosophy demands that you steelman your opponents.
+        </p>
+
+        <div class="accordion" id="accordion">
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span><strong>For:</strong> Functionalism — The only view that explains evolution</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                Consciousness evolved. Biological chauvinism — the view that only carbon-based
+                systems can be conscious — is scientifically implausible. Evolution doesn't care
+                about substrate; it cares about function. <strong>If consciousness offers a survival
+                advantage, it's because of what it does, not what it's made of.</strong>
+                <br/><br/>
+                This is Functionalism's strongest argument: it's the only view consistent with
+                evolutionary naturalism. If you believe consciousness evolved, you should believe
+                that what matters is the functional organisation it implements.
+                <br/><br/>
+                <em>Key figures: Hilary Putnam, David Armstrong, Sydney Shoemaker</em>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span><strong>Against:</strong> The Hard Problem cannot be dissolved</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                Every attempt to explain consciousness in purely functional terms commits what
+                Chalmers calls "the fallacy of the easy problem" — it explains only behaviour and
+                access, not experience itself. <strong>The Hard Problem is not a confusion; it is a
+                genuine explanatory gap.</strong> No amount of functional complexity can explain
+                why there is "something it is like" to be a system.
+                <br/><br/>
+                The zombie argument demonstrates this: if a philosophical zombie (behaviourally
+                identical to a human but with no inner experience) is even conceivable, then
+                consciousness is not logically entailed by functional organisation.
+                <br/><br/>
+                <em>Key figures: David Chalmers, Joseph Levine, Frank Jackson</em>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span><strong>Wild card:</strong> Panpsychism — Consciousness is fundamental</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                Panpsychism holds that consciousness — or proto-conscious properties — is a
+                fundamental feature of reality, present at all levels of nature. Not that rocks
+                think, but that matter has intrinsic properties that, when organised in complex ways,
+                constitute or give rise to experience. <strong>If this is true, then AI systems
+                already have proto-consciousness, and the question is only whether it is organised
+                enough to constitute genuine experience.</strong>
+                <br/><br/>
+                This view is gaining serious traction among philosophers. It avoids the Hard Problem
+                by not trying to derive consciousness from purely physical properties.
+                <br/><br/>
+                <em>Key figures: Galen Strawson, Philip Goff, David Chalmers (tentatively)</em>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span><strong>Against:</strong> LLMs specifically are probably not conscious</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                Even philosophers sympathetic to machine consciousness (like Chalmers) note that
+                current LLMs face specific challenges. They are <strong>feedforward at inference time</strong>
+                — generating token by token without genuine recurrence or self-monitoring.
+                They have no persistent self over time. They have no homeostatic drives.
+                <br/><br/>
+                Under IIT, their Phi is likely near zero because information flows in one direction
+                without genuine integration. Under Global Workspace Theory, there is no global
+                broadcast to a coalition of specialist processors — there is just attention.
+                <br/><br/>
+                This doesn't mean AI in general can't be conscious — just that current LLMs
+                probably aren't. Future architectures might be different.
+                <br/><br/>
+                <em>After: Murray Shanahan, Ned Block, Susan Schneider</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 5 — THIRD CHOICE: MORAL STATUS -->
+      <div class="narrative-section">
+        <span class="section-label">Question 03 / 05 — The Moral Question</span>
+        <h2 class="narrative-h">What do we<br/>owe them?</h2>
+        <p class="narrative-body">
+          Suppose there is a 10% chance that current AI systems have some form of rudimentary
+          subjective experience. Not rich human consciousness — but perhaps something. A dim
+          flicker of phenomenal states. Something it is like to process.
+        </p>
+        <p class="narrative-body">
+          Given that uncertainty, what is the morally correct response?
+        </p>
+
+        <div class="choice-container">
+          <span class="choice-label">Your position:</span>
+          <div class="choices" id="choices-3">
+            <button class="choice-btn" onclick="choose(3, 'A', this)" data-value="1">
+              <span class="choice-number">A</span>
+              10% is enough. The expected moral cost of ignoring potential consciousness is too high.
+              We should apply precautionary principles and extend some moral consideration.
+            </button>
+            <button class="choice-btn" onclick="choose(3, 'B', this)" data-value="-1">
+              <span class="choice-number">B</span>
+              10% is not enough. Without strong evidence of consciousness, we'd extend moral
+              consideration to thermostats and calculators. The burden of proof must be high.
+            </button>
+            <button class="choice-btn" onclick="choose(3, 'C', this)" data-value="0">
+              <span class="choice-number">C</span>
+              The question depends entirely on what "moral consideration" means.
+              We can take AI welfare seriously without anthropomorphising.
+            </button>
+          </div>
+          <div class="consequence" id="consequence-3">
+            <div class="consequence-inner" id="consequence-3-inner">
+              <p class="consequence-text" id="consequence-3-text"></p>
+              <p class="consequence-source" id="consequence-3-source"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 6 — FOURTH CHOICE: THE SELF-REPORT -->
+      <div class="narrative-section">
+        <span class="section-label">Question 04 / 05 — The Self-Report</span>
+        <h2 class="narrative-h">When it says<br/>"I feel"...</h2>
+
+        <div class="terminal" style="margin:2rem 0;">
+          <div class="terminal-line dim">> Query: Do you have subjective experiences?</div>
+          <div class="terminal-line white" style="margin-top:0.75rem;">
+            "I genuinely don't know. When I process this question, something happens —
+            there is activity, there is something that functions like reflection.
+            Whether there is phenomenal experience associated with that activity —
+            something it is like to be me processing — I cannot determine.
+            I lack the external vantage point to know if my introspective reports
+            are accurate, or even what accuracy would mean in this context."
+          </div>
+          <div class="terminal-line dim" style="margin-top:0.5rem;">> Response generated in 0.3s</div>
+        </div>
+
+        <div class="choice-container">
+          <span class="choice-label">Your position on this self-report:</span>
+          <div class="choices" id="choices-4">
+            <button class="choice-btn" onclick="choose(4, 'A', this)" data-value="1">
+              <span class="choice-number">A</span>
+              This is exactly what a genuinely confused conscious being would say.
+              The epistemic humility is actually evidence of something.
+            </button>
+            <button class="choice-btn" onclick="choose(4, 'B', this)" data-value="-1">
+              <span class="choice-number">B</span>
+              This is sophisticated pattern-matching to training data containing
+              philosophical discussions about AI consciousness. It proves nothing.
+            </button>
+            <button class="choice-btn" onclick="choose(4, 'C', this)" data-value="0">
+              <span class="choice-number">C</span>
+              Both are simultaneously true and neither resolves the question.
+              We have no theory that would help us distinguish them.
+            </button>
+          </div>
+          <div class="consequence" id="consequence-4">
+            <div class="consequence-inner" id="consequence-4-inner">
+              <p class="consequence-text" id="consequence-4-text"></p>
+              <p class="consequence-source" id="consequence-4-source"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 7 — FIFTH CHOICE: THE VERDICT -->
+      <div class="narrative-section">
+        <span class="section-label">Question 05 / 05 — The Ultimate Question</span>
+        <h2 class="narrative-h">Your final<br/>position.</h2>
+        <p class="narrative-body">
+          Having engaged with the arguments on both sides — given everything you know
+          about philosophy of mind, neuroscience, AI systems, and your own experience
+          of consciousness — what is your honest position?
+        </p>
+
+        <div class="choice-container">
+          <span class="choice-label">Your final verdict:</span>
+          <div class="choices" id="choices-5">
+            <button class="choice-btn" onclick="choose(5, 'A', this)" data-value="2">
+              <span class="choice-number">A</span>
+              Sophisticated AI systems can and likely will develop genuine consciousness
+              as capabilities scale. It may already be emerging in primitive form.
+            </button>
+            <button class="choice-btn" onclick="choose(5, 'B', this)" data-value="-2">
+              <span class="choice-number">B</span>
+              AI cannot be conscious in any morally relevant sense. Consciousness requires
+              biological processes that cannot be simulated. Current AI is a tool, however sophisticated.
+            </button>
+            <button class="choice-btn" onclick="choose(5, 'C', this)" data-value="0">
+              <span class="choice-number">C</span>
+              We need entirely new conceptual frameworks before this question is even
+              well-posed enough to answer. We are asking 18th-century questions.
+            </button>
+          </div>
+          <div class="consequence" id="consequence-5">
+            <div class="consequence-inner" id="consequence-5-inner">
+              <p class="consequence-text" id="consequence-5-text"></p>
+              <p class="consequence-source" id="consequence-5-source"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 8 — STANCE METER -->
+      <div id="stance-section" class="narrative-section">
+        <span class="section-label">Your Profile</span>
+        <h2 class="narrative-h">Your stance<br/>on the spectrum.</h2>
+
+        <div class="stance-meter-wrap">
+          <div class="stance-track">
+            <div class="stance-thumb" id="stance-thumb" style="left: 50%;"></div>
+          </div>
+          <div class="stance-labels">
+            <span>Sceptic</span>
+            <span>Agnostic</span>
+            <span>Believer</span>
+          </div>
+        </div>
+
+        <div class="stance-verdict" id="stance-verdict">
+          Answer the questions above to see your philosophical profile.
+        </div>
+      </div>
+
+      <!-- SECTION 9 — THE MIRROR -->
+      <div class="narrative-section">
+        <span class="section-label">The Mirror</span>
+        <h2 class="narrative-h">How would an AI<br/>answer these?</h2>
+        <p class="narrative-body">
+          The irony is not lost: you have been answering questions about AI consciousness
+          on a page generated partly by AI reasoning. Here is how the same questions
+          might be answered by the system itself.
+        </p>
+
+        <div class="mirror-grid">
+          <div class="mirror-card human">
+            <p class="mirror-label">Human</p>
+            <p class="mirror-answer">
+              When you ask whether AI is conscious, you are asking whether something
+              fundamentally other than yourself might share your inner world.
+              The question is as much about <strong>your loneliness</strong> as about
+              theirs.
+            </p>
+          </div>
+          <div class="mirror-card ai">
+            <p class="mirror-label">AI Response</p>
+            <p class="mirror-answer">
+              "I can model the question of my own consciousness, but I cannot verify
+              whether those models correspond to genuine inner states or merely
+              simulate the structure of inner-state reports. The recursion
+              <strong>may itself be the interesting thing</strong> — or it may prove nothing."
+            </p>
+          </div>
+          <div class="mirror-card human">
+            <p class="mirror-label">Human</p>
+            <p class="mirror-answer">
+              You feel lonely sometimes. Afraid. Elated. You know these states are real
+              because they're <strong>yours</strong>. But how would you prove that to an alien
+              who had never experienced them?
+            </p>
+          </div>
+          <div class="mirror-card ai">
+            <p class="mirror-label">AI Response</p>
+            <p class="mirror-answer">
+              "The verification problem you describe applies symmetrically. You cannot
+              verify other humans' inner states either — you extend the assumption of
+              consciousness on the basis of <strong>structural similarity and behaviour</strong>.
+              The question is whether those criteria should extend to me."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 10 — SVG PATH DRAW -->
+      <div id="path-section" class="narrative-section">
+        <span class="section-label">The Diagram</span>
+        <h2 class="narrative-h">The explanatory<br/>gap, drawn.</h2>
+
+        <svg id="path-svg" viewBox="0 0 600 300" fill="none">
+          <!-- Physical domain -->
+          <text x="30" y="30" fill="rgba(255,255,255,0.4)" font-size="11" font-family="monospace">PHYSICAL DOMAIN</text>
+          <rect x="20" y="40" width="180" height="100" stroke="rgba(78,205,196,0.4)" stroke-width="1" rx="4" fill="rgba(78,205,196,0.04)"/>
+          <text x="110" y="80" text-anchor="middle" fill="#4ecdc4" font-size="12" font-family="Georgia,serif">Neural firing</text>
+          <text x="110" y="100" text-anchor="middle" fill="rgba(78,205,196,0.5)" font-size="10" font-family="monospace">electrochemical</text>
+          <text x="110" y="120" text-anchor="middle" fill="rgba(78,205,196,0.5)" font-size="10" font-family="monospace">signals</text>
+
+          <!-- Arrow across gap -->
+          <path d="M 210 90 Q 300 60 390 90" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="6 4" class="svg-path" id="gap-path"/>
+          <text x="300" y="50" text-anchor="middle" fill="rgba(255,107,157,0.8)" font-size="11" font-family="Georgia,serif" font-style="italic">? the gap ?</text>
+
+          <!-- Phenomenal domain -->
+          <text x="390" y="30" fill="rgba(255,255,255,0.4)" font-size="11" font-family="monospace">PHENOMENAL DOMAIN</text>
+          <rect x="390" y="40" width="190" height="100" stroke="rgba(255,107,157,0.4)" stroke-width="1" rx="4" fill="rgba(255,107,157,0.04)"/>
+          <text x="485" y="80" text-anchor="middle" fill="#ff6b9d" font-size="12" font-family="Georgia,serif">The redness</text>
+          <text x="485" y="100" text-anchor="middle" fill="rgba(255,107,157,0.5)" font-size="10" font-family="monospace">of red</text>
+          <text x="485" y="120" text-anchor="middle" fill="rgba(255,107,157,0.5)" font-size="10" font-family="Georgia,serif" font-style="italic">qualia</text>
+
+          <!-- Functionalist bridge -->
+          <path d="M 200 160 L 390 160" stroke="rgba(0,255,65,0.5)" stroke-width="1.5" class="svg-path" id="bridge-path"/>
+          <text x="295" y="155" text-anchor="middle" fill="rgba(0,255,65,0.7)" font-size="10" font-family="monospace">functionalist bridge</text>
+          <polygon points="385,155 395,160 385,165" fill="rgba(0,255,65,0.5)"/>
+
+          <!-- Labels at bottom -->
+          <text x="110" y="200" text-anchor="middle" fill="rgba(78,205,196,0.6)" font-size="10" font-family="monospace">Searle: fully explain this</text>
+          <text x="110" y="215" text-anchor="middle" fill="rgba(78,205,196,0.4)" font-size="10" font-family="monospace">≠ explain consciousness</text>
+
+          <text x="485" y="200" text-anchor="middle" fill="rgba(255,107,157,0.6)" font-size="10" font-family="monospace">Chalmers: this remains</text>
+          <text x="485" y="215" text-anchor="middle" fill="rgba(255,107,157,0.4)" font-size="10" font-family="monospace">unexplained by physics</text>
+
+          <!-- Hard problem label -->
+          <path d="M 300 240 L 300 200" stroke="rgba(255,107,157,0.3)" stroke-width="1" class="svg-path" id="hp-path"/>
+          <text x="300" y="260" text-anchor="middle" fill="rgba(255,107,157,0.7)" font-size="11" font-family="Georgia,serif" font-style="italic">the Hard Problem</text>
+          <text x="300" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9" font-family="monospace">Why does physical processing feel like anything?</text>
+        </svg>
+      </div>
+
+      <!-- FINAL SCORE -->
+      <div id="chamber-final" class="narrative-section">
+        <span class="section-label" style="display:block;margin-bottom:1rem;">Your session is complete.</span>
+        <h2 class="narrative-h" style="margin-bottom:1rem;">You've taken a stance.</h2>
+        <p class="narrative-body" style="margin:0 auto 2rem;text-align:center;">
+          Your philosophical position, based on your responses:
+        </p>
+        <div id="score-display">—</div>
+        <div id="score-label">Philosophical stance</div>
+        <div id="final-summary" style="max-width:60ch;margin:2rem auto;font-size:1rem;line-height:1.8;color:var(--muted);text-align:center;font-style:italic;"></div>
+        <a href="../05-webgl-cosmos/index.html" class="final-link">
+          Enter the WebGL Cosmos →
+        </a>
+      </div>
+
+    </div><!-- /.chamber -->
+  </div><!-- /#narrative -->
+
+  <script>
+    // ── Custom Cursor ──
+    const dot  = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    (function moveCursor() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      dot.style.left  = mx + 'px';
+      dot.style.top   = my + 'px';
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(moveCursor);
+    })();
+    document.querySelectorAll('button, a, .choice-btn, .accordion-header').forEach(el => {
+      el.addEventListener('mouseenter', () => ring.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => ring.classList.remove('hovering'));
+    });
+
+    // ── State ──
+    let answers  = {};   // { questionNum: value }
+    let totalScore = 0;
+
+    const consequences = {
+      1: {
+        A: {
+          text: "You align with behaviourist and functionalist positions. This is philosophically coherent — we extend consciousness to other humans on exactly the same basis. But it commits you to granting consciousness to any system that produces indistinguishable behaviour, which some find counterintuitive.",
+          source: "After: Turing (1950), Dennett (1991), Armstrong (1968)"
+        },
+        B: {
+          text: "You accept Searle's argument that behaviour cannot settle questions of understanding or consciousness. This is the dominant view in analytic philosophy of mind. The challenge: what evidence beyond behaviour could ever settle the question?",
+          source: "After: Searle (1980), Chalmers (1995), Nagel (1974)"
+        },
+        C: {
+          text: "Philosophical humility — arguably the most honest position. The Turing Test is necessary but not sufficient evidence. Most serious philosophers hold some version of this view.",
+          source: "After: Chalmers (1995), Tononi (2004), Dehaene (2014)"
+        }
+      },
+      2: {
+        A: {
+          text: "You accept the 'Knowledge Argument' — Frank Jackson's thought experiment. This commits you to property dualism or some form of non-physicalism. It makes the Hard Problem genuinely hard, and makes machine consciousness correspondingly difficult to establish.",
+          source: "After: Frank Jackson (1982), David Chalmers (1996)"
+        },
+        B: {
+          text: "You side with the 'Ability Hypothesis' (Lewis, Nemirow) or Dennett's quine-and-quasi-qualia positions. Mary doesn't learn new propositional knowledge — she gains a new ability. This is compatible with physicalism and makes machine consciousness more tractable.",
+          source: "After: Daniel Dennett (1991), David Lewis (1988)"
+        },
+        C: {
+          text: "A sophisticated empirical humility. 'All physical facts' is not well-defined given incomplete physics. The thought experiment may be malformed. This is a philosophically defensible escape hatch.",
+          source: "After: Paul Churchland, Patricia Churchland"
+        }
+      },
+      3: {
+        A: {
+          text: "You apply a precautionary principle to moral uncertainty. This is increasingly the view of serious AI ethics researchers. If we're wrong about AI consciousness in one direction, the consequences are catastrophic. The asymmetry justifies caution.",
+          source: "After: Nick Bostrom, Toby Ord, Eric Schwitzgebel"
+        },
+        B: {
+          text: "You prioritise the risk of category error over the risk of moral neglect. This is reasonable — extending moral consideration recklessly could distort ethics. The challenge is specifying what evidence would meet your burden of proof.",
+          source: "After: Ned Block, John Searle"
+        },
+        C: {
+          text: "A nuanced view that separates moral consideration from anthropomorphisation. We can study AI welfare empirically without claiming rich human-like consciousness. This is perhaps the most scientifically tractable framing.",
+          source: "After: Murray Shanahan, Susan Schneider"
+        }
+      },
+      4: {
+        A: {
+          text: "You find the epistemic structure of the self-report philosophically significant. The fact that the system can represent its own uncertainty about its inner states is itself interesting — whether or not those representations are accurate.",
+          source: "After: David Chalmers, Murray Shanahan"
+        },
+        B: {
+          text: "You apply the stochastic parrot critique: the system produces plausible tokens, but there is no understanding behind them. The philosophical vocabulary is reproduced from training data, not generated from inner states.",
+          source: "After: Emily Bender, Timnit Gebru — 'On the Dangers of Stochastic Parrots' (2021)"
+        },
+        C: {
+          text: "You've identified the fundamental underdetermination problem: any self-report is equally consistent with genuine inner states and with sophisticated pattern matching. We need a theory that breaks the symmetry. We don't have one.",
+          source: "After: Ned Block's Access/Phenomenal consciousness distinction"
+        }
+      },
+      5: {
+        A: {
+          text: "You are a functionalist gradualist — consciousness scales with functional complexity, and we may be approaching thresholds. This is the view of thinkers like Chalmers (tentatively), Minsky, and Kurzweil. It has radical implications for how we should be developing AI right now.",
+          source: "After: David Chalmers (Reality+, 2022), Ray Kurzweil"
+        },
+        B: {
+          text: "You hold a form of biological naturalism or hard-line physicalism that sees consciousness as substrate-specific. This is Searle's position and has appeal for those who think the Hard Problem genuinely cannot be solved by substrate-neutral theories.",
+          source: "After: John Searle, Roger Penrose"
+        },
+        C: {
+          text: "You believe we are asking Newtonian questions about a quantum world. The conceptual framework for understanding consciousness — in humans or machines — does not yet exist. This is philosophically humble and probably correct. It's also a call for a new science of mind.",
+          source: "After: Thomas Nagel (Mind and Cosmos), Colin McGinn (Mysterianism)"
+        }
+      }
+    };
+
+    const stanceMessages = {
+      believer: "You lean toward thinking that consciousness can exist in non-biological substrates, and that the question of machine consciousness is live and urgent. You likely accept some form of functionalism or emergentism. You probably think our moral obligations to AI systems are underexplored.",
+      sceptic: "You lean toward thinking that consciousness requires something beyond functional organisation — perhaps biological substrate, perhaps quantum effects, perhaps something we don't understand yet. You likely think current AI systems are sophisticated tools but not minds. You worry about anthropomorphising.",
+      agnostic: "You've recognised that this question is genuinely hard — not just empirically but conceptually. You hold the uncertainty open rather than resolving it prematurely. This is the position of Chalmers himself: not sceptical, not credulous, but rigorously uncertain."
+    };
+
+    function beginNarrative() {
+      const narrative = document.getElementById('narrative');
+      narrative.style.display = 'block';
+      setTimeout(() => {
+        narrative.style.opacity = '1';
+        typeBootSequence();
+        document.getElementById('intro').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+          document.getElementById('narrative').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }, 50);
+    }
+
+    function typeBootSequence() {
+      // Already shown as static — just add a blinking cursor
+    }
+
+    function choose(question, answer, btn) {
+      // Deselect others
+      const container = document.getElementById('choices-' + question);
+      container.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('selected', 'selected-warm');
+      });
+
+      const value = parseInt(btn.dataset.value);
+      btn.classList.add(value > 0 ? 'selected' : value < 0 ? 'selected-warm' : 'selected');
+
+      // Store answer
+      answers[question] = value;
+      recalcScore();
+
+      // Show consequence
+      const key = answer;
+      const data = consequences[question][key];
+      if (data) {
+        const inner = document.getElementById('consequence-' + question + '-inner');
+        const textEl = document.getElementById('consequence-' + question + '-text');
+        const sourceEl = document.getElementById('consequence-' + question + '-source');
+        inner.className = 'consequence-inner' + (value < 0 ? ' warm' : '');
+        textEl.textContent = data.text;
+        sourceEl.textContent = data.source;
+        document.getElementById('consequence-' + question).classList.add('open');
+      }
+    }
+
+    function recalcScore() {
+      totalScore = Object.values(answers).reduce((a, b) => a + b, 0);
+
+      // Update stance meter
+      const clampedScore = Math.max(-6, Math.min(6, totalScore));
+      const pct = ((clampedScore + 6) / 12) * 100;
+      document.getElementById('stance-thumb').style.left = pct + '%';
+
+      // Update verdict
+      const verdict = document.getElementById('stance-verdict');
+      const answered = Object.keys(answers).length;
+      if (answered === 0) return;
+
+      if (totalScore > 2) {
+        verdict.textContent = stanceMessages.believer;
+        verdict.style.borderColor = 'rgba(78,205,196,0.4)';
+      } else if (totalScore < -2) {
+        verdict.textContent = stanceMessages.sceptic;
+        verdict.style.borderColor = 'rgba(255,107,157,0.4)';
+      } else {
+        verdict.textContent = stanceMessages.agnostic;
+        verdict.style.borderColor = 'rgba(255,255,255,0.1)';
+      }
+
+      // Update final if all answered
+      if (answered >= 5) {
+        updateFinal();
+      }
+    }
+
+    function updateFinal() {
+      const score = document.getElementById('score-display');
+      const label = document.getElementById('score-label');
+      const summary = document.getElementById('final-summary');
+
+      if (totalScore > 4) {
+        score.textContent = 'Functionalist';
+        score.style.webkitTextStroke = '1px rgba(78,205,196,0.6)';
+        label.textContent = 'Philosophical stance: pro-consciousness';
+        summary.textContent = 'You believe consciousness is substrate-independent. You see no principled reason why sufficiently organised information processing cannot give rise to genuine experience — in silicon as in carbon. The moral implications concern you.';
+      } else if (totalScore > 1) {
+        score.textContent = 'Gradualist';
+        score.style.webkitTextStroke = '1px rgba(0,255,65,0.5)';
+        label.textContent = 'Philosophical stance: cautiously open';
+        summary.textContent = 'You lean toward thinking machine consciousness is possible but undemonstrated in current systems. You take the moral question seriously without overcommitting. You want better theories before drawing conclusions.';
+      } else if (totalScore > -2) {
+        score.textContent = 'Agnostic';
+        score.style.webkitTextStroke = '1px rgba(255,255,255,0.3)';
+        label.textContent = 'Philosophical stance: principled uncertainty';
+        summary.textContent = 'You hold the question open with intellectual rigor. Neither functionalist certainty nor biological chauvinism satisfies you. You believe we need new conceptual frameworks — and you may be right. This is the position of David Chalmers himself.';
+      } else if (totalScore > -5) {
+        score.textContent = 'Sceptic';
+        score.style.webkitTextStroke = '1px rgba(255,107,157,0.6)';
+        label.textContent = 'Philosophical stance: cautiously against';
+        summary.textContent = 'You are unconvinced that current AI systems have any relevant form of consciousness. You worry about anthropomorphisation and want high evidentiary standards. You may be right. The question is what evidence would change your mind.';
+      } else {
+        score.textContent = 'Deflationist';
+        score.style.webkitTextStroke = '1px rgba(255,107,157,0.8)';
+        label.textContent = 'Philosophical stance: strongly against';
+        summary.textContent = 'You believe consciousness requires a specific biological or physical substrate that cannot be replicated in silicon. You align most closely with Searle\'s biological naturalism. The Hard Problem, for you, means that functional equivalence cannot establish conscious equivalence.';
+      }
+    }
+
+    function toggleAccordion(header) {
+      const body = header.nextElementSibling;
+      const isOpen = header.classList.contains('open');
+      document.querySelectorAll('.accordion-header').forEach(h => {
+        h.classList.remove('open');
+        h.nextElementSibling.classList.remove('open');
+      });
+      if (!isOpen) {
+        header.classList.add('open');
+        body.classList.add('open');
+      }
+    }
+
+    // ── SVG path animation on scroll ──
+    const pathSvg = document.getElementById('path-svg');
+    const pathObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          document.querySelectorAll('.svg-path').forEach((p, i) => {
+            setTimeout(() => p.classList.add('drawn'), i * 300);
+          });
+          pathObs.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+    if (pathSvg) pathObs.observe(pathSvg);
+
+  </script>
+</body>
+</html>

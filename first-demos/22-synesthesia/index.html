@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>22 — Synesthesia: Seeing Sound</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden;background:#06000f}
+body{overflow-x:hidden;color:#f0eaff;font-family:'Georgia',serif}
+
+/* ─── NAV ─── */
+.nav-back{
+  position:fixed;top:2rem;left:2rem;z-index:200;
+  font-size:0.7rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);
+  text-decoration:none;text-transform:uppercase;font-family:'Courier New',monospace;
+  transition:color 0.3s;
+}
+.nav-back:hover{color:rgba(255,255,255,0.8)}
+
+/* ─── HERO ─── */
+.hero{
+  height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  position:relative;overflow:hidden;
+}
+#bg-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:2}
+.hero-label{font-size:0.65rem;letter-spacing:0.4em;color:#bb88ff;text-transform:uppercase;margin-bottom:1.5rem;opacity:0.7;font-family:'Courier New',monospace}
+.hero-title{font-size:clamp(2.5rem,7vw,6rem);font-weight:400;line-height:1.05;margin-bottom:1.5rem}
+.hero-title em{font-style:italic;color:#ff88cc}
+.hero-sub{font-size:1rem;color:rgba(240,234,255,0.6);max-width:500px;line-height:1.8}
+.start-btn{
+  margin-top:2.5rem;padding:0.8rem 2rem;
+  border:1px solid rgba(187,136,255,0.4);background:transparent;
+  color:#bb88ff;font-family:'Courier New',monospace;font-size:0.75rem;
+  letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;
+  transition:all 0.3s;
+}
+.start-btn:hover{background:rgba(187,136,255,0.1);border-color:#bb88ff}
+
+/* ─── SECTIONS ─── */
+section{position:relative;overflow:hidden}
+
+/* ─── KEYBOARD SECTION ─── */
+#keyboard-section{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:4rem 2rem;
+  background:linear-gradient(180deg,#06000f,#080015);
+}
+.section-label{font-size:0.65rem;letter-spacing:0.4em;color:#bb88ff;font-family:'Courier New',monospace;text-transform:uppercase;margin-bottom:1rem;opacity:0.6}
+.section-title{font-size:clamp(1.8rem,4vw,3rem);margin-bottom:1rem;font-weight:400}
+.section-body{font-size:0.95rem;color:rgba(240,234,255,0.6);line-height:1.9;max-width:560px;text-align:center;margin-bottom:3rem}
+
+.synaesthesia-keys{display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;max-width:700px}
+.syn-key{
+  width:70px;height:90px;border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:0.8rem;cursor:pointer;position:relative;overflow:hidden;
+  transition:transform 0.08s;user-select:none;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.syn-key:active,.syn-key.pressed{transform:scaleY(0.94) translateY(2px)}
+.syn-key .key-note{font-family:'Courier New',monospace;font-size:0.7rem;opacity:0.8}
+.syn-key .key-color{font-size:0.55rem;opacity:0.5;text-transform:uppercase;letter-spacing:0.1em}
+.key-flash{
+  position:absolute;inset:0;opacity:0;
+  transition:opacity 0.05s;
+}
+.syn-key:hover .key-flash,.syn-key.pressed .key-flash{opacity:0.3}
+
+/* ─── SCROLL-SOUND SECTION ─── */
+#scroll-sound{
+  height:300vh;position:relative;
+}
+#scroll-sound-sticky{
+  position:sticky;top:0;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#scroll-canvas{position:absolute;inset:0;width:100%;height:100%}
+.scroll-text{
+  position:relative;z-index:2;text-align:center;pointer-events:none;
+}
+.scroll-text h2{font-size:clamp(2rem,5vw,4rem);font-weight:300;margin-bottom:1rem}
+.scroll-text p{font-size:0.9rem;color:rgba(240,234,255,0.5);letter-spacing:0.1em;font-family:'Courier New',monospace}
+
+/* ─── COLOR-SOUND MAP ─── */
+#colormap-section{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:5rem 2rem;flex-direction:column;
+  background:#06000f;
+}
+.colormap-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  width:min(600px,90vw);height:min(600px,90vw);
+  margin-bottom:2rem;cursor:crosshair;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.cm-cell{transition:transform 0.1s,opacity 0.3s;aspect-ratio:1}
+.cm-cell:hover{transform:scale(1.05);z-index:2}
+.colormap-caption{font-size:0.8rem;color:rgba(240,234,255,0.4);text-align:center;font-family:'Courier New',monospace;letter-spacing:0.1em}
+
+/* ─── WAVEFORM PAINTER ─── */
+#painter-section{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:4rem 2rem;
+  background:linear-gradient(180deg,#06000f,#0a0018);
+}
+#paint-canvas{
+  width:min(700px,90vw);height:300px;
+  border:1px solid rgba(255,255,255,0.08);border-radius:4px;
+  cursor:crosshair;
+  background:rgba(0,0,0,0.4);
+}
+.paint-controls{display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;justify-content:center}
+.paint-btn{
+  padding:0.5rem 1.2rem;border:1px solid rgba(255,255,255,0.15);
+  background:transparent;color:rgba(240,234,255,0.6);
+  font-family:'Courier New',monospace;font-size:0.7rem;
+  letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;
+  transition:all 0.3s;
+}
+.paint-btn:hover,.paint-btn.active{border-color:#bb88ff;color:#bb88ff}
+
+/* ─── FINAL ─── */
+#final-section{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;flex-direction:column;padding:4rem 2rem;
+}
+.final-big{font-size:clamp(2rem,6vw,5rem);font-weight:300;line-height:1.2;margin-bottom:2rem}
+.final-big span{color:#ff88cc;font-style:italic}
+.final-body{font-size:0.95rem;color:rgba(240,234,255,0.5);max-width:500px;line-height:1.9}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="nav-back">← Index</a>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <canvas id="bg-canvas"></canvas>
+  <div class="hero-inner">
+    <div class="hero-label">Project 22 — Synesthesia</div>
+    <h1 class="hero-title">When sound<br>becomes <em>colour</em></h1>
+    <p class="hero-sub">Some minds experience the senses tangled together. Numbers have personalities. Music has shape. Touch has taste. What does this say about the nature of experience?</p>
+    <button class="start-btn" id="audio-init-btn">Enable Sound ↓</button>
+  </div>
+</div>
+
+<!-- ═══ KEYBOARD ═══ -->
+<section id="keyboard-section">
+  <div class="section-label">Experiment 01 — Chromesthesia</div>
+  <h2 class="section-title">Each note has a colour</h2>
+  <p class="section-body">Play the keys. In synesthesia, each pitch triggers a colour experience — not metaphorically but literally, as a second perception layered on top of sound. Click or hover to explore.</p>
+
+  <div class="synaesthesia-keys" id="syn-keys"></div>
+</section>
+
+<!-- ═══ SCROLL-SOUND ═══ -->
+<div id="scroll-sound">
+  <div id="scroll-sound-sticky">
+    <canvas id="scroll-canvas"></canvas>
+    <div class="scroll-text">
+      <h2 id="scroll-text-h">Scroll to play</h2>
+      <p id="scroll-text-p">position → frequency → colour</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COLOR MAP ═══ -->
+<section id="colormap-section">
+  <div class="section-label">Experiment 02 — Chromatic Grid</div>
+  <h2 class="section-title" style="margin-bottom:0.5rem">Touch colour, hear sound</h2>
+  <p style="font-size:0.85rem;color:rgba(240,234,255,0.4);margin-bottom:2rem;max-width:400px;text-align:center;line-height:1.8">Hover or click any cell. The colour maps to pitch (hue → frequency), saturation to volume, lightness to timbre.</p>
+  <div class="colormap-grid" id="colormap-grid"></div>
+  <div class="colormap-caption" id="colormap-info">hover a cell</div>
+</section>
+
+<!-- ═══ WAVEFORM PAINTER ═══ -->
+<section id="painter-section">
+  <div class="section-label">Experiment 03 — Paint Sound</div>
+  <h2 class="section-title" style="margin-bottom:0.5rem">Draw a waveform</h2>
+  <p class="section-body" style="margin-bottom:2rem">Your strokes define the wave shape. The canvas is a synthesis engine. Draw freely — vertical position controls pitch, horizontal movement controls tempo.</p>
+  <canvas id="paint-canvas"></canvas>
+  <div class="paint-controls">
+    <button class="paint-btn active" id="btn-play-paint">Play Drawing</button>
+    <button class="paint-btn" id="btn-clear-paint">Clear</button>
+    <button class="paint-btn" id="btn-mode-wave">Wave</button>
+    <button class="paint-btn" id="btn-mode-dots">Dots</button>
+  </div>
+</section>
+
+<!-- ═══ FINAL ═══ -->
+<section id="final-section">
+  <div class="final-big">
+    Consciousness<br>is <span>overlap</span>
+  </div>
+  <p class="final-body">
+    The synesthete's brain doesn't malfunction — it reveals something latent
+    in all perception. Every sense is a construct. The redness of red, the
+    loudness of loud — these are not properties of the world. They are
+    experiences the brain assembles. The unity of consciousness is the
+    ultimate overlap: all of this is happening in one place, at once.
+    No seam. No gap. Just the experience.
+  </p>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const lenis = new Lenis({ lerp: 0.08 });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ─── AUDIO CONTEXT ───
+let audioCtx = null;
+let audioEnabled = false;
+
+document.getElementById('audio-init-btn').addEventListener('click', () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioEnabled = true;
+    document.getElementById('audio-init-btn').textContent = 'Sound On ✓';
+    document.getElementById('audio-init-btn').style.borderColor = '#6cffa0';
+    document.getElementById('audio-init-btn').style.color = '#6cffa0';
+  }
+  document.getElementById('keyboard-section').scrollIntoView({ behavior: 'smooth' });
+});
+
+// ─── PLAY TONE ───
+function playTone(freq, color, duration = 0.4, type = 'sine', vol = 0.2) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + duration + 0.05);
+}
+
+// ─── BG CANVAS — aurora-like color field ───
+const bgC = document.getElementById('bg-canvas');
+const bgCtx = bgC.getContext('2d');
+let bgW, bgH;
+function resizeBg() {
+  bgW = bgC.width = bgC.offsetWidth;
+  bgH = bgC.height = bgC.offsetHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+let bgT = 0;
+function drawBg() {
+  bgT += 0.003;
+  bgCtx.fillStyle = 'rgba(6,0,15,0.15)';
+  bgCtx.fillRect(0, 0, bgW, bgH);
+
+  // Aurora bands
+  for (let i = 0; i < 5; i++) {
+    const y = bgH * (0.3 + 0.4 * Math.sin(bgT * 0.4 + i * 1.3));
+    const h2 = bgH * 0.15;
+    const hue = (240 + i * 30 + bgT * 20) % 360;
+    const grd = bgCtx.createLinearGradient(0, y - h2, 0, y + h2);
+    grd.addColorStop(0, 'transparent');
+    grd.addColorStop(0.5, `hsla(${hue},80%,60%,0.06)`);
+    grd.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = grd;
+    bgCtx.fillRect(0, y - h2, bgW, h2 * 2);
+  }
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// ─── SYNESTHETIC KEYBOARD ───
+const NOTES = [
+  { note: 'C', freq: 261.6, hue: 0,   satL: '80%,60%', label: 'Red' },
+  { note: 'D', freq: 293.7, hue: 30,  satL: '90%,65%', label: 'Orange' },
+  { note: 'E', freq: 329.6, hue: 55,  satL: '90%,70%', label: 'Yellow' },
+  { note: 'F', freq: 349.2, hue: 120, satL: '70%,55%', label: 'Green' },
+  { note: 'G', freq: 392.0, hue: 185, satL: '80%,60%', label: 'Cyan' },
+  { note: 'A', freq: 440.0, hue: 240, satL: '80%,65%', label: 'Blue' },
+  { note: 'B', freq: 493.9, hue: 270, satL: '80%,65%', label: 'Violet' },
+  { note: 'C\'',freq: 523.3, hue: 300, satL: '80%,65%', label: 'Pink' },
+];
+
+const keysContainer = document.getElementById('syn-keys');
+NOTES.forEach(n => {
+  const key = document.createElement('div');
+  key.className = 'syn-key';
+  key.style.background = `hsla(${n.hue},${n.satL},0.15)`;
+  key.style.borderColor = `hsla(${n.hue},${n.satL},0.3)`;
+  key.innerHTML = `
+    <div class="key-flash" style="background:hsla(${n.hue},${n.satL},1)"></div>
+    <span class="key-note">${n.note}</span>
+    <span class="key-color">${n.label}</span>
+  `;
+  const play = () => {
+    key.classList.add('pressed');
+    playTone(n.freq, n.hue, 0.6, 'sine', 0.18);
+    flashColor(n.hue);
+    setTimeout(() => key.classList.remove('pressed'), 150);
+  };
+  key.addEventListener('mousedown', play);
+  key.addEventListener('touchstart', (e) => { e.preventDefault(); play(); }, { passive: false });
+  keysContainer.appendChild(key);
+});
+
+// Flash overlay on key press
+const flashEl = document.createElement('div');
+flashEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:0;mix-blend-mode:screen;transition:opacity 0.05s';
+document.body.appendChild(flashEl);
+function flashColor(hue) {
+  flashEl.style.background = `hsla(${hue},80%,60%,0.12)`;
+  flashEl.style.opacity = '1';
+  setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
+}
+
+// ─── SCROLL SOUND SECTION ───
+const scrollC = document.getElementById('scroll-canvas');
+const scCtx = scrollC.getContext('2d');
+let scW, scH;
+function resizeSc() {
+  scW = scrollC.width = scrollC.offsetWidth;
+  scH = scrollC.height = scrollC.offsetHeight;
+}
+resizeSc();
+
+let scrollProgress = 0;
+let lastScrollNote = -1;
+let scT = 0;
+
+ScrollTrigger.create({
+  trigger: '#scroll-sound',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 0.5,
+  onUpdate: self => {
+    scrollProgress = self.progress;
+    // Play note at intervals of scroll
+    const noteIdx = Math.floor(scrollProgress * NOTES.length);
+    if (noteIdx !== lastScrollNote && noteIdx < NOTES.length) {
+      lastScrollNote = noteIdx;
+      const n = NOTES[noteIdx];
+      playTone(n.freq * 0.5, n.hue, 0.5, 'triangle', 0.1);
+      document.getElementById('scroll-text-h').textContent = `${n.note} — ${n.label}`;
+      document.getElementById('scroll-text-p').style.color = `hsla(${n.hue},70%,70%,0.6)`;
+    }
+  }
+});
+
+function drawScrollCanvas() {
+  scT++;
+  if (!scW) { scW = scrollC.width = scrollC.offsetWidth; scH = scrollC.height = scrollC.offsetHeight; }
+  scCtx.fillStyle = 'rgba(6,0,15,0.2)';
+  scCtx.fillRect(0, 0, scW, scH);
+
+  const hue = scrollProgress * 300;
+
+  // Ripple rings expanding from center
+  for (let i = 0; i < 8; i++) {
+    const phase = (scT * 0.01 + i * 0.15 + scrollProgress * 3) % 1;
+    const r = phase * Math.min(scW, scH) * 0.6;
+    const alpha = (1 - phase) * 0.3;
+    scCtx.beginPath();
+    scCtx.arc(scW / 2, scH / 2, r, 0, Math.PI * 2);
+    scCtx.strokeStyle = `hsla(${hue},80%,65%,${alpha})`;
+    scCtx.lineWidth = 1.5;
+    scCtx.stroke();
+  }
+
+  // Waveform based on scroll
+  const freq = 110 + scrollProgress * 550;
+  scCtx.beginPath();
+  scCtx.moveTo(0, scH / 2);
+  for (let x = 0; x < scW; x++) {
+    const y = scH / 2 + Math.sin((x / scW) * Math.PI * 6 * (1 + scrollProgress * 3) + scT * 0.05) * (scH * 0.15 + scrollProgress * scH * 0.1);
+    scCtx.lineTo(x, y);
+  }
+  scCtx.strokeStyle = `hsla(${hue},80%,65%,0.5)`;
+  scCtx.lineWidth = 2;
+  scCtx.stroke();
+
+  // Frequency label
+  scCtx.font = '11px Courier New';
+  scCtx.fillStyle = `hsla(${hue},70%,70%,0.5)`;
+  scCtx.textAlign = 'right';
+  scCtx.fillText(`${Math.round(freq)} Hz`, scW - 20, scH - 20);
+
+  requestAnimationFrame(drawScrollCanvas);
+}
+drawScrollCanvas();
+
+// ─── COLOR MAP GRID ───
+const GRID_SIZE = 16;
+const grid = document.getElementById('colormap-grid');
+grid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+
+for (let row = 0; row < GRID_SIZE; row++) {
+  for (let col = 0; col < GRID_SIZE; col++) {
+    const cell = document.createElement('div');
+    cell.className = 'cm-cell';
+    const hue = (col / GRID_SIZE) * 360;
+    const lightness = 20 + (row / GRID_SIZE) * 50;
+    const sat = 60 + (1 - row / GRID_SIZE) * 30;
+    cell.style.background = `hsl(${hue},${sat}%,${lightness}%)`;
+    cell.dataset.hue = hue;
+    cell.dataset.freq = 110 + (col / GRID_SIZE) * 880;
+    cell.dataset.vol = 0.05 + (1 - row / GRID_SIZE) * 0.2;
+
+    cell.addEventListener('mouseenter', () => {
+      playTone(+cell.dataset.freq, +cell.dataset.hue, 0.15, 'sine', +cell.dataset.vol);
+      document.getElementById('colormap-info').textContent =
+        `hue ${Math.round(+cell.dataset.hue)}° → ${Math.round(+cell.dataset.freq)} Hz`;
+      document.getElementById('colormap-info').style.color = `hsl(${cell.dataset.hue},60%,70%)`;
+    });
+    cell.addEventListener('click', () => {
+      playTone(+cell.dataset.freq, +cell.dataset.hue, 0.6, 'triangle', +cell.dataset.vol * 1.5);
+    });
+    grid.appendChild(cell);
+  }
+}
+
+// ─── WAVEFORM PAINTER ───
+const paintC = document.getElementById('paint-canvas');
+const paintCtx = paintC.getContext('2d');
+let paintW, paintH;
+function resizePaint() {
+  paintW = paintC.width = paintC.offsetWidth;
+  paintH = paintC.height = paintC.offsetHeight;
+}
+resizePaint();
+
+let painting = false;
+let paintPoints = [];
+let paintMode = 'wave';
+let playHead = 0;
+let paintPlaying = false;
+let paintPlayRAF;
+
+paintC.addEventListener('mousedown', startPaint);
+paintC.addEventListener('mousemove', doPaint);
+paintC.addEventListener('mouseup', () => { painting = false; });
+paintC.addEventListener('mouseleave', () => { painting = false; });
+paintC.addEventListener('touchstart', e => { e.preventDefault(); startPaint(e.touches[0]); }, { passive: false });
+paintC.addEventListener('touchmove', e => { e.preventDefault(); doPaint(e.touches[0]); }, { passive: false });
+paintC.addEventListener('touchend', () => { painting = false; });
+
+function getPaintPos(e) {
+  const r = paintC.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function startPaint(e) {
+  painting = true;
+  const p = getPaintPos(e);
+  paintPoints.push({ x: p.x, y: p.y });
+  drawPaintCanvas();
+}
+function doPaint(e) {
+  if (!painting) return;
+  const p = getPaintPos(e);
+  paintPoints.push({ x: p.x, y: p.y });
+  if (paintPoints.length > 2000) paintPoints.shift();
+  drawPaintCanvas();
+  // Play note based on y position
+  const freq = 110 + (1 - p.y / paintH) * 880;
+  if (Math.floor(p.x) % 15 === 0) {
+    playTone(freq, 0, 0.08, 'sine', 0.08);
+  }
+}
+
+function drawPaintCanvas() {
+  paintCtx.fillStyle = 'rgba(0,0,0,0.6)';
+  paintCtx.fillRect(0, 0, paintW, paintH);
+
+  if (paintPoints.length < 2) return;
+
+  if (paintMode === 'wave') {
+    paintCtx.beginPath();
+    paintCtx.moveTo(paintPoints[0].x, paintPoints[0].y);
+    paintPoints.forEach((p, i) => {
+      if (i === 0) return;
+      const hue = (p.x / paintW) * 300;
+      if (i % 20 === 0) {
+        paintCtx.strokeStyle = `hsl(${hue},80%,65%)`;
+        paintCtx.lineWidth = 2;
+        paintCtx.stroke();
+        paintCtx.beginPath();
+        paintCtx.moveTo(p.x, p.y);
+      }
+      paintCtx.lineTo(p.x, p.y);
+    });
+    paintCtx.stroke();
+  } else {
+    paintPoints.forEach((p, i) => {
+      const hue = (p.x / paintW) * 300;
+      const r = 2 + (1 - p.y / paintH) * 4;
+      paintCtx.beginPath();
+      paintCtx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      paintCtx.fillStyle = `hsla(${hue},80%,65%,0.6)`;
+      paintCtx.fill();
+    });
+  }
+
+  // Playhead
+  if (paintPlaying) {
+    paintCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+    paintCtx.lineWidth = 1;
+    paintCtx.setLineDash([4, 4]);
+    paintCtx.beginPath();
+    paintCtx.moveTo(playHead, 0);
+    paintCtx.lineTo(playHead, paintH);
+    paintCtx.stroke();
+    paintCtx.setLineDash([]);
+  }
+}
+
+// Play drawing by scanning left to right
+document.getElementById('btn-play-paint').addEventListener('click', () => {
+  if (!audioEnabled) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioEnabled = true; }
+  if (paintPoints.length < 2) return;
+  paintPlaying = true;
+  playHead = 0;
+  cancelAnimationFrame(paintPlayRAF);
+  function playStep() {
+    playHead += 3;
+    // Find points near playhead
+    const nearby = paintPoints.filter(p => Math.abs(p.x - playHead) < 3);
+    if (nearby.length > 0) {
+      const avgY = nearby.reduce((s, p) => s + p.y, 0) / nearby.length;
+      const freq = 110 + (1 - avgY / paintH) * 880;
+      playTone(freq, 0, 0.06, 'sine', 0.07);
+    }
+    drawPaintCanvas();
+    if (playHead < paintW) {
+      paintPlayRAF = requestAnimationFrame(playStep);
+    } else {
+      paintPlaying = false;
+      drawPaintCanvas();
+    }
+  }
+  playStep();
+});
+
+document.getElementById('btn-clear-paint').addEventListener('click', () => {
+  paintPoints = [];
+  paintPlaying = false;
+  cancelAnimationFrame(paintPlayRAF);
+  paintCtx.fillStyle = 'rgba(0,0,0,0.8)';
+  paintCtx.fillRect(0, 0, paintW, paintH);
+});
+
+document.getElementById('btn-mode-wave').addEventListener('click', function() {
+  paintMode = 'wave';
+  document.getElementById('btn-mode-dots').classList.remove('active');
+  this.classList.add('active');
+});
+document.getElementById('btn-mode-dots').addEventListener('click', function() {
+  paintMode = 'dots';
+  document.getElementById('btn-mode-wave').classList.remove('active');
+  this.classList.add('active');
+});
+
+// Initial paint canvas
+drawPaintCanvas();
+</script>
+</body>
+</html>

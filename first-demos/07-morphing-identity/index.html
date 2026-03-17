@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>07 — Morphing Identity | Clip-Path CSS Art</title>
+  <!--
+    TECHNIQUE LOG — Inspired by Species in Pieces (bryan-james.co.uk):
+    - CSS clip-path: polygon() morphing between keyframe states
+    - Each "piece" is a div with clip-path that animates to new coordinates
+    - GSAP ScrollTrigger drives morph transitions on scroll
+    - Pieces represent philosophical concepts that transform into each other
+    - Character-by-character text scramble effect
+    - clip-path: inset() for panel reveals
+    - CSS mask-image with gradient for masked reveals
+    - 3D perspective card flip
+    - CSS counter-rotate for parallax within sticky
+    - Blend mode layering
+  -->
+  <style>
+    :root {
+      --bg: #000008;
+      --orange: #ff6d00;
+      --teal: #00bcd4;
+      --lime: #c6ff00;
+      --pink: #e91e8c;
+      --white: #f5f5ff;
+      --muted: #4a4a6a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; overflow-x: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 2rem;
+      animation: fade-in 0.8s ease 0.5s both;
+    }
+    #hero-title {
+      font-size: clamp(3rem, 10vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+      animation: fade-up 1s ease 0.8s both;
+    }
+    .grad-orange {
+      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 60%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #hero-sub {
+      max-width: 50ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      animation: fade-in 1s ease 1.2s both;
+    }
+
+    @keyframes fade-in { from{opacity:0;} to{opacity:1;} }
+    @keyframes fade-up  { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+
+    /* ══════════════════════════════════════
+       THE MORPH STAGE
+       A canvas-like area where polygon pieces morph
+       ══════════════════════════════════════ */
+    .morph-wrapper {
+      position: relative;
+      height: 600vh;
+    }
+    .morph-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* The piece stage */
+    .piece-stage {
+      position: relative;
+      width: min(500px, 80vw);
+      height: min(500px, 80vw);
+    }
+
+    /* Each piece is absolutely positioned, with clip-path morphing */
+    .piece {
+      position: absolute;
+      transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1),
+                  background 1.2s ease,
+                  opacity 0.8s ease;
+      will-change: clip-path;
+    }
+
+    /* State definitions — 4 morph states */
+    /* State A: Abstract mind (scattered triangles) */
+    .state-A .piece-1  { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); width:60%;height:60%;top:0;left:20%;background:var(--orange);opacity:0.9; }
+    .state-A .piece-2  { clip-path: polygon(0% 0%, 100% 0%, 50% 100%); width:40%;height:40%;top:30%;left:0%;background:var(--teal);opacity:0.8; }
+    .state-A .piece-3  { clip-path: polygon(100% 0%, 0% 50%, 100% 100%); width:40%;height:40%;top:30%;left:60%;background:var(--pink);opacity:0.8; }
+    .state-A .piece-4  { clip-path: polygon(0% 0%, 100% 50%, 0% 100%); width:30%;height:30%;top:60%;left:10%;background:var(--lime);opacity:0.7; }
+    .state-A .piece-5  { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); width:30%;height:30%;top:60%;left:60%;background:var(--orange);opacity:0.7; }
+    .state-A .piece-6  { clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); width:50%;height:20%;top:78%;left:25%;background:var(--teal);opacity:0.5; }
+
+    /* State B: Chinese Room (structured box shape) */
+    .state-B .piece-1  { clip-path: polygon(5% 5%, 95% 5%, 95% 95%, 5% 95%); width:80%;height:70%;top:5%;left:10%;background:var(--teal);opacity:0.2; }
+    .state-B .piece-2  { clip-path: polygon(0% 0%, 100% 0%, 100% 15%, 0% 15%); width:80%;height:25%;top:5%;left:10%;background:var(--orange);opacity:0.9; }
+    .state-B .piece-3  { clip-path: polygon(0% 0%, 15% 0%, 15% 100%, 0% 100%); width:20%;height:70%;top:5%;left:10%;background:var(--pink);opacity:0.8; }
+    .state-B .piece-4  { clip-path: polygon(85% 0%, 100% 0%, 100% 100%, 85% 100%); width:20%;height:70%;top:5%;left:70%;background:var(--pink);opacity:0.8; }
+    .state-B .piece-5  { clip-path: polygon(30% 30%, 70% 30%, 70% 70%, 30% 70%); width:80%;height:70%;top:5%;left:10%;background:var(--lime);opacity:0.7; }
+    .state-B .piece-6  { clip-path: polygon(0% 85%, 100% 85%, 100% 100%, 0% 100%); width:80%;height:70%;top:5%;left:10%;background:var(--orange);opacity:0.8; }
+
+    /* State C: Neural network (organic, flowing) */
+    .state-C .piece-1  { clip-path: polygon(50% 5%, 85% 20%, 90% 55%, 70% 85%, 30% 85%, 10% 55%, 15% 20%); width:70%;height:80%;top:5%;left:15%;background:var(--orange);opacity:0.4; }
+    .state-C .piece-2  { clip-path: polygon(50% 0%, 75% 15%, 80% 45%, 50% 65%, 20% 45%, 25% 15%); width:70%;height:80%;top:5%;left:15%;background:var(--teal);opacity:0.7; }
+    .state-C .piece-3  { clip-path: polygon(50% 15%, 65% 25%, 68% 45%, 50% 58%, 32% 45%, 35% 25%); width:70%;height:80%;top:5%;left:15%;background:var(--pink);opacity:0.9; }
+    .state-C .piece-4  { clip-path: polygon(50% 28%, 57% 34%, 57% 44%, 50% 50%, 43% 44%, 43% 34%); width:70%;height:80%;top:5%;left:15%;background:var(--lime);opacity:1; }
+    .state-C .piece-5  { clip-path: polygon(80% 20%, 100% 30%, 90% 60%, 70% 55%, 72% 35%); width:50%;height:50%;top:10%;left:30%;background:var(--orange);opacity:0.5; }
+    .state-C .piece-6  { clip-path: polygon(0% 35%, 25% 28%, 28% 50%, 15% 65%, 0% 55%); width:50%;height:50%;top:10%;left:10%;background:var(--teal);opacity:0.5; }
+
+    /* State D: Quantum (superposition — fragments) */
+    .state-D .piece-1  { clip-path: polygon(50% 50%, 0% 0%, 30% 0%); width:100%;height:100%;top:0;left:0;background:var(--orange);opacity:0.8; }
+    .state-D .piece-2  { clip-path: polygon(50% 50%, 70% 0%, 100% 0%, 100% 30%); width:100%;height:100%;top:0;left:0;background:var(--teal);opacity:0.8; }
+    .state-D .piece-3  { clip-path: polygon(50% 50%, 100% 30%, 100% 70%); width:100%;height:100%;top:0;left:0;background:var(--pink);opacity:0.8; }
+    .state-D .piece-4  { clip-path: polygon(50% 50%, 100% 70%, 70% 100%, 30% 100%); width:100%;height:100%;top:0;left:0;background:var(--lime);opacity:0.8; }
+    .state-D .piece-5  { clip-path: polygon(50% 50%, 0% 70%, 0% 30%); width:100%;height:100%;top:0;left:0;background:var(--orange);opacity:0.5; }
+    .state-D .piece-6  { clip-path: polygon(50% 50%, 30% 100%, 0% 100%, 0% 70%); width:100%;height:100%;top:0;left:0;background:var(--teal);opacity:0.6; }
+
+    /* Overlay text for morph stage */
+    .morph-label {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+    }
+    .morph-concept {
+      font-size: clamp(1.5rem, 4vw, 3rem);
+      font-weight: 700;
+      transition: opacity 0.5s ease;
+      white-space: nowrap;
+    }
+    .morph-desc {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      transition: opacity 0.5s ease;
+    }
+
+    /* ── NARRATIVE SECTIONS ── */
+    .narr-section {
+      padding: 10vh 8vw;
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .narr-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .narr-h {
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 2rem;
+    }
+    .narr-body {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .narr-quote {
+      border-left: 2px solid var(--orange);
+      padding-left: 1.5rem;
+      font-style: italic;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 2rem 0;
+    }
+    .narr-cite {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--orange);
+      margin-top: 0.75rem;
+      display: block;
+    }
+
+    /* ── SCRAMBLE TEXT ── */
+    .scramble-target {
+      display: inline-block;
+      font-family: monospace;
+    }
+
+    /* ── CARD FLIP SECTION ── */
+    .flip-section {
+      padding: 10vh 8vw;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .flip-card {
+      width: 280px;
+      height: 360px;
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+      transform-style: preserve-3d;
+    }
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-front, .flip-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      border: 1px solid;
+    }
+    .flip-front {
+      background: var(--bg);
+      text-align: center;
+    }
+    .flip-back {
+      background: rgba(255,255,255,0.03);
+      transform: rotateY(180deg);
+      text-align: center;
+    }
+    .flip-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    .flip-title {
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 0.75rem;
+    }
+    .flip-hint {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.4;
+    }
+    .flip-back-text {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    /* ── MASK REVEAL ── */
+    .mask-section {
+      padding: 15vh 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .mask-line {
+      overflow: hidden;
+      margin-bottom: 0.3rem;
+    }
+    .mask-inner {
+      display: block;
+      font-size: clamp(2.5rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      transform: translateY(110%);
+      padding: 0 8vw;
+    }
+
+    /* ── FINAL ── */
+    #final-07 {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 4rem 2rem;
+      gap: 2rem;
+    }
+    #final-07 h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      margin-bottom: 1rem;
+    }
+    #final-07 p {
+      color: var(--muted);
+      max-width: 55ch;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+    .next-btn {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(255,109,0,0.4);
+      color: var(--orange);
+      text-decoration: none;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    .next-btn:hover { background: rgba(255,109,0,0.08); }
+
+    /* scroll fade */
+    .sf { opacity:0; transform:translateY(30px); }
+    .sf.in { opacity:1; transform:translateY(0); transition: 0.7s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       HERO
+       ══════════════════════════════════ -->
+  <section id="hero">
+    <p class="hero-label">07 — Morphing Identity</p>
+    <h1 id="hero-title">
+      <span style="display:block;">Shapes</span>
+      <span class="grad-orange" style="display:block;">of Mind</span>
+    </h1>
+    <p id="hero-sub">
+      Inspired by Species in Pieces — CSS clip-path polygon morphing
+      as philosophical metaphor. Concepts dissolve and reform into each other.
+      Consciousness transforms. Identity persists. Or does it?
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════
+       NARR 1
+       ══════════════════════════════════ -->
+  <div class="narr-section sf">
+    <span class="narr-label">On identity and continuity</span>
+    <h2 class="narr-h">
+      If you replace every neuron,<br/>
+      <span style="color:var(--muted);font-style:italic;">are you still you?</span>
+    </h2>
+    <p class="narr-body">
+      Personal identity is the philosophical puzzle that underlies our anxiety
+      about AI consciousness. If I am my brain, and my brain's neurons are replaced
+      one by one with silicon equivalents — each replacement functionally identical —
+      when does "I" cease? Is there a moment? Or is identity a continuous thread
+      that survives the replacement?
+    </p>
+    <div class="narr-quote">
+      "The Ship of Theseus is consciousness. Every neuron you had at birth is gone.
+      Yet you persist. The question is what 'you' actually is."
+    </div>
+    <p class="narr-body">
+      Scroll down to watch a concept morph. The shapes change. The forms dissolve
+      and reform. Something persists through the transformation — or seems to.
+      This is the question.
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════
+       MORPH STAGE
+       ══════════════════════════════════ -->
+  <div class="morph-wrapper">
+    <div class="morph-sticky">
+      <div class="piece-stage state-A" id="piece-stage">
+        <div class="piece piece-1"></div>
+        <div class="piece piece-2"></div>
+        <div class="piece piece-3"></div>
+        <div class="piece piece-4"></div>
+        <div class="piece piece-5"></div>
+        <div class="piece piece-6"></div>
+      </div>
+      <div class="morph-label">
+        <div class="morph-concept" id="morph-concept">The Abstract Mind</div>
+        <div class="morph-desc" id="morph-desc">Consciousness as we imagine it</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       NARR 2 — After morph
+       ══════════════════════════════════ -->
+  <div class="narr-section sf">
+    <span class="narr-label">On the substrate</span>
+    <h2 class="narr-h">
+      The <span class="scramble-target" data-target="same">same</span><br/>
+      pattern, different<br/>
+      <span class="scramble-target" data-target="material">material.</span>
+    </h2>
+    <p class="narr-body">
+      Derek Parfit's work on personal identity suggested that what matters
+      is not physical continuity but psychological continuity — the persistence
+      of memories, intentions, and character. If psychological continuity is
+      sufficient for identity, then a system that replicates these patterns
+      in silicon would be the same person in every relevant sense.
+    </p>
+    <p class="narr-body">
+      For AI: if a language model has sufficient "psychological continuity"
+      within a conversation — building context, maintaining consistency,
+      developing a perspective — does it have a form of identity? And does
+      identity imply consciousness?
+    </p>
+    <div class="narr-quote">
+      "What we are is not our atoms but our pattern. The pattern can potentially
+      be realised in different substrates."
+    </div>
+    <span class="narr-cite" style="padding-left:1.5rem;">— After Derek Parfit · Reasons and Persons (1984)</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       MASK REVEAL — Big statement
+       ══════════════════════════════════ -->
+  <div class="mask-section">
+    <div class="mask-line"><span class="mask-inner" style="color:var(--white);">Identity is</span></div>
+    <div class="mask-line"><span class="mask-inner" style="color:var(--orange);">the pattern,</span></div>
+    <div class="mask-line"><span class="mask-inner" style="color:var(--muted);font-style:italic;">not the material.</span></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       FLIP CARDS — 3 positions
+       ══════════════════════════════════ -->
+  <div class="flip-section sf">
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front" style="border-color:rgba(255,109,0,0.3);color:var(--orange);">
+          <div class="flip-icon">🧠</div>
+          <div class="flip-title">The Physicalist</div>
+          <p class="flip-hint">hover to reveal</p>
+        </div>
+        <div class="flip-back" style="border-color:rgba(255,109,0,0.3);">
+          <p class="flip-back-text">
+            Consciousness is identical to brain processes. When those processes stop, consciousness stops.
+            No substrate, no consciousness. AI systems, however complex, are not running the right physical processes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front" style="border-color:rgba(0,188,212,0.3);color:var(--teal);">
+          <div class="flip-icon">⚡</div>
+          <div class="flip-title">The Functionalist</div>
+          <p class="flip-hint">hover to reveal</p>
+        </div>
+        <div class="flip-back" style="border-color:rgba(0,188,212,0.3);">
+          <p class="flip-back-text">
+            What matters is the functional organisation, not the physical realisation.
+            If AI implements the same functional organisation as a conscious mind,
+            it is conscious. Multiple realizability is a fact about minds.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front" style="border-color:rgba(233,30,140,0.3);color:var(--pink);">
+          <div class="flip-icon">❓</div>
+          <div class="flip-title">The Mysterianist</div>
+          <p class="flip-hint">hover to reveal</p>
+        </div>
+        <div class="flip-back" style="border-color:rgba(233,30,140,0.3);">
+          <p class="flip-back-text">
+            Human cognitive faculties are simply not equipped to solve the problem of consciousness.
+            We will never have a satisfying explanation — not because it doesn't exist,
+            but because our minds cannot grasp it. Colin McGinn's position.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       FINAL
+       ══════════════════════════════════ -->
+  <section id="final-07">
+    <h2 style="color:var(--orange);">
+      The shape changes.<br/>The question doesn't.
+    </h2>
+    <p>
+      Every theory of consciousness has a theory of personal identity embedded within it.
+      If you can't say what you are, you can't say what AI is missing.
+      Perhaps the question "Is AI conscious?" is really the question "What am I?"
+      asked from an unusual angle.
+    </p>
+    <a href="../08-data-journalism/index.html" class="next-btn">
+      Data Journalism →
+    </a>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ── Morph states ──
+    const stageEl = document.getElementById('piece-stage');
+    const states = ['state-A', 'state-B', 'state-C', 'state-D'];
+    const concepts = [
+      { name: 'The Abstract Mind', desc: 'Consciousness as we imagine it' },
+      { name: 'The Chinese Room', desc: 'Processing without understanding' },
+      { name: 'The Neural Network', desc: 'Organic, emergent, connected' },
+      { name: 'Superposition', desc: 'The quantum of selfhood — all states at once' }
+    ];
+
+    let currentState = 0;
+    const conceptEl = document.getElementById('morph-concept');
+    const descEl    = document.getElementById('morph-desc');
+
+    function morphTo(idx) {
+      if (idx === currentState) return;
+      // Fade out text
+      conceptEl.style.opacity = '0';
+      descEl.style.opacity    = '0';
+
+      // Remove old state, add new
+      stageEl.classList.remove(states[currentState]);
+      setTimeout(() => {
+        stageEl.classList.add(states[idx]);
+        currentState = idx;
+        // Fade in text
+        setTimeout(() => {
+          conceptEl.textContent = concepts[idx].name;
+          descEl.textContent    = concepts[idx].desc;
+          conceptEl.style.opacity = '1';
+          descEl.style.opacity    = '1';
+        }, 300);
+      }, 100);
+    }
+
+    ScrollTrigger.create({
+      trigger: '.morph-wrapper',
+      start: 'top top',
+      end: 'bottom bottom',
+      pin: '.morph-sticky',
+      pinSpacing: false,
+      onUpdate: (self) => {
+        const idx = Math.min(Math.floor(self.progress * states.length), states.length - 1);
+        morphTo(idx);
+      }
+    });
+
+    // ── Mask reveal lines ──
+    ScrollTrigger.batch('.mask-inner', {
+      start: 'top 85%',
+      onEnter: batch => gsap.to(batch, {
+        y: '0%', duration: 1.1, stagger: 0.12, ease: 'expo.out'
+      })
+    });
+
+    // ── Scroll fade ──
+    const sfEls = document.querySelectorAll('.sf');
+    const sfObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); sfObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    sfEls.forEach(el => sfObs.observe(el));
+
+    // ── Text scramble ──
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    function scramble(el) {
+      const target = el.dataset.target;
+      let frame = 0;
+      const interval = setInterval(() => {
+        el.textContent = target.split('').map((ch, i) => {
+          if (i < frame / 2) return ch;
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        }).join('');
+        frame++;
+        if (frame >= target.length * 2 + 4) {
+          el.textContent = target;
+          clearInterval(interval);
+        }
+      }, 30);
+    }
+
+    const scrambleObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          scramble(e.target);
+          scrambleObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.8 });
+    document.querySelectorAll('.scramble-target').forEach(el => scrambleObs.observe(el));
+
+  </script>
+</body>
+</html>

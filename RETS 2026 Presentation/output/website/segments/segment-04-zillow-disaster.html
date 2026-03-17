@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Zillow Disaster — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0a0a;
+  --red: #E74C3C;
+  --red-dim: rgba(231,76,60,0.12);
+  --teal: #00D4AA;
+  --amber: #F5A623;
+  --white: #FFFFFF;
+  --gray: #8a7a7a;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--red); z-index: 200; width: 0%;
+}
+.back {
+  position: fixed; top: 1.5rem; left: 1.5rem;
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); text-decoration: none; z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--red); }
+
+/* ── INTRO ── */
+.intro {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 6rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cracked glass effect via SVG filter */
+.crack-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(231,76,60,0.07) 0%, transparent 70%);
+}
+
+.intro-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--red); background: rgba(231,76,60,0.1);
+  border: 1px solid rgba(231,76,60,0.3);
+  padding: 0.3rem 1rem; border-radius: 3px; margin-bottom: 2.5rem;
+  display: inline-block; position: relative;
+}
+
+.intro-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.2rem, 7vw, 5.5rem); line-height: 1.05;
+  position: relative;
+}
+
+.intro-headline .highlight { color: var(--red); }
+
+.intro-amount {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(4rem, 12vw, 9rem); color: var(--red);
+  line-height: 1; margin: 1rem 0;
+  text-shadow: 0 0 60px rgba(231,76,60,0.4);
+  position: relative;
+}
+
+.intro-amount::after {
+  content: 'LOST';
+  position: absolute;
+  top: 50%; right: -0.3em; transform: translateY(-50%);
+  font-size: 0.2em; color: rgba(231,76,60,0.5);
+  letter-spacing: 0.2em; font-weight: 700;
+}
+
+.intro-sub {
+  font-size: clamp(1rem, 2vw, 1.2rem); color: var(--gray);
+  max-width: 540px; line-height: 1.6; position: relative;
+}
+
+.scroll-cue {
+  margin-top: 3rem; color: rgba(255,255,255,0.15);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  animation: p 2s ease-in-out infinite; position: relative;
+}
+@keyframes p { 0%,100%{opacity:0.3} 50%{opacity:0.9} }
+
+/* ── CHART SECTION ── */
+.chart-section {
+  min-height: 350vh;
+  position: relative;
+}
+
+.chart-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.chart-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--gray); margin-bottom: 2.5rem; text-align: center;
+}
+
+/* Stock chart area */
+.chart-container {
+  width: min(90vw, 720px);
+  position: relative;
+}
+
+.chart-svg-wrap {
+  width: 100%;
+  height: clamp(200px, 35vh, 320px);
+  position: relative;
+}
+
+.chart-svg {
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+
+/* The animated path */
+.chart-line {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  transition: stroke-dashoffset 0.05s linear;
+}
+
+.chart-fill {
+  opacity: 0.12;
+  transition: opacity 0.3s;
+}
+
+/* X axis labels */
+.chart-x-labels {
+  display: flex; justify-content: space-between;
+  padding: 0.6rem 0.4rem 0;
+}
+
+.chart-x-label {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 0.65rem; letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.2);
+}
+
+.chart-x-label.active { color: var(--red); }
+
+/* ── CURRENT VALUE DISPLAY ── */
+.chart-value-display {
+  text-align: center; margin-top: 2.5rem;
+}
+
+.cvd-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--gray); margin-bottom: 0.5rem;
+}
+
+.cvd-number {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(3rem, 8vw, 6rem); line-height: 1;
+  transition: color 0.5s;
+}
+
+.cvd-sublabel {
+  font-size: 0.9rem; color: var(--gray); margin-top: 0.4rem;
+  min-height: 1.4em; transition: opacity 0.4s;
+}
+
+/* ── FACTS RIBBON ── */
+.facts-ribbon {
+  display: flex; gap: 1.5rem; margin-top: 2.5rem;
+  flex-wrap: wrap; justify-content: center;
+  max-width: 700px;
+}
+
+.fact-chip {
+  background: rgba(231,76,60,0.07);
+  border: 1px solid rgba(231,76,60,0.2);
+  border-radius: 8px; padding: 0.7rem 1rem;
+  text-align: center; flex: 1; min-width: 130px;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fact-chip.shown { opacity: 1; transform: translateY(0); }
+
+.fc-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.2rem, 3vw, 1.8rem); color: var(--red);
+  line-height: 1;
+}
+
+.fc-label {
+  font-size: 0.75rem; color: var(--gray); margin-top: 0.3rem; line-height: 1.4;
+}
+
+/* ── LESSON SECTION ── */
+.lesson-section {
+  padding: 10rem 2rem;
+  max-width: 820px; margin: 0 auto;
+  text-align: center;
+}
+
+.lesson-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 2rem;
+}
+
+.lesson-headline em { font-style: normal; color: var(--teal); }
+
+.lessons {
+  display: grid; gap: 1.2rem; margin: 3rem 0;
+  text-align: left;
+}
+
+.lesson-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 1.2rem 1.5rem;
+  border-radius: 10px;
+  border-left: 3px solid;
+  background: rgba(255,255,255,0.02);
+  opacity: 0; transform: translateX(-20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.lesson-item.visible { opacity: 1; transform: translateX(0); }
+.lesson-item:nth-child(2) { transition-delay: 0.12s; }
+.lesson-item:nth-child(3) { transition-delay: 0.24s; }
+
+.lesson-item--bad { border-left-color: var(--red); }
+.lesson-item--good { border-left-color: var(--teal); }
+.lesson-item--warn { border-left-color: var(--amber); }
+
+.li-icon { font-size: 1.5rem; flex-shrink: 0; }
+.li-body {}
+.li-title { font-weight: 700; margin-bottom: 0.3rem; color: var(--white); }
+.li-desc { font-size: 0.9rem; color: var(--gray); line-height: 1.55; }
+
+.lesson-note {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem); color: var(--gray);
+  line-height: 1.7; max-width: 600px; margin: 2rem auto 0;
+}
+.lesson-note strong { color: var(--white); }
+
+.reveal-up {
+  opacity: 0; transform: translateY(25px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-up.visible { opacity: 1; transform: translateY(0); }
+
+.source {
+  text-align: center; padding: 3rem 2rem;
+  font-size: 0.7rem; color: rgba(255,255,255,0.08); letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- INTRO -->
+<section class="intro">
+  <div class="crack-overlay"></div>
+  <span class="intro-label">RETS 2026 &bull; Cautionary Tale</span>
+  <h1 class="intro-headline">A <span class="highlight">$500 Million</span><br>AI Disaster</h1>
+  <div class="intro-amount">−$304M</div>
+  <p class="intro-sub">
+    Zillow trusted its AI with billions of dollars in real homes. The AI was wrong. 2,000 people lost their jobs. Here's what happened — and what you must never forget.
+  </p>
+  <div class="scroll-cue">↓ scroll for the full story</div>
+</section>
+
+<!-- CHART SECTION -->
+<section class="chart-section" id="chartSection">
+  <div class="chart-sticky">
+    <div class="chart-label">Zillow Offers — Homes Bought vs Sold (Thousands)</div>
+
+    <div class="chart-container">
+      <div class="chart-svg-wrap">
+        <svg class="chart-svg" viewBox="0 0 720 280" preserveAspectRatio="none" id="chartSvg">
+          <defs>
+            <linearGradient id="redGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E74C3C" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#E74C3C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- Grid lines -->
+          <line x1="0" y1="56" x2="720" y2="56" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="112" x2="720" y2="112" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="168" x2="720" y2="168" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="224" x2="720" y2="224" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <!-- Baseline -->
+          <line x1="0" y1="280" x2="720" y2="280" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+          <!-- Area fill (will be revealed with clip) -->
+          <path class="chart-fill" fill="url(#redGrad)" id="chartFill"
+            d="M0,270 C60,265 120,230 180,190 C240,150 280,80 340,40 C380,15 420,10 460,20 C500,32 530,90 570,180 C600,240 640,262 720,270 L720,280 L0,280 Z"/>
+
+          <!-- The animated line -->
+          <path class="chart-line" id="chartLine"
+            d="M0,270 C60,265 120,230 180,190 C240,150 280,80 340,40 C380,15 420,10 460,20 C500,32 530,90 570,180 C600,240 640,262 720,270"/>
+
+          <!-- Peak marker -->
+          <circle id="peakDot" cx="420" cy="10" r="5" fill="var(--amber)" opacity="0"/>
+          <text id="peakLabel" x="420" y="0" text-anchor="middle" fill="var(--amber)"
+            font-family="Montserrat" font-weight="700" font-size="11" opacity="0">9,680 homes bought</text>
+          <line id="peakLine" x1="420" y1="10" x2="420" y2="280"
+            stroke="rgba(245,166,35,0.2)" stroke-width="1" stroke-dasharray="4,4" opacity="0"/>
+
+          <!-- Crash marker -->
+          <circle id="crashDot" cx="570" cy="180" r="5" fill="var(--red)" opacity="0"/>
+          <text id="crashLabel" x="610" y="175" text-anchor="start" fill="var(--red)"
+            font-family="Montserrat" font-weight="700" font-size="11" opacity="0">−$304M written off</text>
+        </svg>
+      </div>
+
+      <div class="chart-x-labels">
+        <span class="chart-x-label">Q1 2020</span>
+        <span class="chart-x-label">Q2 2020</span>
+        <span class="chart-x-label">Q3 2020</span>
+        <span class="chart-x-label">Q4 2020</span>
+        <span class="chart-x-label">Q1 2021</span>
+        <span class="chart-x-label active" id="xlPeak">Q2 2021 ↑ PEAK</span>
+        <span class="chart-x-label active" id="xlCrash">Q4 2021 ↓ CRASH</span>
+      </div>
+
+      <div class="chart-value-display">
+        <div class="cvd-label" id="cvdLabel">Cumulative Losses</div>
+        <div class="cvd-number" id="cvdNumber" style="color:var(--amber);">$0</div>
+        <div class="cvd-sublabel" id="cvdSub">AI priced homes when markets were rising…</div>
+      </div>
+
+      <div class="facts-ribbon">
+        <div class="fact-chip" id="chip0">
+          <div class="fc-num">9,680</div>
+          <div class="fc-label">homes bought by Zillow's AI</div>
+        </div>
+        <div class="fact-chip" id="chip1">
+          <div class="fc-num">3,032</div>
+          <div class="fc-label">homes actually sold</div>
+        </div>
+        <div class="fact-chip" id="chip2">
+          <div class="fc-num">$304M</div>
+          <div class="fc-label">written off in one quarter</div>
+        </div>
+        <div class="fact-chip" id="chip3">
+          <div class="fc-num">2,000</div>
+          <div class="fc-label">employees fired</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LESSON -->
+<section class="lesson-section">
+  <h2 class="lesson-headline reveal-up" data-reveal>
+    AI trained on rising markets<br>
+    <em>breaks when markets shift.</em>
+  </h2>
+
+  <div class="lessons">
+    <div class="lesson-item lesson-item--bad" data-reveal>
+      <span class="li-icon">⚠</span>
+      <div class="li-body">
+        <div class="li-title">The AI only knew the good times</div>
+        <div class="li-desc">Zillow's algorithm was trained during a bull market. When conditions changed, it had no experience of "down" — so it kept buying at inflated prices.</div>
+      </div>
+    </div>
+    <div class="lesson-item lesson-item--warn" data-reveal>
+      <span class="li-icon">◆</span>
+      <div class="li-body">
+        <div class="li-title">Automation without oversight is gambling</div>
+        <div class="li-desc">The AI was buying homes autonomously at scale. By the time humans reviewed the numbers, the damage was already $304M deep.</div>
+      </div>
+    </div>
+    <div class="lesson-item lesson-item--good" data-reveal>
+      <span class="li-icon">✓</span>
+      <div class="li-body">
+        <div class="li-title">The lesson for Zimbabwe's agents</div>
+        <div class="li-desc">Use AI as a tool, not a replacement for judgment. AI writes faster. AI responds faster. But <em>you</em> understand the local market — and that is irreplaceable.</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="lesson-note reveal-up" data-reveal>
+    <strong>Zillow had $500 million to lose.</strong> You don't.
+    But you also have something Zillow didn't: local knowledge, human relationships,
+    and the wisdom to know when the AI is wrong.
+  </p>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 04</div>
+
+<script>
+(function() {
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    pb.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  });
+
+  const section = document.getElementById('chartSection');
+  const line = document.getElementById('chartLine');
+  const fill = document.getElementById('chartFill');
+  const cvdNumber = document.getElementById('cvdNumber');
+  const cvdSub = document.getElementById('cvdSub');
+  const cvdLabel = document.getElementById('cvdLabel');
+  const peakDot = document.getElementById('peakDot');
+  const peakLabel = document.getElementById('peakLabel');
+  const peakLine = document.getElementById('peakLine');
+  const crashDot = document.getElementById('crashDot');
+  const crashLabel = document.getElementById('crashLabel');
+
+  const chips = ['chip0','chip1','chip2','chip3'];
+  let lastProgress = -1;
+
+  // The path total length
+  const lineLength = 1200;
+
+  function onScroll() {
+    const rect = section.getBoundingClientRect();
+    const sectionH = section.offsetHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+
+    if (Math.abs(progress - lastProgress) < 0.002) return;
+    lastProgress = progress;
+
+    // Draw line as we scroll: 0 → 100% of line
+    const drawProgress = Math.min(progress * 1.4, 1);
+    line.style.strokeDashoffset = lineLength * (1 - drawProgress);
+
+    // Show peak markers when progress > 0.4
+    if (progress > 0.4) {
+      peakDot.style.opacity = '1';
+      peakLabel.style.opacity = '1';
+      peakLine.style.opacity = '1';
+    }
+
+    // Show crash marker when progress > 0.65
+    if (progress > 0.65) {
+      crashDot.style.opacity = '1';
+      crashLabel.style.opacity = '1';
+    }
+
+    // Counter animation
+    if (progress < 0.35) {
+      // Rising phase — show homes bought rising
+      const homes = Math.round(progress / 0.35 * 9680);
+      cvdNumber.textContent = homes.toLocaleString() + ' homes';
+      cvdNumber.style.color = 'var(--amber)';
+      cvdLabel.textContent = 'Homes Acquired';
+      cvdSub.textContent = 'AI buying homes — prices rising, confidence high…';
+    } else if (progress < 0.7) {
+      // Transition to loss
+      const lossProgress = (progress - 0.35) / 0.35;
+      const loss = Math.round(lossProgress * 304);
+      cvdNumber.textContent = '−$' + loss + 'M';
+      cvdNumber.style.color = 'var(--red)';
+      cvdLabel.textContent = 'Quarterly Write-Down';
+      cvdSub.textContent = 'Markets shifted. AI kept buying at wrong prices.';
+    } else {
+      cvdNumber.textContent = '−$304M';
+      cvdNumber.style.color = 'var(--red)';
+      cvdLabel.textContent = 'Total Written Off';
+      cvdSub.textContent = 'In a single quarter. 2,000 people fired. Program shut down.';
+    }
+
+    // Reveal chips
+    const chipThresholds = [0.55, 0.62, 0.70, 0.78];
+    chipThresholds.forEach((t, i) => {
+      if (progress >= t) {
+        document.getElementById(chips[i]).classList.add('shown');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // General reveals
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>

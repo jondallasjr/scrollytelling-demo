@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monday Morning Plan — RETS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0d0a;
+  --amber: #F5A623;
+  --teal: #00D4AA;
+  --white: #FFFFFF;
+  --gray: #778066;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--amber); z-index: 200; width: 0%;
+}
+.back {
+  position: fixed; top: 1.5rem; left: 1.5rem;
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); text-decoration: none; z-index: 100;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--amber); }
+
+/* ── HERO: ALARM CLOCK SCENE ── */
+.alarm-section {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center;
+  padding: 6rem 2rem;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 80%, rgba(245,166,35,0.06) 0%, transparent 60%);
+}
+
+/* Animated sunrise effect */
+.sunrise {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(0deg,
+    rgba(245,166,35,0.08) 0%,
+    rgba(245,166,35,0.03) 50%,
+    transparent 100%
+  );
+  animation: sunrise-pulse 4s ease-in-out infinite;
+}
+
+@keyframes sunrise-pulse {
+  0%, 100% { opacity: 0.5; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.05); }
+}
+
+.alarm-label {
+  font-family: 'Montserrat', sans-serif; font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--amber); border: 1px solid rgba(245,166,35,0.3);
+  padding: 0.3rem 1rem; border-radius: 3px; margin-bottom: 2.5rem;
+  display: inline-block; position: relative;
+}
+
+.alarm-time {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(4rem, 15vw, 11rem); color: var(--white);
+  line-height: 1; letter-spacing: -0.02em;
+  text-shadow: 0 0 60px rgba(245,166,35,0.2);
+  position: relative;
+}
+
+.alarm-time .am {
+  font-size: 0.22em; color: var(--amber); vertical-align: super;
+  margin-left: 0.1em;
+}
+
+/* Colon blink */
+.alarm-colon { animation: blink 1s step-end infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
+
+.alarm-day {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: clamp(1rem, 2.5vw, 1.6rem); color: var(--amber);
+  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 0.5rem;
+}
+
+.alarm-headline {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 5vw, 3.5rem); line-height: 1.1;
+  max-width: 700px; margin-top: 2rem;
+}
+
+.alarm-headline em { font-style: normal; color: var(--amber); }
+
+.alarm-sub {
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem); color: var(--gray);
+  max-width: 520px; line-height: 1.65; margin-top: 1rem; position: relative;
+}
+
+.scroll-cue {
+  margin-top: 4rem; color: rgba(255,255,255,0.15);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  animation: sc 2s ease-in-out infinite; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+}
+@keyframes sc { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* ── THREE ACTIONS — PINNED SCROLL ── */
+.actions-section {
+  min-height: 500vh;
+  position: relative;
+}
+
+.actions-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; padding: 2rem;
+}
+
+.actions-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 2.5rem; text-align: center;
+}
+
+.actions-list {
+  width: min(95vw, 780px);
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.action-item {
+  padding: 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  /* collapsed by default */
+}
+
+.action-item:last-child { border-bottom: none; }
+
+.action-header {
+  display: flex; align-items: center; gap: 1.5rem;
+  padding: 1.8rem 0;
+  cursor: default;
+}
+
+.action-num {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(245,166,35,0.08);
+  border: 2px solid rgba(245,166,35,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.1rem; color: rgba(245,166,35,0.4);
+  flex-shrink: 0;
+  transition: all 0.5s ease;
+}
+
+.action-item.active .action-num {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--bg);
+  box-shadow: 0 0 20px rgba(245,166,35,0.4);
+}
+
+.action-item.done .action-num {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--bg);
+}
+
+/* checkmark for done */
+.action-item.done .action-num::before {
+  content: '✓';
+}
+.action-item.done .action-num-inner { display: none; }
+
+.action-title-wrap { flex: 1; }
+
+.action-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem); line-height: 1.2;
+  color: rgba(255,255,255,0.3);
+  transition: color 0.5s ease;
+}
+
+.action-item.active .action-title,
+.action-item.done .action-title { color: var(--white); }
+
+.action-tag {
+  font-family: 'Montserrat', sans-serif; font-size: 0.6rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.15); margin-top: 0.3rem;
+  transition: color 0.5s;
+}
+
+.action-item.active .action-tag { color: var(--amber); opacity: 0.8; }
+.action-item.done .action-tag { color: var(--teal); opacity: 0.8; }
+
+.action-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+  opacity: 0;
+  padding: 0 0 0 4rem;
+}
+
+.action-item.active .action-body,
+.action-item.done .action-body {
+  max-height: 200px;
+  opacity: 1;
+  padding: 0 0 1.5rem 4rem;
+}
+
+.action-detail {
+  font-size: clamp(0.88rem, 1.5vw, 1rem); color: var(--gray); line-height: 1.7;
+  max-width: 580px;
+}
+
+.action-detail strong { color: var(--white); }
+
+.action-tip {
+  margin-top: 0.8rem; padding: 0.6rem 1rem;
+  background: rgba(245,166,35,0.06); border-left: 2px solid rgba(245,166,35,0.4);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  line-height: 1.5;
+}
+
+/* Completion state */
+.completion {
+  margin-top: 2.5rem; text-align: center;
+  opacity: 0; transform: scale(0.95);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+}
+
+.completion.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+
+.completion-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.8rem;
+  box-shadow: 0 0 30px rgba(0,212,170,0.4);
+}
+
+.completion-text {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem); color: var(--teal);
+}
+
+/* ── CLOSING QUOTE ── */
+.closing {
+  padding: 10rem 2rem;
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 30%, rgba(245,166,35,0.05) 0%, transparent 65%);
+}
+
+.closing-inner { max-width: 780px; margin: 0 auto; }
+
+.closing-quote {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: clamp(1.5rem, 4vw, 3rem); line-height: 1.25;
+  font-style: italic; margin-bottom: 2rem;
+}
+
+.closing-quote em { font-style: normal; color: var(--amber); }
+
+.closing-attribution {
+  font-size: 0.85rem; color: var(--gray);
+}
+
+.reveal-up {
+  opacity: 0; transform: translateY(25px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-up.visible { opacity: 1; transform: translateY(0); }
+
+.source {
+  text-align: center; padding: 3rem 2rem;
+  font-size: 0.7rem; color: rgba(255,255,255,0.08); letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pb"></div>
+<a href="index.html" class="back">← All Segments</a>
+
+<!-- ALARM HERO -->
+<section class="alarm-section">
+  <div class="sunrise"></div>
+  <span class="alarm-label">RETS 2026 &bull; Section 04</span>
+  <div class="alarm-time">
+    08<span class="alarm-colon">:</span>00<span class="am">AM</span>
+  </div>
+  <div class="alarm-day">Monday Morning</div>
+  <h1 class="alarm-headline">
+    Three things you can do<br>
+    <em>this week.</em>
+  </h1>
+  <p class="alarm-sub">
+    Not in six months when "AI is ready for Zimbabwe." This week.
+    Before your next listing. Before your next lead goes cold. Now.
+  </p>
+  <div class="scroll-cue"><span>↓</span><span>scroll for the plan</span></div>
+</section>
+
+<!-- THREE ACTIONS — PINNED -->
+<section class="actions-section" id="actionsSection">
+  <div class="actions-sticky">
+    <div class="actions-eyebrow">Your Action Plan — This Week</div>
+
+    <div class="actions-list">
+
+      <div class="action-item" id="action0">
+        <div class="action-header">
+          <div class="action-num"><span class="action-num-inner">1</span></div>
+          <div class="action-title-wrap">
+            <div class="action-title">Try AI for your next listing.</div>
+            <div class="action-tag">Free · 30 seconds · ChatGPT</div>
+          </div>
+        </div>
+        <div class="action-body">
+          <p class="action-detail">
+            <strong>ChatGPT is free.</strong> Paste your property details — bedrooms, bathrooms, location, special features —
+            and ask it to write a compelling listing description. Compare it to what you'd normally write.
+            You'll never go back.
+          </p>
+          <div class="action-tip">
+            Try this prompt: <em>"Write a compelling property listing for a 3-bedroom house in Borrowdale,
+            Harare. It has a garden, double garage, and open-plan kitchen. Buyer profile: young professional family."</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-item" id="action1">
+        <div class="action-header">
+          <div class="action-num"><span class="action-num-inner">2</span></div>
+          <div class="action-title-wrap">
+            <div class="action-title">Set up a WhatsApp auto-responder.</div>
+            <div class="action-tag">Basic setup · Protect your leads · This weekend</div>
+          </div>
+        </div>
+        <div class="action-body">
+          <p class="action-detail">
+            Slow response time is the <strong>#1 killer of hot leads.</strong>
+            WhatsApp Business has a free built-in auto-reply. Set up a greeting message that responds instantly
+            when a lead messages you after hours. Advanced: add an AI chatbot for $0–$30/month.
+          </p>
+          <div class="action-tip">
+            Start simple: <em>"Hi! Thanks for reaching out. I'll reply within 2 hours. Which property are you interested in?"</em>
+            — that alone beats silence.
+          </div>
+        </div>
+      </div>
+
+      <div class="action-item" id="action2">
+        <div class="action-header">
+          <div class="action-num"><span class="action-num-inner">3</span></div>
+          <div class="action-title-wrap">
+            <div class="action-title">List everything digitally on Propertybook.</div>
+            <div class="action-tag">Foundation-building · Future AI training · Do this today</div>
+          </div>
+        </div>
+        <div class="action-body">
+          <p class="action-detail">
+            Every listing you put online builds Zimbabwe's property data foundation.
+            You're not just selling a house today —
+            <strong>you're training the AI that will dominate this market tomorrow.</strong>
+            Agents who have the most digital history will have the most AI leverage.
+          </p>
+          <div class="action-tip">
+            Propertybook has <strong>300,000+ monthly visitors</strong> and 2,000+ registered agents.
+            Your listing is already reaching buyers. Your data is already working for your future.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="completion" id="completion">
+      <div class="completion-circle">✓</div>
+      <div class="completion-text">That's it. Three actions. This week.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING QUOTE -->
+<section class="closing">
+  <div class="closing-inner">
+    <p class="closing-quote reveal-up" data-reveal>
+      "The question isn't whether AI will reshape<br>
+      Zimbabwe's property market.<br>
+      It's <em>who will build the tools</em> that do it."
+    </p>
+    <p class="closing-attribution reveal-up" data-reveal style="transition-delay:0.2s;">
+      Jon Dallas · RETS 2026 · Real Estate Technology Summit, Zimbabwe
+    </p>
+  </div>
+</section>
+
+<div class="source">RETS 2026 · Jon Dallas · AI in Real Estate · Segment 07</div>
+
+<script>
+(function() {
+  const pb = document.getElementById('pb');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    pb.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  });
+
+  const section = document.getElementById('actionsSection');
+  const actions = [
+    document.getElementById('action0'),
+    document.getElementById('action1'),
+    document.getElementById('action2'),
+  ];
+  const completion = document.getElementById('completion');
+
+  let currentActive = -1;
+
+  // Thresholds: when each action becomes active and when it becomes "done"
+  // Total scroll space = 500vh, sticky = 100vh, so ~400vh of scroll range
+  // We map 5 states: -1, 0 active, 0 done + 1 active, 1 done + 2 active, 2 done
+  const thresholds = [
+    { active: 0.05, done: 0.22 },  // action 0
+    { active: 0.30, done: 0.52 },  // action 1
+    { active: 0.60, done: 0.82 },  // action 2
+  ];
+
+  function setState(progress) {
+    actions.forEach((el, i) => {
+      const t = thresholds[i];
+      if (progress >= t.done) {
+        el.classList.remove('active');
+        el.classList.add('done');
+      } else if (progress >= t.active) {
+        el.classList.add('active');
+        el.classList.remove('done');
+      } else {
+        el.classList.remove('active', 'done');
+      }
+    });
+
+    // Show completion when all done
+    if (progress >= thresholds[2].done + 0.05) {
+      completion.classList.add('visible');
+    } else {
+      completion.classList.remove('visible');
+    }
+  }
+
+  function onScroll() {
+    const rect = section.getBoundingClientRect();
+    const sectionH = section.offsetHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+    setState(progress);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // General reveals
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>

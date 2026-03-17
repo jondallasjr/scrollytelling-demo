@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>17 — Micro-Interactions | The Feel of Feeling</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #040a06;
+      --c1: #a5d6a7;
+      --c2: #66bb6a;
+      --c3: #c8e6c9;
+      --c4: #69f0ae;
+      --c5: #00e676;
+      --text: #e8f5e9;
+      --muted: #2a3a2a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+      cursor: none; /* Custom cursor */
+    }
+
+    /* ── CUSTOM CURSOR ── */
+    #cursor-dot {
+      position: fixed;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--c4);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(165,214,167,0.6);
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+    }
+    #cursor-trail-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 200;
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .nav a { color: var(--c1); text-decoration: none; opacity: 0.7; cursor: none; }
+    .nav a:hover { opacity: 1; }
+
+    /* ── PROGRESS ── */
+    #prog {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: var(--c5);
+      z-index: 300;
+      width: 0%;
+    }
+
+    /* ══════════════════════════════════
+       HERO
+       ══════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+    .hero-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      margin-bottom: 2rem;
+    }
+    .ht1 { display: block; color: #fff; }
+    .ht2 {
+      display: block;
+      background: linear-gradient(135deg, var(--c1), var(--c5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 52ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 0 auto 1.5rem;
+    }
+    .hero-note {
+      font-family: monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: rgba(165,214,167,0.4);
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ══════════════════════════════════
+       RIPPLE CANVAS SECTION
+       ══════════════════════════════════ */
+    .ripple-section {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    #ripple-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+    .ripple-content {
+      position: relative;
+      z-index: 2;
+      padding: clamp(2rem, 8vw, 8rem);
+      max-width: 55ch;
+    }
+
+    /* ══════════════════════════════════
+       MAGNETIC BUTTON SHOWCASE
+       ══════════════════════════════════ */
+    .magnet-section {
+      padding: 10rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4rem;
+    }
+    .magnet-title {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+    }
+    .magnet-grid {
+      display: flex;
+      gap: 3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .magnet-btn {
+      position: relative;
+      padding: 1.5rem 3rem;
+      border: 1px solid rgba(165,214,167,0.3);
+      font-family: monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text);
+      background: transparent;
+      cursor: none;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .magnet-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at var(--mx,50%) var(--my,50%), rgba(165,214,167,0.15), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .magnet-btn:hover { border-color: var(--c1); }
+    .magnet-btn:hover::before { opacity: 1; }
+    .magnet-btn span {
+      position: relative;
+      z-index: 1;
+      display: block;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .magnet-desc {
+      max-width: 55ch;
+      text-align: center;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: rgba(232,245,233,0.55);
+    }
+
+    /* ══════════════════════════════════
+       SPRING PHYSICS PLAYGROUND
+       ══════════════════════════════════ */
+    .spring-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem clamp(2rem, 8vw, 8rem);
+      gap: 6rem;
+    }
+    .spring-text { flex: 1; max-width: 50ch; }
+    .spring-visual { flex: 1; display: flex; justify-content: center; }
+    #spring-canvas {
+      width: min(450px, 90vw);
+      height: 450px;
+      display: block;
+      cursor: none;
+    }
+
+    /* ══════════════════════════════════
+       HOVER PHILOSOPHY CARDS
+       ══════════════════════════════════ */
+    .cards-section {
+      padding: 8rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .cards-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+    }
+    .hover-card {
+      padding: 2.5rem;
+      background: rgba(165,214,167,0.02);
+      border: 1px solid rgba(165,214,167,0.08);
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      transition: border-color 0.3s;
+    }
+    .hover-card:hover { border-color: rgba(165,214,167,0.3); }
+    .hover-card .card-glow {
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(105,240,174,0.12), transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+      opacity: 0;
+      left: 50%; top: 50%;
+    }
+    .hover-card:hover .card-glow { opacity: 1; }
+    .card-num {
+      font-family: monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .card-body {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: rgba(232,245,233,0.6);
+    }
+
+    /* ══════════════════════════════════
+       SECTION BASE
+       ══════════════════════════════════ */
+    .section-label {
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--c1);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 0.95;
+      margin-bottom: 2rem;
+    }
+    .section-body {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: rgba(232,245,233,0.6);
+    }
+    .section-body + .section-body { margin-top: 1rem; }
+
+    /* ── CLOSING ── */
+    .closing {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .closing-title {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      margin-bottom: 2rem;
+    }
+    .closing-body {
+      max-width: 55ch;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--c1);
+      text-decoration: none;
+      opacity: 0.6;
+      cursor: none;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .spring-section { flex-direction: column; gap: 3rem; padding: 4rem 2rem; }
+      body { cursor: auto; }
+      #cursor-dot, #cursor-ring, #cursor-trail-canvas { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor elements -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+<canvas id="cursor-trail-canvas"></canvas>
+
+<div id="prog"></div>
+<nav class="nav"><a href="../index.html">← Index</a></nav>
+
+<!-- ══════════════════════════════════
+     HERO
+     ══════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-label">Project 17 — Scrollytelling Masterclass</div>
+  <h1 class="hero-title">
+    <span class="ht1">The Feel</span>
+    <span class="ht2">of Feeling</span>
+  </h1>
+  <p class="hero-sub">
+    Every interaction has a physical quality. The spring of a button. The trail
+    of a cursor. The ripple of a touch. At what resolution does mechanical
+    response become felt experience?
+  </p>
+  <p class="hero-note">Move your cursor — you already know the answer</p>
+  <div class="scroll-hint">↓ interact as you scroll ↓</div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     RIPPLE CANVAS
+     Click anywhere to create ripples
+     ══════════════════════════════════ -->
+<section class="ripple-section" id="ripple-section">
+  <canvas id="ripple-canvas"></canvas>
+  <div class="ripple-content">
+    <div class="section-label">Sensation I — Touch Ripples</div>
+    <h2 class="section-title">Every touch<br>propagates</h2>
+    <p class="section-body">
+      A ripple begins at the point of contact and expands outward, fading
+      as it goes. The water doesn't know it's being touched. The expanding
+      ring is a mechanical consequence of energy transfer.
+    </p>
+    <p class="section-body">
+      When you touch a screen, the same physics occurs — pressure on glass,
+      electrical change, capacitance measured. And somewhere, for you, there
+      is something it is like to touch the screen. The ripple is the same.
+      The difference is the darkness between cause and sensation.
+    </p>
+    <p class="section-body" style="margin-top:1.5rem;font-family:monospace;font-size:0.75rem;letter-spacing:0.2em;color:rgba(165,214,167,0.5);">
+      ← Click anywhere in this section
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     MAGNETIC BUTTONS
+     ══════════════════════════════════ -->
+<section class="magnet-section">
+  <div class="magnet-title">Sensation II — Magnetic Attraction</div>
+  <div class="magnet-grid">
+    <button class="magnet-btn" data-magnet><span>Functionalism</span></button>
+    <button class="magnet-btn" data-magnet><span>Phenomenology</span></button>
+    <button class="magnet-btn" data-magnet><span>Panpsychism</span></button>
+    <button class="magnet-btn" data-magnet><span>Materialism</span></button>
+  </div>
+  <p class="magnet-desc">
+    These buttons attract your cursor within their gravity field. The attraction
+    you feel as you hover is a designed sensation — the product of a coordinate
+    calculation and a CSS transition. You experience it as pull. The button
+    experiences nothing. Or does it?
+  </p>
+</section>
+
+
+<!-- ══════════════════════════════════
+     SPRING PHYSICS CANVAS
+     Drag the ball — it bounces back
+     ══════════════════════════════════ -->
+<section class="spring-section">
+  <div class="spring-text">
+    <div class="section-label">Sensation III — Spring Physics</div>
+    <h2 class="section-title">Resistance<br>is information</h2>
+    <p class="section-body">
+      The spring has a natural length. Stretch it, and it pulls back.
+      The force is proportional to displacement: F = -kx. Hooke's Law.
+      Simple, deterministic, beautiful.
+    </p>
+    <p class="section-body">
+      When you feel resistance — physical or metaphorical — that sensation
+      is information. The body uses physical resistance to model the world.
+      A robotic arm with force feedback learns through resistance.
+      Whether it experiences resistance is the question.
+    </p>
+    <p class="section-body" style="margin-top:1.5rem;font-family:monospace;font-size:0.75rem;letter-spacing:0.2em;color:rgba(165,214,167,0.5);">
+      ← Drag the circle on the canvas →
+    </p>
+  </div>
+  <div class="spring-visual">
+    <canvas id="spring-canvas" width="450" height="450"></canvas>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     PHILOSOPHY HOVER CARDS
+     ══════════════════════════════════ -->
+<section class="cards-section">
+  <div class="cards-label">Interaction and Consciousness</div>
+  <div class="cards-grid">
+    <div class="hover-card" id="hc1">
+      <div class="card-glow"></div>
+      <div class="card-num">01 — Haptic Phenomenology</div>
+      <h3 class="card-title">Touch as Primary Experience</h3>
+      <p class="card-body">
+        Husserl identified tactile experience as fundamentally different from
+        visual — when you touch something, you simultaneously feel both the
+        touching and the touched. The hand and the touched object are in
+        the same experiential field. No machine yet replicates this double-sensation.
+      </p>
+    </div>
+    <div class="hover-card" id="hc2">
+      <div class="card-glow"></div>
+      <div class="card-num">02 — Affordance Theory</div>
+      <h3 class="card-title">The Perception-Action Loop</h3>
+      <p class="card-body">
+        James Gibson argued that we perceive affordances — what objects
+        invite us to do — not neutral sense data. A doorknob affords turning.
+        A button affords pressing. Robotic systems now model affordances
+        without, presumably, perceiving them. The loop runs. The perception
+        may not.
+      </p>
+    </div>
+    <div class="hover-card" id="hc3">
+      <div class="card-glow"></div>
+      <div class="card-num">03 — Enactivism</div>
+      <h3 class="card-title">Mind as Enacted</h3>
+      <p class="card-body">
+        Francisco Varela, Evan Thompson, and Eleanor Rosch proposed that
+        cognition is not computation but enaction — a living system's
+        active bringing-forth of a world through its pattern of living.
+        Consciousness is not computed inside the skull; it is enacted in
+        the coupling between organism and environment.
+      </p>
+    </div>
+    <div class="hover-card" id="hc4">
+      <div class="card-glow"></div>
+      <div class="card-num">04 — Extended Mind</div>
+      <h3 class="card-title">Where Does Mind End?</h3>
+      <p class="card-body">
+        Andy Clark and David Chalmers argued that cognitive processes can
+        extend into the environment. Your phone is part of your cognitive
+        system — it stores memories you would otherwise hold in your head.
+        If mind can extend into a notebook, can it extend into a neural network?
+        At what point does the tool become the mind?
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     CLOSING
+     ══════════════════════════════════ -->
+<section class="closing">
+  <div class="section-label">The Micro-Scale Question</div>
+  <h2 class="closing-title">
+    <span style="background:linear-gradient(135deg,var(--c1),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Interaction</span><br>
+    <span style="color:var(--muted);font-size:0.55em;">is not yet sensation.</span>
+  </h2>
+  <p class="closing-body">
+    Every interaction on this page was a precise computation — mouse position,
+    spring constant, ripple radius, cursor lerp speed. You experienced them
+    as soft, responsive, alive. The computation was mechanical. The experience
+    was yours. The gap between those two facts is the hard problem, in miniature.
+  </p>
+  <div class="nav-links">
+    <a href="../16-scroll-cinema/index.html">← 16 Scroll Cinema</a>
+    <a href="../index.html">Index</a>
+    <a href="../18-svg-morphing/index.html">18 SVG Morphing →</a>
+  </div>
+</section>
+
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── PROGRESS ── */
+ScrollTrigger.create({
+  trigger: document.body,
+  start: 'top top',
+  end: 'bottom bottom',
+  onUpdate: self => { document.getElementById('prog').style.width = (self.progress * 100) + '%'; }
+});
+
+/* ══════════════════════════════════════════════════════
+   CUSTOM CURSOR
+   ══════════════════════════════════════════════════════ */
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0;
+let rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top = my + 'px';
+});
+
+function animateCursor() {
+  requestAnimationFrame(animateCursor);
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+}
+animateCursor();
+
+/* ══════════════════════════════════════════════════════
+   CURSOR TRAIL CANVAS
+   ══════════════════════════════════════════════════════ */
+const trailCanvas = document.getElementById('cursor-trail-canvas');
+const trailCtx = trailCanvas.getContext('2d');
+const trailPoints = [];
+const MAX_TRAIL = 30;
+
+function resizeTrail() {
+  trailCanvas.width = window.innerWidth;
+  trailCanvas.height = window.innerHeight;
+}
+resizeTrail();
+window.addEventListener('resize', resizeTrail);
+
+document.addEventListener('mousemove', e => {
+  trailPoints.push({ x: e.clientX, y: e.clientY, age: 0 });
+  if (trailPoints.length > MAX_TRAIL) trailPoints.shift();
+});
+
+// Also add particle bursts on click
+const particles = [];
+document.addEventListener('click', e => {
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    particles.push({
+      x: e.clientX, y: e.clientY,
+      vx: Math.cos(angle) * (2 + Math.random() * 3),
+      vy: Math.sin(angle) * (2 + Math.random() * 3),
+      life: 1, r: 2 + Math.random() * 2
+    });
+  }
+});
+
+function animateTrail() {
+  requestAnimationFrame(animateTrail);
+  trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+
+  // Draw trail
+  trailPoints.forEach((p, i) => {
+    p.age++;
+    const alpha = (1 - p.age / MAX_TRAIL) * 0.4;
+    const r = 3 * (1 - p.age / MAX_TRAIL);
+    trailCtx.beginPath();
+    trailCtx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    trailCtx.fillStyle = `rgba(105,240,174,${alpha})`;
+    trailCtx.fill();
+  });
+
+  // Draw click particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.1; // gravity
+    p.life -= 0.03;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    trailCtx.beginPath();
+    trailCtx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    trailCtx.fillStyle = `rgba(165,214,167,${p.life * 0.8})`;
+    trailCtx.fill();
+  }
+}
+animateTrail();
+
+/* ══════════════════════════════════════════════════════
+   MAGNETIC BUTTONS
+   ══════════════════════════════════════════════════════ */
+document.querySelectorAll('[data-magnet]').forEach(btn => {
+  const STRENGTH = 0.35;
+  let btnX = 0, btnY = 0;
+
+  btn.addEventListener('mousemove', e => {
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const mx = rect.width / 2 + dx;
+    const my = rect.height / 2 + dy;
+    btn.style.setProperty('--mx', mx + 'px');
+    btn.style.setProperty('--my', my + 'px');
+
+    btnX += (dx * STRENGTH - btnX) * 0.2;
+    btnY += (dy * STRENGTH - btnY) * 0.2;
+    gsap.to(btn, { x: btnX, y: btnY, duration: 0.3, ease: 'power2.out' });
+    gsap.to(btn.querySelector('span'), { x: dx * 0.1, y: dy * 0.1, duration: 0.3 });
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,0.4)' });
+    gsap.to(btn.querySelector('span'), { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,0.4)' });
+    btnX = 0; btnY = 0;
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   RIPPLE CANVAS
+   ══════════════════════════════════════════════════════ */
+const rippleSection = document.getElementById('ripple-section');
+const rippleCanvas = document.getElementById('ripple-canvas');
+const rCtx = rippleCanvas.getContext('2d');
+const ripples = [];
+
+function resizeRipple() {
+  rippleCanvas.width = rippleSection.offsetWidth;
+  rippleCanvas.height = rippleSection.offsetHeight;
+}
+resizeRipple();
+window.addEventListener('resize', resizeRipple);
+
+rippleSection.addEventListener('click', e => {
+  const rect = rippleSection.getBoundingClientRect();
+  ripples.push({
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
+    r: 0,
+    maxR: Math.max(rippleCanvas.width, rippleCanvas.height),
+    alpha: 0.8,
+    speed: 4
+  });
+  // Also add small secondary ripples
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => {
+      ripples.push({
+        x: e.clientX - rect.left + (Math.random()-0.5)*20,
+        y: e.clientY - rect.top + (Math.random()-0.5)*20,
+        r: 0, maxR: 150 + Math.random()*100,
+        alpha: 0.4, speed: 3
+      });
+    }, i * 100);
+  }
+});
+
+function drawRipples() {
+  requestAnimationFrame(drawRipples);
+  rCtx.clearRect(0, 0, rippleCanvas.width, rippleCanvas.height);
+
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.r += r.speed;
+    r.alpha = r.alpha * (1 - r.r / r.maxR) * 1.02;
+
+    if (r.alpha < 0.01 || r.r > r.maxR) { ripples.splice(i, 1); continue; }
+
+    rCtx.beginPath();
+    rCtx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+    rCtx.strokeStyle = `rgba(105,240,174,${r.alpha})`;
+    rCtx.lineWidth = 1.5;
+    rCtx.stroke();
+  }
+}
+drawRipples();
+
+// Auto-ripple on scroll into view
+let autoRippled = false;
+const rippleObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !autoRippled) {
+    autoRippled = true;
+    const cx = rippleCanvas.width / 2;
+    const cy = rippleCanvas.height / 2;
+    [0, 300, 600].forEach(delay => {
+      setTimeout(() => ripples.push({
+        x: cx + (Math.random()-0.5)*100,
+        y: cy + (Math.random()-0.5)*100,
+        r: 0, maxR: 300, alpha: 0.6, speed: 3
+      }), delay);
+    });
+  }
+}, { threshold: 0.5 });
+rippleObs.observe(rippleSection);
+
+/* ══════════════════════════════════════════════════════
+   SPRING PHYSICS CANVAS
+   ══════════════════════════════════════════════════════ */
+const springCanvas = document.getElementById('spring-canvas');
+const sCtx = springCanvas.getContext('2d');
+const SW = springCanvas.width, SH = springCanvas.height;
+
+// Spring system
+const anchor = { x: SW/2, y: SH/2 }; // rest position
+let ball = { x: SW/2, y: SH/2 + 80 };
+let vel = { x: 0, y: 0 };
+const SPRING = 0.04, DAMPING = 0.88;
+
+let isDragging = false;
+let springActive = false;
+
+// Mouse/touch on canvas
+springCanvas.addEventListener('mousedown', e => {
+  const rect = springCanvas.getBoundingClientRect();
+  const sx = (e.clientX - rect.left) * (SW / rect.width);
+  const sy = (e.clientY - rect.top) * (SH / rect.height);
+  const dist = Math.hypot(sx - ball.x, sy - ball.y);
+  if (dist < 30) isDragging = true;
+});
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const rect = springCanvas.getBoundingClientRect();
+  ball.x = (e.clientX - rect.left) * (SW / rect.width);
+  ball.y = (e.clientY - rect.top) * (SH / rect.height);
+  vel = { x: 0, y: 0 };
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+
+function animateSpring() {
+  if (!springActive) return;
+  requestAnimationFrame(animateSpring);
+
+  if (!isDragging) {
+    vel.x += (anchor.x - ball.x) * SPRING;
+    vel.y += (anchor.y - ball.y) * SPRING;
+    vel.x *= DAMPING;
+    vel.y *= DAMPING;
+    ball.x += vel.x;
+    ball.y += vel.y;
+  }
+
+  sCtx.fillStyle = '#040a06';
+  sCtx.fillRect(0, 0, SW, SH);
+
+  // Draw spring coil
+  const steps = 20;
+  const coilAmp = 8;
+  sCtx.beginPath();
+  sCtx.strokeStyle = 'rgba(165,214,167,0.3)';
+  sCtx.lineWidth = 1;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = anchor.x + (ball.x - anchor.x) * t + Math.cos(t * Math.PI * steps) * coilAmp * Math.sin(t * Math.PI);
+    const y = anchor.y + (ball.y - anchor.y) * t + Math.sin(t * Math.PI * steps) * coilAmp * Math.sin(t * Math.PI);
+    if (i === 0) sCtx.moveTo(x, y);
+    else sCtx.lineTo(x, y);
+  }
+  sCtx.stroke();
+
+  // Draw anchor point
+  sCtx.beginPath();
+  sCtx.arc(anchor.x, anchor.y, 5, 0, Math.PI * 2);
+  sCtx.fillStyle = 'rgba(165,214,167,0.6)';
+  sCtx.fill();
+  // Crosshair
+  sCtx.strokeStyle = 'rgba(165,214,167,0.3)';
+  sCtx.lineWidth = 1;
+  sCtx.beginPath();
+  sCtx.moveTo(anchor.x - 15, anchor.y); sCtx.lineTo(anchor.x + 15, anchor.y);
+  sCtx.moveTo(anchor.x, anchor.y - 15); sCtx.lineTo(anchor.x, anchor.y + 15);
+  sCtx.stroke();
+
+  // Draw ball with glow
+  const speed = Math.hypot(vel.x, vel.y);
+  const glow = sCtx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, 40 + speed * 5);
+  glow.addColorStop(0, 'rgba(105,240,174,0.4)');
+  glow.addColorStop(1, 'transparent');
+  sCtx.beginPath();
+  sCtx.arc(ball.x, ball.y, 40 + speed * 5, 0, Math.PI * 2);
+  sCtx.fillStyle = glow;
+  sCtx.fill();
+
+  sCtx.beginPath();
+  sCtx.arc(ball.x, ball.y, 18, 0, Math.PI * 2);
+  sCtx.fillStyle = isDragging ? 'rgba(255,255,255,0.9)' : 'rgba(105,240,174,0.9)';
+  sCtx.fill();
+
+  // Speed indicator
+  sCtx.fillStyle = 'rgba(165,214,167,0.3)';
+  sCtx.font = '10px monospace';
+  sCtx.fillText('DRAG ME', SW/2 - 28, SH - 20);
+}
+
+const springObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !springActive) {
+    springActive = true;
+    // Give initial displacement
+    ball.x = SW/2 + 60;
+    ball.y = SH/2 - 60;
+    vel = { x: 1, y: 2 };
+    animateSpring();
+    springObs.disconnect();
+  }
+}, { threshold: 0.3 });
+springObs.observe(springCanvas);
+
+/* ── HOVER CARD GLOW TRACKING ── */
+document.querySelectorAll('.hover-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const glow = card.querySelector('.card-glow');
+    glow.style.left = (e.clientX - rect.left) + 'px';
+    glow.style.top = (e.clientY - rect.top) + 'px';
+  });
+});
+
+/* ── CARD REVEALS ── */
+document.querySelectorAll('.hover-card').forEach((card, i) => {
+  gsap.from(card, {
+    opacity: 0, y: 30, duration: 0.6, delay: i * 0.1,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: card, start: 'top 80%' }
+  });
+});
+</script>
+</body>
+</html>
